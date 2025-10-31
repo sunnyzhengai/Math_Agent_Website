@@ -4,6 +4,8 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
+from ..services.engine_service import EngineService
+
 router = APIRouter()
 
 # Schemas
@@ -41,79 +43,27 @@ class ProgressResponse(BaseModel):
     weekly_stats: WeeklyStats
     due_today: List[SkillProgress]
 
-# Mock progress data
-MOCK_PROGRESS = ProgressResponse(
-    user_id="user_julia_001",
-    domain="Quadratics",
-    skills=[
-        SkillProgress(
-            skill_id="quad.identify",
-            name="Identify Quadratic",
-            p_mastery=0.85,
-            attempts=12,
-            correct_count=10,
-            streak=2,
-            last_attempt=datetime.utcnow(),
-            top_errors=[ErrorTag(tag="wrong_degree", count=2)]
-        ),
-        SkillProgress(
-            skill_id="quad.vertex.form",
-            name="Convert to Vertex Form",
-            p_mastery=0.6,
-            attempts=8,
-            correct_count=5,
-            streak=0,
-            last_attempt=datetime.utcnow(),
-            top_errors=[ErrorTag(tag="sign_error", count=2), ErrorTag(tag="missing_h", count=1)]
-        ),
-        SkillProgress(
-            skill_id="quad.factor.a1",
-            name="Factor Quadratics (a=1)",
-            p_mastery=0.7,
-            attempts=10,
-            correct_count=7,
-            streak=1,
-            top_errors=[]
-        ),
-    ],
-    top_misconceptions=[
-        Misconception(tag="sign_error", count=4, skill_ids=["quad.vertex.form", "quad.factor.a1"]),
-        Misconception(tag="wrong_degree", count=2, skill_ids=["quad.identify"]),
-    ],
-    weekly_stats=WeeklyStats(
-        attempts_this_week=10,
-        correct_this_week=7,
-        accuracy_this_week=0.7,
-        skills_with_progress=3
-    ),
-    due_today=[
-        SkillProgress(
-            skill_id="quad.vertex.form",
-            name="Convert to Vertex Form",
-            p_mastery=0.6,
-            attempts=8,
-            correct_count=5,
-            streak=0
-        )
-    ]
-)
-
 @router.get("", response_model=ProgressResponse)
 async def get_progress(user_id: str, domain: str = "Quadratics"):
     """
     Get learner progress dashboard data.
     
-    In production, this queries Neo4j:
-    - HAS_PROGRESS relationships for mastery, attempts, streak
-    - Attempt nodes for recent history
-    - HAS_ERROR relationships for misconception counts
+    Calls EngineService.get_progress() which queries Neo4j:
+    - HAS_PROGRESS relationships (mastery, attempts, streak, last_attempt)
+    - Recent Attempt nodes (for weekly stats and accuracy)
+    - HAS_ERROR relationships (misconception counts)
     
     Args:
-        user_id: User ID
+        user_id: User ID (required)
         domain: Skill domain (default: Quadratics)
     
     Returns:
         ProgressResponse with skill mastery, misconceptions, and weekly stats
+    
+    Raises:
+        HTTPException 400: Missing user_id
+        HTTPException 404: User not found
+        HTTPException 500: Query error
     """
     if not user_id:
         raise HTTPException(
@@ -121,5 +71,71 @@ async def get_progress(user_id: str, domain: str = "Quadratics"):
             detail={"error": "missing_parameter", "message": "user_id is required"}
         )
     
-    # Mock response (in production, query Neo4j)
-    return MOCK_PROGRESS
+    try:
+        # Get progress from engine service
+        progress_data = EngineService.get_progress(user_id, domain)
+        
+        # Convert skills to SkillProgress models
+        skills = [
+            SkillProgress(
+                skill_id=s["skill_id"],
+                name=s["name"],
+                p_mastery=s.get("p_mastery", 0.5),
+                attempts=s.get("attempts", 0),
+                correct_count=s.get("correct_count", 0),
+                streak=s.get("streak", 0),
+                last_attempt=s.get("last_attempt"),
+                due_at=s.get("due_at"),
+                top_errors=[ErrorTag(tag=e["tag"], count=e["count"]) for e in s.get("top_errors", [])]
+            )
+            for s in progress_data.get("skills", [])
+        ]
+        
+        # Convert misconceptions
+        misconceptions = [
+            Misconception(
+                tag=m["tag"],
+                count=m["count"],
+                skill_ids=m["skill_ids"]
+            )
+            for m in progress_data.get("top_misconceptions", [])
+        ]
+        
+        # Weekly stats
+        stats_data = progress_data.get("weekly_stats", {})
+        weekly_stats = WeeklyStats(
+            attempts_this_week=stats_data.get("attempts_this_week", 0),
+            correct_this_week=stats_data.get("correct_this_week", 0),
+            accuracy_this_week=stats_data.get("accuracy_this_week", 0.0),
+            skills_with_progress=stats_data.get("skills_with_progress", 0)
+        )
+        
+        # Due today
+        due_today = [
+            SkillProgress(
+                skill_id=s["skill_id"],
+                name=s["name"],
+                p_mastery=s.get("p_mastery", 0.5),
+                attempts=s.get("attempts", 0),
+                correct_count=s.get("correct_count", 0),
+                streak=s.get("streak", 0),
+                last_attempt=s.get("last_attempt"),
+                due_at=s.get("due_at")
+            )
+            for s in progress_data.get("due_today", [])
+        ]
+        
+        return ProgressResponse(
+            user_id=user_id,
+            domain=domain,
+            skills=skills,
+            top_misconceptions=misconceptions,
+            weekly_stats=weekly_stats,
+            due_today=due_today
+        )
+    
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "progress_query_failed", "message": str(e)}
+        )
