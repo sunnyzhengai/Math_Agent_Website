@@ -1,0 +1,462 @@
+openapi: 3.0.0
+info:
+  title: Math Agent API
+  description: FastAPI backend for Quadratics skill mastery platform
+  version: 1.0.0
+  contact:
+    name: Sunny Zheng
+
+servers:
+  - url: https://api.mathagent.app
+    description: Production
+  - url: http://localhost:8000
+    description: Development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserSession:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: Unique user identifier (UUID)
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [student, teacher, admin]
+        authenticated_at:
+          type: string
+          format: date-time
+      required: [user_id, email, role]
+
+    Skill:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Skill ID (e.g., quad.vertex.form)
+        name:
+          type: string
+        description:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard, applied]
+        prerequisites:
+          type: array
+          items:
+            type: string
+      required: [id, name]
+
+    Choice:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        tags_on_select:
+          type: array
+          items:
+            type: string
+      required: [id, text]
+
+    Item:
+      type: object
+      properties:
+        item_id:
+          type: string
+        skill_id:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard, applied]
+        stem:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Choice'
+        hints:
+          type: array
+          items:
+            type: string
+        explanation:
+          type: string
+        confidence_target:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Target success rate (0.65-0.75)
+      required: [item_id, skill_id, stem, choices]
+
+    NextItemResponse:
+      type: object
+      properties:
+        item:
+          $ref: '#/components/schemas/Item'
+        reason:
+          type: string
+          description: Human-readable explanation (e.g., "Remediation: you had 2 sign_error tags on factors")
+        difficulty:
+          type: string
+          enum: [easy, medium, hard, applied]
+        learner_mastery_before:
+          type: number
+          minimum: 0
+          maximum: 1
+      required: [item, reason, difficulty]
+
+    GradeRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+        item_id:
+          type: string
+        selected_choice_id:
+          type: string
+        time_ms:
+          type: integer
+          minimum: 0
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: User's self-assessed confidence (0-100%)
+      required: [user_id, item_id, selected_choice_id, time_ms]
+
+    GradeResponse:
+      type: object
+      properties:
+        correct:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+          description: Error tags detected (e.g., sign_error, missing_term)
+        p_mastery_after:
+          type: number
+          minimum: 0
+          maximum: 1
+        attempts_on_skill:
+          type: integer
+        next_due_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When to show this skill next (spaced review)
+        suggested_resource_url:
+          type: string
+          nullable: true
+          description: Link to mini-lesson if remediation needed
+      required: [correct, tags, p_mastery_after, attempts_on_skill]
+
+    SkillProgress:
+      type: object
+      properties:
+        skill_id:
+          type: string
+        name:
+          type: string
+        p_mastery:
+          type: number
+          minimum: 0
+          maximum: 1
+        attempts:
+          type: integer
+        correct_count:
+          type: integer
+        streak:
+          type: integer
+        last_attempt:
+          type: string
+          format: date-time
+          nullable: true
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        top_errors:
+          type: array
+          items:
+            type: object
+            properties:
+              tag:
+                type: string
+              count:
+                type: integer
+
+    ProgressResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+        domain:
+          type: string
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillProgress'
+        top_misconceptions:
+          type: array
+          items:
+            type: object
+            properties:
+              tag:
+                type: string
+              count:
+                type: integer
+              skill_ids:
+                type: array
+                items:
+                  type: string
+        weekly_stats:
+          type: object
+          properties:
+            attempts_this_week:
+              type: integer
+            correct_this_week:
+              type: integer
+            accuracy_this_week:
+              type: number
+            skills_with_progress:
+              type: integer
+        due_today:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillProgress'
+      required: [user_id, skills, weekly_stats]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      tags: [System]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/auth/session:
+    post:
+      summary: Verify auth token and get session
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                  description: Supabase access token (JWT)
+              required: [access_token]
+      responses:
+        '200':
+          description: Valid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSession'
+        '401':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/skills:
+    get:
+      summary: List all skills in a domain
+      tags: [Skills]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: domain
+          schema:
+            type: string
+            default: Quadratics
+          description: Skill domain (e.g., Quadratics, Linear, Systems)
+      responses:
+        '200':
+          description: List of skills
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  domain:
+                    type: string
+                  skills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Skill'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/next-item:
+    post:
+      summary: Generate next item for student
+      tags: [Learning]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                domain:
+                  type: string
+                  default: Quadratics
+                seed:
+                  type: integer
+                  nullable: true
+                  description: Optional seed for deterministic generation (testing)
+              required: [user_id]
+      responses:
+        '200':
+          description: Next item with reasoning
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NextItemResponse'
+        '400':
+          description: Bad request (missing user_id, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/grade:
+    post:
+      summary: Grade student response and update mastery
+      tags: [Learning]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeRequest'
+      responses:
+        '200':
+          description: Grading result with mastery update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/progress:
+    get:
+      summary: Get learner progress dashboard data
+      tags: [Progress]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: user_id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: domain
+          schema:
+            type: string
+            default: Quadratics
+      responses:
+        '200':
+          description: Progress data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
