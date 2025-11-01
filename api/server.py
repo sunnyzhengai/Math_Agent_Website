@@ -8,6 +8,7 @@ See api/CONTRACTS.md for request/response schemas.
 import os
 import sys
 import json
+import time
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -15,11 +16,36 @@ from pydantic import BaseModel
 from typing import Optional, List, Literal, Dict, Any
 from collections import OrderedDict
 import asyncio
-import time
 
 from engine.templates import generate_item, SKILL_TEMPLATES
 from engine.grader import grade_response
 from engine.validators import validate_item
+
+# Import cycle_manager - use absolute import with fallback
+try:
+    from api.cycle_manager import cycle_bags
+except ImportError:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cycle_manager", os.path.join(os.path.dirname(__file__), "cycle_manager.py"))
+    if spec and spec.loader:
+        cycle_manager_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cycle_manager_module)
+        cycle_bags = cycle_manager_module.cycle_bags
+    else:
+        raise ImportError("Could not load cycle_manager")
+
+# Import telemetry - use absolute import with fallback
+try:
+    from api.telemetry import log_event
+except ImportError:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("telemetry", os.path.join(os.path.dirname(__file__), "telemetry.py"))
+    if spec and spec.loader:
+        telemetry_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(telemetry_module)
+        log_event = telemetry_module.log_event
+    else:
+        raise ImportError("Could not load telemetry")
 
 
 # ============================================================================
@@ -165,19 +191,30 @@ async def generate_item_endpoint(request: GenerateItemRequest):
     # Fast path: random mode (unchanged)
     if request.mode != "cycle":
         try:
+            t0 = time.time()
             item = generate_item(
                 skill_id=request.skill_id,
                 difficulty=request.difficulty,
                 seed=request.seed,
             )
-            # Log telemetry
-            log_telemetry(
-                "item_generated",
-                mode="random",
-                skill_id=request.skill_id,
-                difficulty=request.difficulty or "easy",
-                item_id=item.get("item_id")
-            )
+            latency_ms = float((time.time() - t0) * 1000.0)
+            
+            # Log telemetry (async, don't await in sync path; fire-and-forget)
+            try:
+                asyncio.create_task(log_event(
+                    "generate",
+                    session_id=request.session_id,
+                    mode="random",
+                    skill_id=item["skill_id"],
+                    difficulty=item["difficulty"],
+                    item_id=item["item_id"],
+                    stem=item["stem"],
+                    choice_ids=[c["id"] for c in item["choices"]],
+                    latency_ms=latency_ms,
+                ))
+            except Exception:
+                pass  # fail-open: don't crash if telemetry fails
+            
             return GenerateItemResponse(**item)
         except ValueError as e:
             error_msg = str(e)
@@ -227,13 +264,24 @@ async def generate_item_endpoint(request: GenerateItemRequest):
         )
     
     # Cycle mode logic
+    t0 = time.time()
     pool_key = (request.session_id, request.skill_id, difficulty)  # type: ignore
     pool_size = len(pool)
     
-    # If bag is full, clear it (start a new cycle)
+    # If bag is full, clear it (start a new cycle) and emit cycle_reset
     current_seen_size = await cycle_bags.size(pool_key)
     if current_seen_size >= pool_size:
         await cycle_bags.clear(pool_key)
+        # Emit cycle_reset event
+        try:
+            await log_event(
+                "cycle_reset",
+                session_id=request.session_id,
+                skill_id=request.skill_id,
+                difficulty=difficulty,
+            )
+        except Exception:
+            pass  # fail-open
     
     # Try to find an unseen template
     max_attempts = min(8, pool_size * 2)
@@ -250,22 +298,41 @@ async def generate_item_endpoint(request: GenerateItemRequest):
         if not await cycle_bags.has_seen(pool_key, stem):
             # Found an unseen stem
             await cycle_bags.mark_seen(pool_key, stem)
+            latency_ms = float((time.time() - t0) * 1000.0)
+            
             # Log telemetry
-            log_telemetry(
-                "item_generated",
-                mode="cycle",
-                session_id=request.session_id,
-                skill_id=request.skill_id,
-                difficulty=difficulty,
-                item_id=item.get("item_id")
-            )
+            try:
+                await log_event(
+                    "generate",
+                    session_id=request.session_id,
+                    mode="cycle",
+                    skill_id=item["skill_id"],
+                    difficulty=item["difficulty"],
+                    item_id=item["item_id"],
+                    stem=item["stem"],
+                    choice_ids=[c["id"] for c in item["choices"]],
+                    latency_ms=latency_ms,
+                )
+            except Exception:
+                pass  # fail-open
+            
             return GenerateItemResponse(**item)
         
         last_item = item
     
     # Fallback: couldn't find unseen after max attempts (tiny pool or bad luck)
-    # Clear bag and return one fresh
+    # Clear bag and emit cycle_reset
     await cycle_bags.clear(pool_key)
+    try:
+        await log_event(
+            "cycle_reset",
+            session_id=request.session_id,
+            skill_id=request.skill_id,
+            difficulty=difficulty,
+        )
+    except Exception:
+        pass  # fail-open
+    
     item = generate_item(
         skill_id=request.skill_id,
         difficulty=difficulty,
@@ -273,16 +340,24 @@ async def generate_item_endpoint(request: GenerateItemRequest):
     )
     stem = item.get("stem", "")
     await cycle_bags.mark_seen(pool_key, stem)
-    # Log telemetry (fallback)
-    log_telemetry(
-        "item_generated",
-        mode="cycle",
-        session_id=request.session_id,
-        skill_id=request.skill_id,
-        difficulty=difficulty,
-        item_id=item.get("item_id"),
-        fallback=True
-    )
+    latency_ms = float((time.time() - t0) * 1000.0)
+    
+    # Log telemetry (fallback case)
+    try:
+        await log_event(
+            "generate",
+            session_id=request.session_id,
+            mode="cycle",
+            skill_id=item["skill_id"],
+            difficulty=item["difficulty"],
+            item_id=item["item_id"],
+            stem=item["stem"],
+            choice_ids=[c["id"] for c in item["choices"]],
+            latency_ms=latency_ms,
+        )
+    except Exception:
+        pass  # fail-open
+    
     return GenerateItemResponse(**item)
 
 
@@ -344,7 +419,26 @@ async def grade_endpoint(request: GradeRequest):
         )
     
     try:
+        t0 = time.time()
         result = grade_response(item=request.item, choice_id=request.choice_id)
+        latency_ms = float((time.time() - t0) * 1000.0)
+        
+        # Log telemetry (async, fire-and-forget)
+        try:
+            asyncio.create_task(log_event(
+                "grade",
+                session_id=None,  # simplest for now; link via item_id
+                skill_id=request.item.get("skill_id"),
+                difficulty=request.item.get("difficulty"),
+                item_id=request.item.get("item_id"),
+                choice_id=request.choice_id,
+                correct=result["correct"],
+                solution_choice_id=result["solution_choice_id"],
+                latency_ms=latency_ms,
+            ))
+        except Exception:
+            pass  # fail-open: don't crash if telemetry fails
+        
         return GradeResponse(**result)
     except ValueError as e:
         error_msg = str(e)
