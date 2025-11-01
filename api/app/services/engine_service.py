@@ -160,14 +160,14 @@ class EngineService:
             EngineService._cache_item(user_id, item_data)
             
             return {
-                "item_id": item_data.get("item_id"),
+                "item_id": item_data.get("item_id") or item_data.get("id"),
                 "skill_id": item_data.get("skill_id"),
                 "difficulty": item_data.get("difficulty", "medium"),
                 "stem": item_data.get("stem"),
                 "choices": item_data.get("choices", []),
-                "explanation": item_data.get("explanation"),
+                "explanation": item_data.get("rationale") or item_data.get("explanation"),
                 "reason": item_data.get("reason", "Continue practicing"),
-                "learner_mastery_before": item_data.get("learner_mastery_before", 0.5)
+                "learner_mastery_before": item_data.get("learner_mastery_before") or item_data.get("learner_mastery", 0.5)
             }
         
         except Exception as e:
