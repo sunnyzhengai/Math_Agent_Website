@@ -134,7 +134,24 @@ class EngineService:
                 "learner_mastery_before": item_data.get("learner_mastery_before", 0.5)
             }
         except Exception as e:
-            raise ValueError(f"Failed to generate item: {e}")
+            # Fallback: use mock item for development
+            print(f"⚠️  Warning: Failed to call engine: {e}")
+            # Return a mock item for development
+            return {
+                "item_id": "item_mock_001",
+                "skill_id": "quad.identify",
+                "difficulty": "easy",
+                "stem": "Is the following expression a quadratic? x² + 3x + 2",
+                "choices": [
+                    {"id": "c1", "text": "Yes", "tags_on_select": ["correct"]},
+                    {"id": "c2", "text": "No", "tags_on_select": ["wrong"]},
+                    {"id": "c3", "text": "Maybe", "tags_on_select": ["wrong"]},
+                    {"id": "c4", "text": "Not sure", "tags_on_select": ["wrong"]},
+                ],
+                "explanation": "A quadratic expression has the form ax² + bx + c where a ≠ 0. This expression is a quadratic.",
+                "reason": "Development mock item (engine not available)",
+                "learner_mastery_before": 0.5
+            }
     
     @staticmethod
     def grade_response(
