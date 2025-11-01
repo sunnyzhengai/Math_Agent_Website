@@ -221,14 +221,25 @@ function handleGradeResult(result) {
 function onNext() {
     const skillId = "quad.graph.vertex";
     
-    // Look at the current pool
-    const poolKey = `${skillId}:${DEV_SEQUENCE[devIndex]}`;
+    const currDiff = DEV_SEQUENCE[devIndex];
+    const poolKey = `${skillId}:${currDiff}`;
     const poolSize = POOL_SIZE_HINT[poolKey] ?? null;
     const seen = seenByPool.get(poolKey) ?? new Set();
 
-    // If we've seen all unique stems for this pool, move to the next difficulty
-    if (poolSize && seen.size >= poolSize && devIndex < DEV_SEQUENCE.length - 1) {
-        devIndex += 1;
+    dbg("NEXT pressed; devIndex", devIndex, "diff", currDiff);
+    dbg("pool", poolKey, "seen", seen.size, "of", poolSize);
+
+    // If we've seen all unique stems for this pool, advance difficulty
+    if (poolSize && seen.size >= poolSize) {
+        // Clear current pool so a future cycle can show them again
+        seenByPool.set(poolKey, new Set());
+
+        // Advance or wrap
+        if (devIndex < DEV_SEQUENCE.length - 1) {
+            devIndex += 1;
+        } else {
+            devIndex = 0; // wrap to easy
+        }
         dbg("ADVANCE difficulty to", DEV_SEQUENCE[devIndex]);
     }
 
