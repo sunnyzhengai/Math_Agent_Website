@@ -55,6 +55,22 @@ class EngineService:
         return _ITEM_CACHE.get(user_id, {}).get(item_id)
     
     @staticmethod
+    def _normalize_item(item: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Normalize item from engine to API contract.
+        - Add choice IDs if missing (use a, b, c, d, ...)
+        - Normalize field names (id → item_id, rationale → explanation)
+        """
+        # Ensure choices have IDs
+        choices = item.get("choices", [])
+        choice_ids = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        for i, choice in enumerate(choices):
+            if "id" not in choice:
+                choice["id"] = choice_ids[i] if i < len(choice_ids) else f"choice_{i}"
+        
+        return item
+    
+    @staticmethod
     def list_skills(domain: str = "Quadratics") -> List[Dict[str, Any]]:
         """
         List all available skills in a domain.
@@ -155,6 +171,9 @@ class EngineService:
                 state=state,
                 seed=seed
             )
+            
+            # Normalize: add choice IDs if missing
+            item_data = EngineService._normalize_item(item_data)
             
             # Cache the item so grader can retrieve it later
             EngineService._cache_item(user_id, item_data)
