@@ -7,11 +7,12 @@ See api/CONTRACTS.md for request/response schemas.
 
 import os
 import sys
+import json
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Dict, Any
 from collections import OrderedDict
 import asyncio
 import time
@@ -169,6 +170,14 @@ async def generate_item_endpoint(request: GenerateItemRequest):
                 difficulty=request.difficulty,
                 seed=request.seed,
             )
+            # Log telemetry
+            log_telemetry(
+                "item_generated",
+                mode="random",
+                skill_id=request.skill_id,
+                difficulty=request.difficulty or "easy",
+                item_id=item.get("item_id")
+            )
             return GenerateItemResponse(**item)
         except ValueError as e:
             error_msg = str(e)
@@ -241,6 +250,15 @@ async def generate_item_endpoint(request: GenerateItemRequest):
         if not await cycle_bags.has_seen(pool_key, stem):
             # Found an unseen stem
             await cycle_bags.mark_seen(pool_key, stem)
+            # Log telemetry
+            log_telemetry(
+                "item_generated",
+                mode="cycle",
+                session_id=request.session_id,
+                skill_id=request.skill_id,
+                difficulty=difficulty,
+                item_id=item.get("item_id")
+            )
             return GenerateItemResponse(**item)
         
         last_item = item
@@ -255,7 +273,46 @@ async def generate_item_endpoint(request: GenerateItemRequest):
     )
     stem = item.get("stem", "")
     await cycle_bags.mark_seen(pool_key, stem)
+    # Log telemetry (fallback)
+    log_telemetry(
+        "item_generated",
+        mode="cycle",
+        session_id=request.session_id,
+        skill_id=request.skill_id,
+        difficulty=difficulty,
+        item_id=item.get("item_id"),
+        fallback=True
+    )
     return GenerateItemResponse(**item)
+
+
+# ============================================================================
+# Telemetry Helper
+# ============================================================================
+
+def log_telemetry(event: str, **kwargs) -> None:
+    """
+    Log event to telemetry JSONL file (non-blocking, fail-open).
+    
+    Args:
+        event: Event type (e.g., "cycle_generate", "graded")
+        **kwargs: Additional fields to log
+    """
+    try:
+        log_dir = Path(__file__).parent.parent / "var"
+        log_dir.mkdir(exist_ok=True)
+        
+        log_entry = {
+            "t": time.time(),
+            "event": event,
+            **kwargs
+        }
+        
+        with open(log_dir / "events.jsonl", "a") as f:
+            f.write(json.dumps(log_entry) + "\n")
+    except Exception:
+        # Fail open: don't crash the API if telemetry fails
+        pass
 
 
 @app.post("/grade", response_model=GradeResponse)
@@ -318,6 +375,25 @@ async def grade_endpoint(request: GradeRequest):
 async def health():
     """Health check endpoint."""
     return {"status": "ok"}
+
+
+@app.get("/skills/manifest")
+async def skills_manifest() -> Dict[str, Dict[str, int]]:
+    """
+    Get pool sizes for all skills and difficulties.
+    
+    Useful for UI to dynamically set POOL_SIZE_HINT without hardcoding.
+    
+    Returns:
+        {
+            "quad.graph.vertex": {"easy": 2, "medium": 1, "hard": 1, "applied": 1},
+            ...
+        }
+    """
+    return {
+        skill_id: {difficulty: len(templates) for difficulty, templates in skill_templates.items()}
+        for skill_id, skill_templates in SKILL_TEMPLATES.items()
+    }
 
 
 # ============================================================================

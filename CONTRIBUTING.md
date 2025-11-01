@@ -143,4 +143,39 @@ Regenerate a golden **only** when:
 
 ---
 
+## 10) Cycle Mode (Server-Side No-Repeats)
+
+Use cycle mode to guarantee unique questions within a pool per user session:
+
+```bash
+# Request
+curl -X POST http://localhost:8000/items/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill_id": "quad.graph.vertex",
+    "difficulty": "easy",
+    "mode": "cycle",
+    "session_id": "user-123"
+  }'
+```
+
+**Behavior:**
+* `mode="cycle"` + `session_id` → server guarantees **no repeats** within `(session_id, skill_id, difficulty)` until all templates seen.
+* Default `mode="random"` remains stateless (allows repeats).
+* Pool sizes tracked per (session_id, skill_id, difficulty).
+* Different sessions have independent tracking.
+* Bags auto-clear when pool exhausted or LRU evicted (~2000 entries).
+
+**Get Pool Sizes:**
+```bash
+curl http://localhost:8000/skills/manifest
+# Returns: {"quad.graph.vertex": {"easy": 2, "medium": 1, "hard": 1, "applied": 1}, ...}
+```
+
+**Telemetry:**
+* Events logged to `var/events.jsonl` (auto-created).
+* Fail-open: if logging fails, API continues normally.
+
+---
+
 *Thank you for keeping the project stable and test-driven. Small, well-tested steps win.*

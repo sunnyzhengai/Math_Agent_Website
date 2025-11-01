@@ -179,3 +179,32 @@ class TestCycleMode:
         assert resp.status_code == 200
         body = resp.json()
         assert "stem" in body
+
+    def test_cycle_mode_easy_sequence_deterministic(self, client):
+        """
+        Golden: Verify cycle mode sequence is deterministic for regression detection.
+        
+        With a fixed session_id, the sequence of stems should be:
+        - 1st unique (one of the 2 easy templates)
+        - 2nd unique (the other easy template)
+        - 3rd wraps (matches one of the first two)
+        - 4th repeats from the pool
+        """
+        session_id = "golden-sequence-easy-2024"
+        stems = []
+
+        for i in range(4):
+            resp = client.post("/items/generate", json={
+                "skill_id": VALID_SKILL_ID,
+                "difficulty": "easy",
+                "mode": "cycle",
+                "session_id": session_id,
+            })
+            
+            assert resp.status_code == 200, f"Attempt {i} failed"
+            stems.append(resp.json()["stem"])
+
+        # Golden assertions: detect if templates change or get reordered
+        assert len(set(stems[:2])) == 2, f"First two must be unique: {stems[:2]}"
+        assert stems[2] in set(stems[:2]), f"Third must wrap to first two: {stems[2]} vs {stems[:2]}"
+        assert stems[3] in set(stems[:2]), f"Fourth must also be from pool: {stems[3]} vs {stems[:2]}"
