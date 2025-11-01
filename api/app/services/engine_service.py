@@ -24,6 +24,7 @@ try:
     from engine.grader import grade
     from engine.planner import generate_adaptive_item, next_skill
     from engine.state import load_user_state, save_user_state, update_after_answer
+    IMPORTS_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️  Warning: Could not import engine modules. {e}")
     print("   This is expected in development. Mock data will be used.")
@@ -31,10 +32,27 @@ except ImportError as e:
     grade = None
     generate_adaptive_item = None
     next_skill = None
+    IMPORTS_AVAILABLE = False
+
+# In-memory cache of generated items (user_id -> item_id -> item)
+_ITEM_CACHE = {}
 
 
 class EngineService:
     """Service to integrate Python engine with FastAPI."""
+    
+    @staticmethod
+    def _cache_item(user_id: str, item: Dict[str, Any]) -> None:
+        """Store item in memory cache for later grading."""
+        if user_id not in _ITEM_CACHE:
+            _ITEM_CACHE[user_id] = {}
+        item_id = item.get("item_id")
+        _ITEM_CACHE[user_id][item_id] = item
+    
+    @staticmethod
+    def _get_cached_item(user_id: str, item_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve cached item."""
+        return _ITEM_CACHE.get(user_id, {}).get(item_id)
     
     @staticmethod
     def list_skills(domain: str = "Quadratics") -> List[Dict[str, Any]]:
@@ -84,8 +102,8 @@ class EngineService:
         Generate next item for student.
         
         Calls engine.planner.generate_adaptive_item() to:
-        1. Query Neo4j for learner mastery & misconceptions
-        2. Select skill based on planner logic (remediation, entropy, spaced review)
+        1. Load learner state from file (development) or Neo4j (production)
+        2. Select next skill using adaptive planner logic
         3. Generate item with adaptive difficulty
         
         Args:
@@ -108,21 +126,39 @@ class EngineService:
         if seed is not None:
             random.seed(seed)
         
-        # Load learner state from Neo4j (or file in dev)
         try:
-            state = load_user_state(user_id)
-        except Exception as e:
-            # In dev/test, create new state
-            state = {
-                "user_id": user_id,
-                "skills": {},
-                "attempts": 0,
-                "created_at": datetime.utcnow().isoformat()
-            }
-        
-        # Call planner to select skill
-        try:
-            item_data = generate_adaptive_item(user_id, domain, seed=seed)
+            if not IMPORTS_AVAILABLE:
+                raise ImportError("Engine modules not available")
+            
+            # Load learner state from file (or create new state if doesn't exist)
+            try:
+                state = load_user_state(user_id)
+            except Exception:
+                # First time user: create empty state
+                state = {
+                    "user_id": user_id,
+                    "skills": {},
+                    "attempts": 0,
+                    "created_at": datetime.utcnow().isoformat()
+                }
+            
+            # Select next skill using adaptive planner
+            skill_id = next_skill(state)
+            
+            if not skill_id:
+                # Fallback: default to quad.identify
+                skill_id = "quad.identify"
+            
+            # Generate item with adaptive difficulty
+            item_data = generate_adaptive_item(
+                skill_id=skill_id,
+                state=state,
+                seed=seed
+            )
+            
+            # Cache the item so grader can retrieve it later
+            EngineService._cache_item(user_id, item_data)
+            
             return {
                 "item_id": item_data.get("item_id"),
                 "skill_id": item_data.get("skill_id"),
@@ -133,23 +169,25 @@ class EngineService:
                 "reason": item_data.get("reason", "Continue practicing"),
                 "learner_mastery_before": item_data.get("learner_mastery_before", 0.5)
             }
+        
         except Exception as e:
-            # Fallback: use mock item for development
-            print(f"⚠️  Warning: Failed to call engine: {e}")
-            # Return a mock item for development
+            # Fallback: return a simple mock question
+            print(f"⚠️  Warning: Failed to generate item from engine: {e}")
+            
+            # Simple fallback mock
             return {
-                "item_id": "item_mock_001",
+                "item_id": f"mock_{user_id}_{int(datetime.utcnow().timestamp())}",
                 "skill_id": "quad.identify",
                 "difficulty": "easy",
-                "stem": "Is the following expression a quadratic? x² + 3x + 2",
+                "stem": "Is x² + 2x + 1 a quadratic expression?",
                 "choices": [
                     {"id": "c1", "text": "Yes", "tags_on_select": ["correct"]},
                     {"id": "c2", "text": "No", "tags_on_select": ["wrong"]},
                     {"id": "c3", "text": "Maybe", "tags_on_select": ["wrong"]},
-                    {"id": "c4", "text": "Not sure", "tags_on_select": ["wrong"]},
+                    {"id": "c4", "text": "Unclear", "tags_on_select": ["wrong"]},
                 ],
-                "explanation": "A quadratic expression has the form ax² + bx + c where a ≠ 0. This expression is a quadratic.",
-                "reason": "Development mock item (engine not available)",
+                "explanation": "A quadratic has degree 2. This expression is x² + 2x + 1, which is degree 2.",
+                "reason": "Mock item (engine not available)",
                 "learner_mastery_before": 0.5
             }
     
@@ -166,12 +204,11 @@ class EngineService:
         Grade student response and update mastery.
         
         Calls engine.grader.grade() to:
-        1. Find the item in item cache
+        1. Retrieve cached item
         2. Validate selected choice
         3. Detect misconception tags (sign_error, wrong_degree, etc.)
         4. Update mastery equation: p_mastery_after = f(p_mastery, correct, confidence)
-        5. Log attempt to Neo4j (immutable Attempt node)
-        6. Update HAS_PROGRESS edge + misconception counters
+        5. Update HAS_PROGRESS edge + misconception counters
         
         Args:
             user_id: Student ID
@@ -195,18 +232,21 @@ class EngineService:
             random.seed(seed)
         
         try:
-            # Call engine grader
-            result = grade(
-                item_id=item_id,
-                selected_choice_id=selected_choice_id
-            )
+            if not IMPORTS_AVAILABLE:
+                raise ImportError("Engine modules not available")
             
-            correct = result.get("correct", False)
-            tags = result.get("tags", [])
+            # Retrieve cached item
+            item = EngineService._get_cached_item(user_id, item_id)
+            if not item:
+                raise ValueError(f"Item {item_id} not found in cache")
+            
+            # Call engine grader
+            result = grade(item=item, choice_id=selected_choice_id)
+            correct, tags, chosen_text, score = result
             
             # Load learner state
             state = load_user_state(user_id)
-            skill_id = result.get("skill_id", "unknown")
+            skill_id = item.get("skill_id", "unknown")
             
             # Update mastery (stochastic update)
             p_mastery_before = state.get("skills", {}).get(skill_id, {}).get("p_mastery", 0.5)
@@ -219,6 +259,11 @@ class EngineService:
             attempts = state.get("skills", {}).get(skill_id, {}).get("attempts", 0) + 1
             
             # Save updated state
+            if "skills" not in state:
+                state["skills"] = {}
+            if skill_id not in state["skills"]:
+                state["skills"][skill_id] = {}
+                
             state["skills"][skill_id] = {
                 "p_mastery": p_mastery_after,
                 "attempts": attempts,
@@ -256,7 +301,7 @@ class EngineService:
         
         except Exception as e:
             # Fallback: use mock grading for development
-            print(f"⚠️  Warning: Failed to call grader: {e}")
+            print(f"⚠️  Warning: Failed to grade with engine: {e}")
             is_correct = selected_choice_id == "c1"  # c1 is always correct in mock
             
             return {
