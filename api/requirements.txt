@@ -6,7 +6,7 @@ python-dotenv==1.0.0
 neo4j==5.14.0
 supabase==2.0.3
 python-jose[cryptography]==3.3.0
-PyJWT==2.8.1
+PyJWT==2.8.0
 slowapi==0.1.9
 sentry-sdk==1.38.0
-httpx==0.25.2
+httpx==0.24.1
