@@ -1,180 +1,238 @@
-# Phase 2f — Minimal Web UI (Generate → Grade)
+# PHASE2f_WEB_UI_SPEC.md
 
-## File Layout (New)
+## Overview
+
+Build a **single-page web UI** that calls the existing API to:
+
+1. Generate a math item
+2. Let the student choose A–D
+3. Grade the answer and show feedback
+4. Fetch next question
+
+No frameworks. Plain HTML/CSS/JS.
+
+## Scope (Phase 2f only)
+
+* ✅ One page (no routing)
+* ✅ Calls `POST /items/generate` and `POST /grade`
+* ✅ Minimal UI state (loading, answered, next)
+* ✅ Session tally (correct / attempted)
+* 🚫 No auth, no persistence, no telemetry (that's Phase 2d)
+* 🚫 No multiple skills selector (optional stub allowed)
+
+---
+
+## File Layout
 
 ```
 web/
-  index.html        # single page UI
-  app.js            # fetch logic + simple state
-  styles.css        # tiny styling
+  index.html        # DOM structure only (no inline JS)
+  styles.css        # tiny styling + state classes
+  app.js            # fetch logic + state management
 ```
 
-> We'll serve `/` from `web/index.html` via FastAPI (mount StaticFiles), but you can also open it locally for quick smoke tests if your API runs at `http://localhost:8000`.
+FastAPI must serve this directory at `/` (see "Server Mount" section).
 
 ---
 
-## API Recap (Already Implemented)
+## API (already implemented)
 
-* `POST /items/generate` → returns the item dict
-* `POST /grade` → returns `{correct, solution_choice_id, explanation}`
-* Error envelope: `{"error":"<code>","message":"<text>"}` with HTTP 400
+* `POST /items/generate`
+  **Request**: `{"skill_id": "quad.graph.vertex", "difficulty": "easy", "seed": null}`
+  **Response**: item dict (per engine contract)
 
----
+* `POST /grade`
+  **Request**: `{"item": <item dict>, "choice_id": "A"|"B"|"C"|"D"}`
+  **Response**: `{"correct": bool, "solution_choice_id": str, "explanation": str}`
 
-## index.html — Required DOM Structure
-
-* Heading + skill controls
-* Question stem container
-* Four answer buttons A–D (wired by `data-choice` attributes)
-* Feedback area (✓/✗ + explanation)
-* Next question button
-* Small session tally "Correct x of y"
-
-### DOM IDs (so app.js can query predictably)
-
-* `#skill-select` (optional for now; default value set to `quad.graph.vertex`)
-* `#difficulty-select` (optional; default `easy`)
-* `#stem`
-* `#choices` (container div; app.js will render four buttons with ids `choice-A`..`choice-D`)
-* `#feedback`
-* `#next-btn`
-* `#tally`
-
-> Keep it dead simple: static four buttons labeled A–D; app.js fills their text and enables/disables them.
+* **Errors**: HTTP 400 with JSON
+  `{"error":"<code>", "message":"<human readable>"}`
 
 ---
 
-## app.js — Behavior Spec
+## HTML (DOM Structure)
 
-### Local State
+Create the following markup (IDs and data-attributes are **contractual**):
+
+* Header:
+  * `h1#title` → "Math Agent — Quadratics"
+  * (Optional) Controls row:
+    * `select#skill-select` (default value: `quad.graph.vertex`; disabled for now)
+    * `select#difficulty-select` (default: `easy`; disabled for now)
+
+* Question Area:
+  * `div#stem` → question text goes here
+  * `div#choices` → contains exactly 4 buttons:
+    * `button.choice-btn#choice-A` with `data-choice="A"`
+    * `button.choice-btn#choice-B` with `data-choice="B"`
+    * `button.choice-btn#choice-C` with `data-choice="C"`
+    * `button.choice-btn#choice-D` with `data-choice="D"`
+
+* Feedback & Controls:
+  * `div#feedback` → explanation + ✓/✗ styling
+  * `button#next-btn` → "Next question"
+
+* Footer:
+  * `div#tally` → "Correct X of Y"
+  * (Optional) `a#repo-link` → repo URL
+
+**Notes**
+
+* Buttons must exist in HTML; JS only fills their text and enables/disables.
+* Add `aria-live="polite"` to `#feedback` for screen reader updates.
+
+---
+
+## CSS (Styling + States)
+
+Create minimal, readable styles:
+
+* Base:
+  * System font, generous line-height
+  * Max width ~720px; centered content
+  * Buttons: large hit targets; consistent spacing
+
+* States:
+  * `.disabled` OR native `disabled` attribute dims buttons and prevents pointer events.
+  * `#feedback.correct { border-left: 4px solid #3c9; }`
+  * `#feedback.incorrect { border-left: 4px solid #e55; }`
+  * `body.busy` may set `cursor: progress;` (optional)
+
+* Accessibility:
+  * Maintain color contrast ≥ 4.5:1
+  * Focus styles on buttons (outline visible)
+
+---
+
+## JS (Fetch Logic + State Management)
+
+### Module-level state
 
 ```js
-let currentItem = null;           // full item from /items/generate
-let attempted = 0;                // session tally
+let currentItem = null;     // latest generated item
+let attempted = 0;          // session tally
 let correct = 0;
-let isBusy = false;
-const API_BASE = "";              // same origin; if dev proxy needed you can change later
+let isBusy = false;         // blocks concurrent requests
+const API_BASE = "";        // same origin; leave empty
 ```
 
-### On Page Load
+### On DOMContentLoaded
 
-1. Disable all choice buttons + Next button.
-2. Call `fetchGenerate()` with:
-   ```js
-   { skill_id: "quad.graph.vertex", difficulty: "easy" } // no seed for true randomness
-   ```
-3. Render:
-   * `#stem` = `item.stem`
-   * Buttons `#choice-A`..`#choice-D` = `item.choices[i].text`
-   * Clear `#feedback`
-   * Enable A–D buttons; disable Next
+1. Initialize references to all required elements (by id).
+2. Attach click handlers to choice buttons and Next button.
+3. Call `fetchGenerate()`.
 
-### On Clicking a Choice Button
+### fetchGenerate()
 
-1. If `isBusy` or `!currentItem`, ignore.
-2. Disable all choice buttons; set `isBusy = true`.
-3. POST `/grade` with `{ item: currentItem, choice_id: "A"|"B"|"C"|"D" }`.
-4. On success:
-   * Show ✅/❌ + explanation in `#feedback`
-   * Increment `attempted += 1`; if `correct`, increment `correct += 1`
-   * Update `#tally` to "Correct X of Y"
-   * Enable `#next-btn`; keep A–D disabled
-5. On 400:
-   * Show `body.message` in `#feedback`
-6. Always: `isBusy = false`.
-
-### On Next Button
-
-1. Disable Next; call `fetchGenerate()` again.
-2. Same render routine as "On page load".
-
-### Error Handling Baseline
-
-* If network fails → show "Couldn't reach server. Please try again." in `#feedback`; keep Next enabled so you can retry.
-* Any 400 from backend shows the message returned.
-
-### Visual States (CSS Classes)
-
-* `.busy` on body while fetching (optional)
-* `.correct` / `.incorrect` on `#feedback`
-* `.disabled` on buttons (or just `disabled` attribute)
-
----
-
-## styles.css — Minimal Rules
-
-* Basic font and spacing
-* `.correct { border-left: 4px solid #3c9; }`
-* `.incorrect { border-left: 4px solid #e55; }`
-* Disabled buttons with reduced opacity + no pointer
-
----
-
-## FastAPI Static Serving (Server Note)
-
-* Mount static at `/`:
-  ```python
-  app.mount("/", StaticFiles(directory="web", html=True), name="web")
+* Guard: if `isBusy`, no-op.
+* Set `isBusy = true`, disable choice buttons and next button, add `body.busy`.
+* POST `/items/generate` with:
+  ```js
+  { skill_id: "quad.graph.vertex", difficulty: "easy" } // seed omitted
   ```
-* CORS: if you open HTML directly from file system, set `--` skip CORS; otherwise if hosted under same origin, no CORS needed. (If you *do* serve UI elsewhere, add CORSMiddleware allowlist.)
+* On **200**:
+  * Save `currentItem`.
+  * Set `#stem` innerText to `item.stem`.
+  * For each button A–D, set text from `item.choices[i].text`, enable it.
+  * Clear `#feedback` classes/text, keep Next disabled.
+* On **400** (error envelope):
+  * Show `body.message` in `#feedback` (no class), keep Next enabled for retry.
+* On **network error**:
+  * Show "Couldn't reach server. Please try again." in `#feedback`, keep Next enabled.
+* Finally: `isBusy = false`, remove `body.busy`.
+
+### onChoiceClick(choiceId)
+
+* Guard: if `isBusy` or `!currentItem`, no-op.
+* Disable all choices, set `isBusy = true`, add `body.busy`.
+* POST `/grade` with `{ item: currentItem, choice_id: choiceId }`.
+* On **200**:
+  * Update tally: `attempted += 1`, `if (res.correct) correct += 1`.
+  * Render result into `#feedback`:
+    * Add class `correct` or `incorrect`
+    * Text = `res.explanation`
+  * Enable Next; leave choices disabled.
+  * Update `#tally` to `Correct ${correct} of ${attempted}`.
+* On **400**:
+  * Show error `body.message` in `#feedback` (no class), enable Next.
+* On **network error**:
+  * Show network message in `#feedback`, enable Next.
+* Finally: `isBusy = false`, remove `body.busy`.
+
+### onNext()
+
+* Disable Next; call `fetchGenerate()`.
+
+### Utilities
+
+* `setButtonsEnabled(enabled: boolean)` → add/remove `disabled`.
+* `setFeedback(text: string, cls?: "correct"|"incorrect"|null)` → sets text + class list.
+
+**Do not** store anything in localStorage in Phase 2f.
 
 ---
 
-## "Done When" Checklist (Acceptance)
+## Server Mount (FastAPI)
 
-### Behavior
+Add a single line to serve the UI:
 
-- [ ] On load, a question appears with 4 choices.
-- [ ] Clicking a choice disables all choices, shows ✅/❌ + explanation.
-- [ ] "Next question" fetches a new item and resets the UI.
-- [ ] Session tally increments correctly (Correct X of Y).
-- [ ] No runtime errors in the browser console.
+```python
+# api/server.py
 
-### API Integration
+from fastapi.staticfiles import StaticFiles
 
-- [ ] `/items/generate` called without seed; `/grade` called with full `item`.
-- [ ] Backend error envelope renders human message in `#feedback`.
+app.mount("/", StaticFiles(directory="web", html=True), name="web")
+```
 
-### Resilience & UX
-
-- [ ] Buttons are disabled during in-flight requests.
-- [ ] Network failure message is user-friendly; "Next question" lets user retry.
-
-### Code Quality
-
-- [ ] No inline business logic in HTML; all logic lives in `app.js`.
-- [ ] No global mutation beyond the defined local state.
-- [ ] All ids/classes match this spec.
+* Keep all existing API routes working.
+* Same origin (no CORS needed).
 
 ---
 
-## Optional (Nice-to-Have, Tiny)
+## Browser Smoke Test (Manual)
 
-* A `<select id="skill-select">` with just `quad.graph.vertex` for now (non-functional until you wire multiple skills).
-* A "Retry" link shown only on fetch error that re-calls `/items/generate`.
-* A footer link to your repo.
+* Start API server.
+* Visit `/`:
+  * [ ] A question loads automatically.
+  * [ ] Four choices show text.
+  * [ ] Clicking a choice disables choices, shows ✓/✗ + explanation.
+  * [ ] "Next question" fetches a new question.
+  * [ ] Tally updates: "Correct X of Y".
+  * [ ] No console errors.
 
----
+**Error cases**
 
-## Phase 2d Integration Hook Points (Future)
-
-When Phase 2d (telemetry) is implemented, you'll add these calls in `app.js`:
-
-* After successful `/items/generate` → log event `item_generated`
-* After successful `/grade` → log event `graded`
-
-**No changes to this UI spec;** telemetry will be injected as a background concern.
-
----
-
-## Implementation Order (for Cursor)
-
-1. **index.html** — Create DOM structure with all required ids
-2. **styles.css** — Add basic styling and state classes
-3. **app.js** — Implement state machine and fetch logic
-4. **server.py** — Add static file serving (one line: `app.mount(...)`)
-5. **Test** — Manual smoke test in browser
+* If the server is stopped mid-session:
+  * [ ] UI shows "Couldn't reach server. Please try again."
+  * [ ] Next remains enabled so the user can retry after restarting.
 
 ---
 
-*Ready to code? Hand this spec to Cursor and ask for Phase 2f implementation.*
+## Definition of Done (DoD)
+
+* [ ] `web/index.html`, `web/styles.css`, `web/app.js` created as specified.
+* [ ] Server mounts `web/` at `/`.
+* [ ] Manual smoke test passes on Chrome/Safari/Edge.
+* [ ] No inline scripts in HTML; all logic in `app.js`.
+* [ ] Buttons disabled during in-flight requests.
+* [ ] Error envelope messages surfaced to the user.
+* [ ] No new failing tests (existing suite still green).
+
+---
+
+## Future Hooks (don't implement now)
+
+* Telemetry (Phase 2d): call a `logEvent(...)` inside `/items/generate` and `/grade` handlers.
+* Skill picker: enable `#skill-select` and `#difficulty-select` once additional skills land.
+
+---
+
+## Implementation Order
+
+1. HTML (DOM structure)
+2. CSS (styling + states)
+3. JS (fetch logic + state)
+4. Server (mount static files)
+5. Browser smoke test
+
+**That's it—hand this spec to Cursor and let it build the UI.**
