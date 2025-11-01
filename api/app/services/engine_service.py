@@ -37,6 +37,9 @@ except ImportError as e:
 # In-memory cache of generated items (user_id -> item_id -> item)
 _ITEM_CACHE = {}
 
+# Track last selected skill per user to prevent ping-ponging
+_LAST_SKILL_CACHE = {}
+
 
 class EngineService:
     """Service to integrate Python engine with FastAPI."""
@@ -164,10 +167,17 @@ class EngineService:
                 }
             
             # Select next skill using adaptive planner
+            # Pass the last selected skill to planner to prevent ping-ponging
+            if user_id in _LAST_SKILL_CACHE:
+                state["last_selected_skill"] = _LAST_SKILL_CACHE[user_id]
+            
             skill_id = next_skill(state)
             
             # Save state changes made by planner (e.g., last_selected_skill, streak resets)
             save_user_state(user_id, state)
+            
+            # Cache the selected skill for next time
+            _LAST_SKILL_CACHE[user_id] = skill_id
             
             if not skill_id:
                 # Fallback: default to quad.identify
