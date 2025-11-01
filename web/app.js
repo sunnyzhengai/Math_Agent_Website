@@ -10,7 +10,15 @@ const API_BASE = "";        // same origin; leave empty
 
 // Track seen question stems to avoid repeats within a pool
 const seenByPool = new Map(); // key: `${skill}:${difficulty}` -> Set of stems
-const MAX_REPEAT_TRIES = 10;  // retry limit before accepting a duplicate
+const MAX_REPEAT_TRIES = 10;  // retry limit before resetting bag
+
+// Pool size hints: when bag reaches this size, it's exhausted
+const POOL_SIZE_HINT = {
+    "quad.graph.vertex:easy": 2,
+    "quad.graph.vertex:medium": 1,
+    "quad.graph.vertex:hard": 1,
+    "quad.graph.vertex:applied": 1,
+};
 
 // ============================================================================
 // DOM References
@@ -71,6 +79,12 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
         seenByPool.set(poolKey, new Set());
     }
     const seenStems = seenByPool.get(poolKey);
+    const poolSize = POOL_SIZE_HINT[poolKey] ?? null;
+
+    // ✅ Reset bag when we've exhausted this pool
+    if (poolSize && seenStems.size >= poolSize) {
+        seenStems.clear();
+    }
 
     let item = null;
 
@@ -87,28 +101,27 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
                 }),
             });
 
-            if (response.ok) {
-                item = await response.json();
-                const stem = item.stem || "";
-
-                // Check if we've seen this stem before
-                if (!seenStems.has(stem)) {
-                    seenStems.add(stem);
-                    renderQuestion(item);
-                    document.body.classList.remove("busy");
-                    isBusy = false;
-                    return; // Success: got a new one
-                }
-                // Otherwise: loop and try again
-            } else {
-                // Error from API
-                const errorData = await response.json();
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
                 setFeedback(errorData.message || "Error loading question", null);
                 elements.nextBtn.disabled = false;
                 document.body.classList.remove("busy");
                 isBusy = false;
                 return;
             }
+
+            item = await response.json();
+            const stem = item?.stem ?? "";
+
+            // Check if we've seen this stem before
+            if (!seenStems.has(stem)) {
+                seenStems.add(stem);
+                renderQuestion(item);
+                document.body.classList.remove("busy");
+                isBusy = false;
+                return; // Success: got a new one
+            }
+            // Otherwise: loop and try again
         } catch (error) {
             setFeedback("Couldn't reach server. Please try again.", null);
             elements.nextBtn.disabled = false;
@@ -118,8 +131,15 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
         }
     }
 
-    // Fallback: if we've exhausted retries, accept a duplicate or clear the seen set
-    // For now, just accept the last one we got
+    // After too many retries, reset the bag and try once more with fresh pool
+    if (poolSize) {
+        seenStems.clear();
+        document.body.classList.remove("busy");
+        isBusy = false;
+        return fetchGenerateNoRepeat(skillId, difficulty); // try once more with fresh bag
+    }
+
+    // Fallback if pool size unknown
     if (item) {
         renderQuestion(item);
     } else {
