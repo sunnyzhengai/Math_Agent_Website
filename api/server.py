@@ -6,15 +6,75 @@ See api/CONTRACTS.md for request/response schemas.
 """
 
 import os
+import sys
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Literal
+from collections import OrderedDict
+import asyncio
+import time
 
-from engine.templates import generate_item
+from engine.templates import generate_item, SKILL_TEMPLATES
 from engine.grader import grade_response
 from engine.validators import validate_item
+
+
+# ============================================================================
+# Cycle Manager (inline to avoid import issues in tests)
+# ============================================================================
+
+PoolKey = tuple  # (session_id, skill_id, difficulty)
+
+
+class LRUSeenBags:
+    """
+    Simple LRU cache for seen stems to avoid unbounded growth.
+    Keyed by (session_id, skill_id, difficulty) -> set of stems.
+    """
+
+    def __init__(self, max_entries: int = 1000):
+        self.max_entries = max_entries
+        self._bags: dict = {}
+        self._lru: OrderedDict = OrderedDict()
+        self._lock = asyncio.Lock()
+
+    async def mark_seen(self, key: PoolKey, stem: str) -> None:
+        """Mark a stem as seen in this pool."""
+        async with self._lock:
+            bag = self._bags.setdefault(key, set())
+            bag.add(stem)
+            self._touch(key)
+
+    async def has_seen(self, key: PoolKey, stem: str) -> bool:
+        """Check if a stem has been seen in this pool."""
+        async with self._lock:
+            self._touch(key)
+            return stem in self._bags.get(key, set())
+
+    async def size(self, key: PoolKey) -> int:
+        """Get the number of unique stems seen in this pool."""
+        async with self._lock:
+            self._touch(key)
+            return len(self._bags.get(key, set()))
+
+    async def clear(self, key: PoolKey) -> None:
+        """Clear all seen stems for this pool (start a new cycle)."""
+        async with self._lock:
+            self._bags[key] = set()
+            self._touch(key)
+
+    def _touch(self, key: PoolKey) -> None:
+        """Update LRU timestamp for this key."""
+        now = time.time()
+        if key in self._lru:
+            self._lru.move_to_end(key)
+        self._lru[key] = now
+
+
+# Singleton for the app lifetime
+cycle_bags = LRUSeenBags(max_entries=2000)
 
 
 app = FastAPI(title="Math Agent API", version="0.1.0")
@@ -29,6 +89,8 @@ class GenerateItemRequest(BaseModel):
     skill_id: str
     difficulty: Optional[str] = None
     seed: Optional[int] = None
+    mode: Literal["random", "cycle"] = "random"
+    session_id: Optional[str] = None
 
 
 class ChoiceSchema(BaseModel):
@@ -77,46 +139,123 @@ async def generate_item_endpoint(request: GenerateItemRequest):
     """
     Generate a new math question item.
     
+    Supports two modes:
+    - "random" (default): standard random generation
+    - "cycle": deterministic no-repeat within (session_id, skill_id, difficulty)
+    
     See api/CONTRACTS.md for full specification.
     
     Args:
-        request: GenerateItemRequest with skill_id, difficulty (optional), seed (optional)
+        request: GenerateItemRequest with skill_id, difficulty (optional), seed (optional), mode, session_id
     
     Returns:
         GenerateItemResponse matching the item schema
     
     Raises:
-        HTTPException 400: invalid_skill, invalid_difficulty, invalid_seed
+        HTTPException 400: invalid_skill, invalid_difficulty, invalid_seed, missing_session_id
     """
-    try:
+    # Validate cycle mode parameters
+    if request.mode == "cycle" and not request.session_id:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "missing_session_id", "message": "session_id is required when mode='cycle'"}
+        )
+    
+    # Fast path: random mode (unchanged)
+    if request.mode != "cycle":
+        try:
+            item = generate_item(
+                skill_id=request.skill_id,
+                difficulty=request.difficulty,
+                seed=request.seed,
+            )
+            return GenerateItemResponse(**item)
+        except ValueError as e:
+            error_msg = str(e)
+            
+            # Map engine errors to API errors
+            if error_msg == "unknown_skill":
+                raise HTTPException(
+                    status_code=400,
+                    detail={"error": "invalid_skill", "message": f"Unknown skill_id: {request.skill_id}"}
+                )
+            elif error_msg == "invalid_difficulty":
+                raise HTTPException(
+                    status_code=400,
+                    detail={"error": "invalid_difficulty", "message": f"Invalid difficulty: {request.difficulty}"}
+                )
+            elif error_msg == "invalid_seed":
+                raise HTTPException(
+                    status_code=400,
+                    detail={"error": "invalid_seed", "message": f"Seed must be an integer, got {type(request.seed).__name__}"}
+                )
+            else:
+                raise HTTPException(status_code=500, detail={"error": "internal_error", "message": str(e)})
+    
+    # Cycle mode: guarantee no repeats until pool exhausted
+    difficulty = request.difficulty or "easy"
+    
+    # Validate skill and difficulty exist
+    
+    skill_templates = SKILL_TEMPLATES.get(request.skill_id)
+    if not skill_templates:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_skill", "message": f"Unknown skill_id: {request.skill_id}"}
+        )
+    
+    if difficulty not in skill_templates:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_difficulty", "message": f"Invalid difficulty: {difficulty}"}
+        )
+    
+    pool = skill_templates[difficulty]
+    if not pool:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_difficulty", "message": f"No templates for {difficulty}"}
+        )
+    
+    # Cycle mode logic
+    pool_key = (request.session_id, request.skill_id, difficulty)  # type: ignore
+    pool_size = len(pool)
+    
+    # If bag is full, clear it (start a new cycle)
+    current_seen_size = await cycle_bags.size(pool_key)
+    if current_seen_size >= pool_size:
+        await cycle_bags.clear(pool_key)
+    
+    # Try to find an unseen template
+    max_attempts = min(8, pool_size * 2)
+    last_item = None
+    
+    for attempt in range(max_attempts):
         item = generate_item(
             skill_id=request.skill_id,
-            difficulty=request.difficulty,
-            seed=request.seed,
+            difficulty=difficulty,
+            seed=None,  # randomness within cycle mode
         )
-        return GenerateItemResponse(**item)
-    except ValueError as e:
-        error_msg = str(e)
+        stem = item.get("stem", "")
         
-        # Map engine errors to API errors
-        if error_msg == "unknown_skill":
-            raise HTTPException(
-                status_code=400,
-                detail={"error": "invalid_skill", "message": f"Unknown skill_id: {request.skill_id}"}
-            )
-        elif error_msg == "invalid_difficulty":
-            raise HTTPException(
-                status_code=400,
-                detail={"error": "invalid_difficulty", "message": f"Invalid difficulty: {request.difficulty}"}
-            )
-        elif error_msg == "invalid_seed":
-            raise HTTPException(
-                status_code=400,
-                detail={"error": "invalid_seed", "message": f"Seed must be an integer, got {type(request.seed).__name__}"}
-            )
-        else:
-            # Unexpected error
-            raise HTTPException(status_code=500, detail={"error": "internal_error", "message": str(e)})
+        if not await cycle_bags.has_seen(pool_key, stem):
+            # Found an unseen stem
+            await cycle_bags.mark_seen(pool_key, stem)
+            return GenerateItemResponse(**item)
+        
+        last_item = item
+    
+    # Fallback: couldn't find unseen after max attempts (tiny pool or bad luck)
+    # Clear bag and return one fresh
+    await cycle_bags.clear(pool_key)
+    item = generate_item(
+        skill_id=request.skill_id,
+        difficulty=difficulty,
+        seed=None,
+    )
+    stem = item.get("stem", "")
+    await cycle_bags.mark_seen(pool_key, stem)
+    return GenerateItemResponse(**item)
 
 
 @app.post("/grade", response_model=GradeResponse)
