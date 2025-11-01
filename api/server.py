@@ -5,6 +5,8 @@ Exposes /items/generate and /grade endpoints.
 See api/CONTRACTS.md for request/response schemas.
 """
 
+import os
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -183,4 +185,6 @@ async def health():
 # Static Files (Web UI)
 # ============================================================================
 
-app.mount("/", StaticFiles(directory="web", html=True), name="web")
+# Resolve web directory relative to project root
+WEB_DIR = str(Path(__file__).parent.parent / "web")
+app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
