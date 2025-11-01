@@ -282,6 +282,20 @@ class EngineService:
             # Update attempt count
             attempts = state.get("skills", {}).get(skill_id, {}).get("attempts", 0) + 1
             
+            # For progression arrays: if wrong answer, stay at current progression index (don't increment)
+            # If correct, next item will use progression[attempts]
+            # This creates fallback behavior: correct moves forward, wrong stays put (fallback)
+            if not correct:
+                # On wrong answer, go back one progression step by not incrementing attempts
+                attempts = max(0, attempts - 1)
+            
+            # Track correct streak for skill rotation (move to next skill after 3 correct)
+            correct_streak = state.get("skills", {}).get(skill_id, {}).get("correct_streak", 0)
+            if correct:
+                correct_streak += 1
+            else:
+                correct_streak = 0  # Reset streak on wrong answer
+            
             # Save updated state
             if "skills" not in state:
                 state["skills"] = {}
@@ -291,6 +305,7 @@ class EngineService:
             state["skills"][skill_id] = {
                 "p_mastery": p_mastery_after,
                 "attempts": attempts,
+                "correct_streak": correct_streak,
                 "last_attempt": datetime.utcnow().isoformat(),
                 "correct_count": state.get("skills", {}).get(skill_id, {}).get("correct_count", 0) + (1 if correct else 0)
             }
