@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Agent — Quadratics</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1 id="title">Math Agent — Quadratics</h1>
+        
+        <!-- Optional Controls (disabled for now) -->
+        <div class="controls">
+            <label for="skill-select">Skill:</label>
+            <select id="skill-select" disabled>
+                <option value="quad.graph.vertex">Vertex (Graph)</option>
+            </select>
+            
+            <label for="difficulty-select">Difficulty:</label>
+            <select id="difficulty-select" disabled>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+                <option value="applied">Applied</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Question Area -->
+        <section class="question-area">
+            <div id="stem" class="stem"></div>
+            
+            <div id="choices" class="choices">
+                <button class="choice-btn" id="choice-A" data-choice="A" disabled>
+                    A: <span class="choice-text"></span>
+                </button>
+                <button class="choice-btn" id="choice-B" data-choice="B" disabled>
+                    B: <span class="choice-text"></span>
+                </button>
+                <button class="choice-btn" id="choice-C" data-choice="C" disabled>
+                    C: <span class="choice-text"></span>
+                </button>
+                <button class="choice-btn" id="choice-D" data-choice="D" disabled>
+                    D: <span class="choice-text"></span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Feedback & Controls -->
+        <section class="feedback-area">
+            <div id="feedback" class="feedback" aria-live="polite"></div>
+            <button id="next-btn" class="next-btn" disabled>Next question</button>
+        </section>
+
+        <!-- Session Tally -->
+        <footer class="footer">
+            <div id="tally" class="tally">Correct 0 of 0</div>
+            <a id="repo-link" href="https://github.com/sunnyzhengai/Math_Agent_Website" target="_blank" rel="noopener noreferrer">
+                View on GitHub
+            </a>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

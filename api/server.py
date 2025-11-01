@@ -6,6 +6,7 @@ See api/CONTRACTS.md for request/response schemas.
 """
 
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -176,3 +177,10 @@ async def grade_endpoint(request: GradeRequest):
 async def health():
     """Health check endpoint."""
     return {"status": "ok"}
+
+
+# ============================================================================
+# Static Files (Web UI)
+# ============================================================================
+
+app.mount("/", StaticFiles(directory="web", html=True), name="web")
