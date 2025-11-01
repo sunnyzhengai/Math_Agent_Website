@@ -8,6 +8,10 @@ let correct = 0;
 let isBusy = false;         // blocks concurrent requests
 const API_BASE = "";        // same origin; leave empty
 
+// Track seen question stems to avoid repeats within a pool
+const seenByPool = new Map(); // key: `${skill}:${difficulty}` -> Set of stems
+const MAX_REPEAT_TRIES = 10;  // retry limit before accepting a duplicate
+
 // ============================================================================
 // DOM References
 // ============================================================================
@@ -28,7 +32,7 @@ const elements = {
 document.addEventListener("DOMContentLoaded", () => {
     initializeElements();
     attachEventHandlers();
-    fetchGenerate();
+    fetchGenerateNoRepeat();
 });
 
 function initializeElements() {
@@ -50,10 +54,10 @@ function attachEventHandlers() {
 }
 
 // ============================================================================
-// fetchGenerate() — Load a new question
+// fetchGenerateNoRepeat() — Load a new question, avoiding stems we've seen
 // ============================================================================
 
-async function fetchGenerate() {
+async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty = "easy") {
     if (isBusy) return;
 
     setButtonsEnabled(false);
@@ -62,32 +66,69 @@ async function fetchGenerate() {
     document.body.classList.add("busy");
     isBusy = true;
 
-    try {
-        const response = await fetch(`${API_BASE}/items/generate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                skill_id: "quad.graph.vertex",
-                difficulty: "easy",
-                // seed omitted for randomness
-            }),
-        });
-
-        if (response.ok) {
-            currentItem = await response.json();
-            renderQuestion(currentItem);
-        } else {
-            const errorData = await response.json();
-            setFeedback(errorData.message || "Error loading question", null);
-            elements.nextBtn.disabled = false;
-        }
-    } catch (error) {
-        setFeedback("Couldn't reach server. Please try again.", null);
-        elements.nextBtn.disabled = false;
-    } finally {
-        document.body.classList.remove("busy");
-        isBusy = false;
+    const poolKey = `${skillId}:${difficulty}`;
+    if (!seenByPool.has(poolKey)) {
+        seenByPool.set(poolKey, new Set());
     }
+    const seenStems = seenByPool.get(poolKey);
+
+    let item = null;
+
+    // Try to fetch an unseen question
+    for (let attempt = 0; attempt < MAX_REPEAT_TRIES; attempt++) {
+        try {
+            const response = await fetch(`${API_BASE}/items/generate`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    skill_id: skillId,
+                    difficulty: difficulty,
+                    // seed omitted for randomness
+                }),
+            });
+
+            if (response.ok) {
+                item = await response.json();
+                const stem = item.stem || "";
+
+                // Check if we've seen this stem before
+                if (!seenStems.has(stem)) {
+                    seenStems.add(stem);
+                    renderQuestion(item);
+                    document.body.classList.remove("busy");
+                    isBusy = false;
+                    return; // Success: got a new one
+                }
+                // Otherwise: loop and try again
+            } else {
+                // Error from API
+                const errorData = await response.json();
+                setFeedback(errorData.message || "Error loading question", null);
+                elements.nextBtn.disabled = false;
+                document.body.classList.remove("busy");
+                isBusy = false;
+                return;
+            }
+        } catch (error) {
+            setFeedback("Couldn't reach server. Please try again.", null);
+            elements.nextBtn.disabled = false;
+            document.body.classList.remove("busy");
+            isBusy = false;
+            return;
+        }
+    }
+
+    // Fallback: if we've exhausted retries, accept a duplicate or clear the seen set
+    // For now, just accept the last one we got
+    if (item) {
+        renderQuestion(item);
+    } else {
+        setFeedback("Error: Could not fetch question after multiple attempts.", null);
+        elements.nextBtn.disabled = false;
+    }
+
+    document.body.classList.remove("busy");
+    isBusy = false;
 }
 
 // ============================================================================
@@ -151,7 +192,7 @@ function handleGradeResult(result) {
 
 function onNext() {
     elements.nextBtn.disabled = true;
-    fetchGenerate();
+    fetchGenerateNoRepeat();
 }
 
 // ============================================================================
@@ -159,6 +200,8 @@ function onNext() {
 // ============================================================================
 
 function renderQuestion(item) {
+    currentItem = item;
+
     // Set stem
     elements.stem.textContent = item.stem;
 
