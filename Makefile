@@ -1,4 +1,4 @@
-.PHONY: help ci test lint format clean install update-goldens serve
+.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry
 
 help:
 	@echo "Math Agent — Development Commands"
@@ -9,6 +9,8 @@ help:
 	@echo "  make format          Auto-format code"
 	@echo "  make update-goldens  Regenerate golden snapshots"
 	@echo "  make serve           Run FastAPI server (localhost:8000)"
+	@echo "  make telemetry       Tail telemetry log (Ctrl+C to exit)"
+	@echo "  make analyze-telemetry  Analyze telemetry events"
 	@echo "  make install         Install dependencies"
 	@echo "  make clean           Remove cache files"
 
@@ -37,6 +39,14 @@ update-goldens:
 serve:
 	@echo "🚀 Starting FastAPI server..."
 	python3 -m uvicorn api.server:app --reload --host 0.0.0.0 --port 8000
+
+telemetry:
+	@echo "📊 Tailing telemetry log (Ctrl+C to exit)..."
+	@tail -f logs/telemetry.jsonl 2>/dev/null || echo "No telemetry log yet (run server first)"
+
+analyze-telemetry:
+	@echo "📈 Analyzing telemetry..."
+	@python3 tools/analyze_telemetry.py logs/telemetry.jsonl
 
 install:
 	pip install -r requirements.txt
