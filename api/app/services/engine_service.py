@@ -166,6 +166,9 @@ class EngineService:
             # Select next skill using adaptive planner
             skill_id = next_skill(state)
             
+            # Save state changes made by planner (e.g., last_selected_skill, streak resets)
+            save_user_state(user_id, state)
+            
             if not skill_id:
                 # Fallback: default to quad.identify
                 skill_id = "quad.identify"
