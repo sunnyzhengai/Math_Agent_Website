@@ -55,12 +55,30 @@ Total Phase 1+2a: 26/26 passing
 - ✅ Error codes defined (invalid_skill, invalid_difficulty, invalid_seed, invalid_choice_id, invalid_item, missing_field)
 - ✅ Determinism & JSON serialization rules locked
 
-### Phase 2c: FastAPI Structure ⏳ **IN PROGRESS**
+### Phase 2c: FastAPI Implementation ✅ **COMPLETE**
 
-- ✅ `api/server.py` — Pydantic models, endpoint stubs
-- ✅ `tests/api/test_endpoints.py` — 18 test stubs ready
-- ✅ Dependencies added (fastapi, uvicorn, pydantic)
-- ⏳ Implementing endpoints (next)
+- ✅ `api/server.py` — Fully functional FastAPI endpoints
+  - `/items/generate` — Generates items with proper error handling
+  - `/grade` — Grades responses with validation
+  - `/health` — Health check endpoint
+- ✅ Error mapping from engine to HTTP 400 responses
+- ✅ Error code propagation for debugging logs
+- ✅ 14 endpoint tests + 6 schema tests = 20/20 ✅
+
+**Test Results:**
+```
+14 endpoint tests ✅ (6 generate + 5 grade + 3 round-trip)
+- Happy path: success, defaults, correct/incorrect grading
+- Error handling: validation, malformed items, missing fields
+- Determinism: identical responses with same seed
+- Round-trip: end-to-end workflow testing
+
+6 schema tests ✅ (engine signature validation)
+
+Total Phase 2c: 20/20 passing
+```
+
+**TOTAL: 46/46 tests passing** ✅
 
 ### Phase 2d-2f: Pending
 
@@ -74,9 +92,33 @@ Total Phase 1+2a: 26/26 passing
 - `api/CONTRACTS.md` — HTTP API (endpoints, request/response schemas)
 - `CONTRIBUTING.md` — Development workflow, testing discipline, golden snapshot policy
 
+## API Usage
+
+### Generate a question
+
+```bash
+curl -X POST http://localhost:8000/items/generate \
+  -H "Content-Type: application/json" \
+  -d '{"skill_id": "quad.graph.vertex", "difficulty": "easy", "seed": 42}'
+```
+
+### Grade a response
+
+```bash
+curl -X POST http://localhost:8000/grade \
+  -H "Content-Type: application/json" \
+  -d '{"item": {...}, "choice_id": "A"}'
+```
+
+### Health check
+
+```bash
+curl http://localhost:8000/health
+```
+
 ## Phase-based Plan
 
-Guardrails → **1) Domain Data** ✅ → **2) Item Engine** ✅ → 3) Mastery & Planner → 4) API → 5) State & Neo4j → 6) Web API → 7) Frontend → 8) Obs/Safety → 9) Deploy → 10) E2E
+Guardrails → **1) Domain Data** ✅ → **2) Item Engine** ✅ → **3) API** ✅ → 4) Mastery & Planner → 5) State & Neo4j → 6) Web API → 7) Frontend → 8) Obs/Safety → 9) Deploy → 10) E2E
 
 ## Development Environment
 
@@ -90,6 +132,7 @@ Guardrails → **1) Domain Data** ✅ → **2) Item Engine** ✅ → 3) Mastery 
 - ✅ Deterministic choice shuffling
 - ✅ Injectable time (planned for Phase 3)
 - ✅ Pure functions (no side effects, input unchanged)
+- ✅ Error code propagation (for debugging and testing)
 
 ## Testing Discipline
 
@@ -97,3 +140,4 @@ Guardrails → **1) Domain Data** ✅ → **2) Item Engine** ✅ → 3) Mastery 
 - **Single truth:** `make ci` must be green locally before pushing
 - **Fix one failing test:** No fix-forward from red states
 - **Golden snapshots:** Locked against accidental drift; only update on explicit request
+- **46/46 tests:** Phase 1 + 2a generator + grader + Phase 2c API implementation
