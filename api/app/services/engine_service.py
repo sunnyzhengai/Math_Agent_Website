@@ -272,6 +272,14 @@ class EngineService:
             state = load_user_state(user_id)
             skill_id = item.get("skill_id", "unknown")
             
+            # If this is first answer on THIS skill (attempts==0), reset all other skills' streaks
+            # This prevents skills from re-triggering rotation after we've moved on
+            is_new_skill = state.get("skills", {}).get(skill_id, {}).get("attempts", 0) == 0
+            if is_new_skill:
+                for other_skill_id in state.get("skills", {}).keys():
+                    if other_skill_id != skill_id:
+                        state["skills"][other_skill_id]["correct_streak"] = 0
+            
             # Update mastery (stochastic update)
             p_mastery_before = state.get("skills", {}).get(skill_id, {}).get("p_mastery", 0.5)
             
