@@ -80,11 +80,34 @@ Total Phase 2c: 20/20 passing
 
 **TOTAL: 46/46 tests passing** ✅
 
-### Phase 2d-2f: Pending
+### Phase 2f: Web UI ✅ **COMPLETE**
 
-- 🔜 **2d** Telemetry: JSONL event logging
-- 🔜 **2e** Content: Expand quadratics skill set
-- 🔜 **2f** Web UI: Minimal generate + grade UI
+- ✅ `web/index.html` — Semantic HTML (stem, choices A-D, feedback, tally, next button)
+- ✅ `web/styles.css` — Minimal accessible styling (2x2 grid, responsive, state classes)
+- ✅ `web/app.js` — Pure JavaScript state machine (load → answer → next)
+- ✅ `api/server.py` — Static file mounting at `/`
+
+**Features:**
+```
+✅ Load page → question appears with 4 choices
+✅ Click choice → grade, show result, update tally
+✅ Click "Next question" → fetch new question
+✅ Session tally: "Correct X of Y"
+✅ Error handling: user-friendly messages, retry enabled
+✅ Accessibility: aria-live, keyboard focus, high contrast
+✅ Responsive: 2x2 on desktop, 1x4 on mobile
+```
+
+**Test Results:**
+```
+46 total tests ✅ (all phases)
+No console errors, network errors handled gracefully
+```
+
+### Phase 2d-2e: Pending
+
+- 🔜 **2d** Telemetry: JSONL event logging (item_generated, graded events)
+- 🔜 **2e** Content: Expand quadratics skill set (4+ skills, 1-2 templates each)
 
 ## Contracts & Docs
 
@@ -114,6 +137,22 @@ curl -X POST http://localhost:8000/grade \
 
 ```bash
 curl http://localhost:8000/health
+```
+
+## Testing the Web UI
+
+```bash
+# Start the server
+make serve
+
+# Visit in browser: http://localhost:8000
+
+# Expected behavior:
+# 1. Question appears with 4 choices (A, B, C, D)
+# 2. Click a choice → see ✓/✗ with explanation
+# 3. Click "Next question" → new question appears
+# 4. Tally updates: "Correct X of Y"
+# 5. No console errors
 ```
 
 ## Phase-based Plan
