@@ -1,23 +1,36 @@
 """
 Group 3: Snapshot (golden) test
 
-This test guards against drift once all other tests pass.
-Will be implemented after tests 1-10 are green.
+This test guards against drift in deterministic generation.
+Locked after Phase-1 core is verified.
 """
 
+import json
+from pathlib import Path
 import pytest
+from engine.templates import generate_item
 
 
 def test_item_snapshot_quad_vertex_easy_42():
     """
-    Test 11: Guard against drift once everything passes.
+    Test 11: Verify deterministic generation against golden baseline.
     
     Checks:
-    - Calls generate_item("quad.graph.vertex", "easy", seed=42)
-    - Compares filtered dict (id, skill_id, difficulty, stem, choices[id,text], solution_choice_id)
-      to the golden JSON file
-    - Fails if any field differs → forces conscious update
+    - Generates item with ("quad.graph.vertex", "easy", seed=42)
+    - Compares against frozen golden JSON file
+    - Fails if any field differs → guards against accidental drift
     
-    Note: This test will be implemented after tests 1-10 are all green.
+    Golden file: tests/goldens/golden_item_quad_graph_vertex_easy_42.json
     """
-    pytest.skip("Golden snapshot test — implement after core tests pass")
+    # Generate item
+    generated = generate_item("quad.graph.vertex", "easy", seed=42)
+    
+    # Load golden baseline
+    golden_path = Path(__file__).parent.parent / "goldens" / "golden_item_quad_graph_vertex_easy_42.json"
+    with open(golden_path) as f:
+        golden = json.load(f)
+    
+    # Assert exact match (deep equality)
+    assert generated == golden, \
+        f"Generated item differs from golden baseline.\nGenerated: {json.dumps(generated, indent=2)}\n" \
+        f"Golden: {json.dumps(golden, indent=2)}"

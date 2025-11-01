@@ -1,0 +1,29 @@
+{
+  "item_id": "quad.graph.vertex:easy:42",
+  "skill_id": "quad.graph.vertex",
+  "difficulty": "easy",
+  "stem": "For y = (x - 3)^2 + 2, what is the vertex?",
+  "choices": [
+    {
+      "id": "A",
+      "text": "(2, 3)"
+    },
+    {
+      "id": "B",
+      "text": "(-3, 2)"
+    },
+    {
+      "id": "C",
+      "text": "(3, -2)"
+    },
+    {
+      "id": "D",
+      "text": "(3, 2)"
+    }
+  ],
+  "solution_choice_id": "D",
+  "solution_text": "(3, 2)",
+  "tags": [
+    "vertex_form"
+  ]
+}
