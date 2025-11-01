@@ -104,9 +104,41 @@ Total Phase 2c: 20/20 passing
 No console errors, network errors handled gracefully
 ```
 
-### Phase 2d-2e: Pending
+### Phase 2d: Telemetry ✅ **COMPLETE**
 
-- 🔜 **2d** Telemetry: JSONL event logging (item_generated, graded events)
+- ✅ `api/telemetry.py` — Async-safe JSONL logger with privacy, rotation, sampling
+- ✅ Three event types: `generate`, `grade`, `cycle_reset`
+- ✅ Privacy by default: plaintext stems → `stem_hash` (SHA1)
+- ✅ Allowlist-based redaction per event type
+- ✅ Size-based log rotation with automatic archival
+- ✅ Random sampling with configurable rate (default 1.0 = all events)
+- ✅ Fail-open: errors logged to stderr but don't crash API
+- ✅ `tools/analyze_telemetry.py` — JSONL analyzer (coverage, accuracy, latency)
+- ✅ `make telemetry` — tail logs, `make analyze-telemetry` — analyze events
+
+**Configuration (.env):**
+```
+TELEMETRY_ENABLED=true
+TELEMETRY_PATH=logs/telemetry.jsonl
+TELEMETRY_MAX_BYTES=5242880
+TELEMETRY_SAMPLE_RATE=1.0
+SERVER_ID=local-dev
+APP_VERSION=0.1.0
+```
+
+**Test Results:**
+```
+4 telemetry integration tests ✅
+- Event shape (generate, grade, cycle_reset)
+- Privacy verification (no plaintext stems)
+- Cycle reset on exhaustion
+- Rotation on size threshold
+
+56 tests passing + 1 skipped (sampling) = 57 total
+```
+
+### Phase 2e: Pending
+
 - 🔜 **2e** Content: Expand quadratics skill set (4+ skills, 1-2 templates each)
 
 ## Contracts & Docs
