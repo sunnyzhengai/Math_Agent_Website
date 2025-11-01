@@ -20,6 +20,14 @@ const POOL_SIZE_HINT = {
     "quad.graph.vertex:applied": 1,
 };
 
+// DEV: cycle difficulties so you can see all 6 without repeats
+const DEV_SEQUENCE = ["easy", "medium", "hard", "applied"];
+let devIndex = 0;
+
+// Optional: debug logs
+const DEBUG = true;
+function dbg(...args) { if (DEBUG) console.debug("[UI]", ...args); }
+
 // ============================================================================
 // DOM References
 // ============================================================================
@@ -40,7 +48,8 @@ const elements = {
 document.addEventListener("DOMContentLoaded", () => {
     initializeElements();
     attachEventHandlers();
-    fetchGenerateNoRepeat();
+    // start at current devIndex difficulty
+    fetchGenerateNoRepeat("quad.graph.vertex", DEV_SEQUENCE[devIndex]);
 });
 
 function initializeElements() {
@@ -81,10 +90,7 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
     const seenStems = seenByPool.get(poolKey);
     const poolSize = POOL_SIZE_HINT[poolKey] ?? null;
 
-    // ✅ Reset bag when we've exhausted this pool
-    if (poolSize && seenStems.size >= poolSize) {
-        seenStems.clear();
-    }
+    dbg("pool", poolKey, "seen", seenStems.size, "of", poolSize);
 
     let item = null;
 
@@ -112,6 +118,8 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
 
             item = await response.json();
             const stem = item?.stem ?? "";
+
+            dbg("fetch attempt", attempt, "stem", stem);
 
             // Check if we've seen this stem before
             if (!seenStems.has(stem)) {
@@ -207,12 +215,25 @@ function handleGradeResult(result) {
 }
 
 // ============================================================================
-// onNext() — Reset and fetch next question
+// onNext() — Advance to next difficulty when current pool exhausted
 // ============================================================================
 
 function onNext() {
+    const skillId = "quad.graph.vertex";
+    
+    // Look at the current pool
+    const poolKey = `${skillId}:${DEV_SEQUENCE[devIndex]}`;
+    const poolSize = POOL_SIZE_HINT[poolKey] ?? null;
+    const seen = seenByPool.get(poolKey) ?? new Set();
+
+    // If we've seen all unique stems for this pool, move to the next difficulty
+    if (poolSize && seen.size >= poolSize && devIndex < DEV_SEQUENCE.length - 1) {
+        devIndex += 1;
+        dbg("ADVANCE difficulty to", DEV_SEQUENCE[devIndex]);
+    }
+
     elements.nextBtn.disabled = true;
-    fetchGenerateNoRepeat();
+    fetchGenerateNoRepeat(skillId, DEV_SEQUENCE[devIndex]);
 }
 
 // ============================================================================
