@@ -187,4 +187,6 @@ async def health():
 
 # Resolve web directory relative to project root
 WEB_DIR = str(Path(__file__).parent.parent / "web")
+
+# Mount static files at root with SPA support (html=True serves index.html for any route)
 app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
