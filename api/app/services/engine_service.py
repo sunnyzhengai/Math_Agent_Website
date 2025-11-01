@@ -21,18 +21,24 @@ if str(QUADRATICS_MVP_PATH) not in sys.path:
 # Import engine modules
 try:
     from engine.templates import generate_item
-    from engine.grader import grade
-    from engine.planner import generate_adaptive_item, next_skill
-    from engine.state import load_user_state, save_user_state, update_after_answer
+    from engine.grader import grade_item
+    from engine.planner import select_next_skill
+    from engine.state import load_state, save_state, get_skill_state
+    from engine.skills import SKILLS, get_skill
     IMPORTS_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️  Warning: Could not import engine modules. {e}")
-    print("   This is expected in development. Mock data will be used.")
-    generate_item = None
-    grade = None
-    generate_adaptive_item = None
-    next_skill = None
     IMPORTS_AVAILABLE = False
+
+
+def load_user_state(user_id: str) -> dict:
+    """Load user state from disk."""
+    return load_state(user_id)
+
+
+def save_user_state(user_id: str, state: dict) -> None:
+    """Save user state to disk."""
+    return save_state(user_id, state)
 
 # In-memory cache of generated items (user_id -> item_id -> item)
 _ITEM_CACHE = {}
@@ -171,7 +177,7 @@ class EngineService:
             if user_id in _LAST_SKILL_CACHE:
                 state["last_selected_skill"] = _LAST_SKILL_CACHE[user_id]
             
-            skill_id = next_skill(state)
+            skill_id = select_next_skill(state)
             
             # Save state changes made by planner (e.g., last_selected_skill, streak resets)
             save_user_state(user_id, state)
@@ -184,9 +190,9 @@ class EngineService:
                 skill_id = "quad.identify"
             
             # Generate item with adaptive difficulty
-            item_data = generate_adaptive_item(
+            item_data = generate_item(
                 skill_id=skill_id,
-                state=state,
+                difficulty="medium",  # TODO: compute based on mastery/attempts
                 seed=seed
             )
             
@@ -278,7 +284,7 @@ class EngineService:
                 raise ValueError(f"Item {item_id} not found in cache")
             
             # Call engine grader
-            result = grade(item=item, choice_id=selected_choice_id)
+            result = grade_item(item=item, choice_id=selected_choice_id)
             correct, tags, chosen_text, score = result
             
             # Load learner state
@@ -330,6 +336,11 @@ class EngineService:
                 "last_attempt": datetime.utcnow().isoformat(),
                 "correct_count": state.get("skills", {}).get(skill_id, {}).get("correct_count", 0) + (1 if correct else 0)
             }
+            
+            # Preserve last_selected_skill for skill rotation tracking
+            if "last_selected_skill" not in state and user_id in _LAST_SKILL_CACHE:
+                state["last_selected_skill"] = _LAST_SKILL_CACHE[user_id]
+            
             save_user_state(user_id, state)
             
             # Determine next_due_at (spaced review)
