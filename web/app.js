@@ -2,6 +2,11 @@
 // Module-level state
 // ============================================================================
 
+// DEV: toggle to test cycle mode (server-side no-repeat guarantee)
+const USE_CYCLE = false;  // set to true to enable cycle mode
+const SESSION_ID = localStorage.getItem("sid") || 
+                   (localStorage.setItem("sid", `session-${Date.now()}`), localStorage.getItem("sid"));
+
 let currentItem = null;     // latest generated item
 let attempted = 0;          // session tally
 let correct = 0;
@@ -97,14 +102,22 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
     // Try to fetch an unseen question
     for (let attempt = 0; attempt < MAX_REPEAT_TRIES; attempt++) {
         try {
+            // Build request body
+            const requestBody = {
+                skill_id: skillId,
+                difficulty: difficulty,
+            };
+            
+            // Add cycle mode parameters if enabled
+            if (USE_CYCLE) {
+                requestBody.mode = "cycle";
+                requestBody.session_id = SESSION_ID;
+            }
+            
             const response = await fetch(`${API_BASE}/items/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    skill_id: skillId,
-                    difficulty: difficulty,
-                    // seed omitted for randomness
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
