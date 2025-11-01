@@ -75,6 +75,30 @@ export default function AppPage() {
   }
 
   /**
+   * Fetch fresh progress data to update mastery display
+   */
+  const refreshProgress = async () => {
+    try {
+      const progress = await api.getProgress(userId)
+      
+      // Find the current skill's mastery (if any)
+      const currentSkill = state.item?.skill_id
+      if (currentSkill && progress.skills) {
+        const skillProgress = progress.skills.find((s: any) => s.skill_id === currentSkill)
+        if (skillProgress) {
+          setState((prev) => ({
+            ...prev,
+            masteryPercent: Math.round(skillProgress.p_mastery * 100),
+          }))
+        }
+      }
+    } catch (error) {
+      // Silent fail - progress fetch is non-critical
+      console.warn('Failed to refresh progress:', error)
+    }
+  }
+
+  /**
    * Handle answer submission
    */
   const handleSubmit = async (choiceId: string) => {
@@ -101,6 +125,9 @@ export default function AppPage() {
         masteryPercent: Math.round(result.p_mastery_after * 100),
         attemptCount: prev.attemptCount + 1,
       }))
+
+      // Refresh progress data from backend (ensures fresh mastery on dashboard)
+      await refreshProgress()
 
       // Auto-load next question after 3 seconds
       setTimeout(() => {
