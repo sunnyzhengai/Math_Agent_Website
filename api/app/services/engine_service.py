@@ -48,7 +48,6 @@ class EngineService:
             _ITEM_CACHE[user_id] = {}
         item_id = item.get("item_id")
         _ITEM_CACHE[user_id][item_id] = item
-        print(f"💾 CACHE: Stored item_id={item_id} for user_id={user_id}")
     
     @staticmethod
     def _get_cached_item(user_id: str, item_id: str) -> Optional[Dict[str, Any]]:
@@ -263,17 +262,11 @@ class EngineService:
             # Retrieve cached item
             item = EngineService._get_cached_item(user_id, item_id)
             if not item:
-                print(f"🔴 DEBUG: Item not found. Cache keys: {list(_ITEM_CACHE.get(user_id, {}).keys())}")
                 raise ValueError(f"Item {item_id} not found in cache")
-            
-            # Debug: show what we're grading
-            print(f"🔵 DEBUG: Grading item_id={item_id}, choice_id={selected_choice_id}")
-            print(f"   Item choices: {[(c.get('id'), c.get('text', '')[:30]) for c in item.get('choices', [])]}")
             
             # Call engine grader
             result = grade(item=item, choice_id=selected_choice_id)
             correct, tags, chosen_text, score = result
-            print(f"🟢 DEBUG: Result - correct={correct}, tags={tags}")
             
             # Load learner state
             state = load_user_state(user_id)
