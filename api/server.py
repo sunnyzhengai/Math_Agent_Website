@@ -121,16 +121,27 @@ app.add_middleware(
 @app.middleware("http")
 async def add_security_headers(request, call_next):
     response = await call_next(request)
+    # Core security headers (conservative defaults)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
-    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
-    response.headers["X-DNS-Prefetch-Control"] = "off"
-    response.headers["X-Download-Options"] = "noopen"
-    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
-    response.headers["X-Powered-By"] = "Math Agent"
-    response.headers["X-Request-ID"] = request.headers.get("X-Request-ID", "N/A")
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
+    # CSP – strict (no inline scripts/styles, safe for our static-only UI)
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self'; "
+        "img-src 'self' data:; "
+        "connect-src 'self'; "
+        "font-src 'self'; "
+        "object-src 'none'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    )
     return response
 
 
@@ -495,6 +506,12 @@ async def grade_endpoint(request: GradeRequest):
 @app.get("/health")
 async def health():
     """Health check endpoint."""
+    return {"status": "ok"}
+
+
+@app.get("/healthz")
+async def healthz():
+    """Kubernetes-compatible health check endpoint."""
     return {"status": "ok"}
 
 

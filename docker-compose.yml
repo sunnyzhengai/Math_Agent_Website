@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: math-agent-api
+    environment:
+      PORT: 8080
+      TELEMETRY_ENABLED: "true"
+      TELEMETRY_SAMPLE_RATE: "0.25"
+      TELEMETRY_MAX_BYTES: "5242880"
+      TELEMETRY_PATH: "logs/telemetry.jsonl"
+      SERVER_ID: "docker-local"
+      APP_VERSION: "0.2.0"
+    volumes:
+      - ./logs:/app/logs
+    expose:
+      - 8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: math-agent-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./web:/app/web:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  logs:
+    driver: local

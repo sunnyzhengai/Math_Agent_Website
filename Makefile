@@ -1,4 +1,4 @@
-.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker
+.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down
 
 help:
 	@echo "Math Agent — Development Commands"
@@ -13,6 +13,8 @@ help:
 	@echo "  make analyze-telemetry  Analyze telemetry events"
 	@echo "  make build-docker    Build Docker image"
 	@echo "  make run-docker      Run Docker container (port 8080)"
+	@echo "  make docker-up       Start docker-compose stack (port 80)"
+	@echo "  make docker-down     Stop docker-compose stack"
 	@echo "  make install         Install dependencies"
 	@echo "  make clean           Remove cache files"
 
@@ -68,3 +70,13 @@ build-docker:
 run-docker:
 	@echo "🚀 Running Docker container on port 8080..."
 	docker run --rm -p 8080:8080 -v "$(PWD)/logs:/app/logs" math-agent:latest
+
+docker-up:
+	@echo "🐳 Starting docker-compose stack (Nginx + API)..."
+	docker-compose up -d
+	@echo "✅ Stack up! Visit http://localhost"
+
+docker-down:
+	@echo "🛑 Stopping docker-compose stack..."
+	docker-compose down
+	@echo "✅ Stack down!"
