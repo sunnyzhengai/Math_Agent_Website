@@ -17,6 +17,11 @@ from typing import Literal, Tuple
 Difficulty = Literal["easy", "medium", "hard", "applied"]
 
 
+def _clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
+    """Clamp x to [lo, hi]."""
+    return lo if x < lo else hi if x > hi else x
+
+
 def plan_next_difficulty(p: float) -> Tuple[Difficulty, str]:
     """
     Returns (difficulty, reason) based on mastery probability.
@@ -32,4 +37,11 @@ def plan_next_difficulty(p: float) -> Tuple[Difficulty, str]:
         - difficulty: one of "easy", "medium", "hard"
         - reason: short explanation for UI/telemetry (e.g., "building confidence")
     """
-    raise NotImplementedError
+    p = _clamp(p)
+
+    if p < 0.40:
+        return "easy", "Building confidence on core skills (p < 0.40)."
+    if p <= 0.70:
+        return "medium", "Mixed practice to consolidate (0.40 ≤ p ≤ 0.70)."
+    # p > 0.70
+    return "hard", "Push challenge to stretch mastery (p > 0.70)."
