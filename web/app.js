@@ -451,6 +451,25 @@ function handleGradeResult(result) {
         correct += 1;
     }
 
+    // Add visual feedback to buttons
+    // Mark the button the user chose
+    const chosenBtn = elements.choiceButtons[result.choice_id];
+    if (chosenBtn) {
+        if (result.correct) {
+            chosenBtn.classList.add("is-correct");
+        } else {
+            chosenBtn.classList.add("is-incorrect");
+        }
+    }
+
+    // If they got it wrong, show the correct answer too
+    if (!result.correct && result.solution_choice_id) {
+        const correctBtn = elements.choiceButtons[result.solution_choice_id];
+        if (correctBtn) {
+            correctBtn.classList.add("is-correct");
+        }
+    }
+
     // Render feedback
     const feedbackClass = result.correct ? "correct" : "incorrect";
     setFeedback(result.explanation, feedbackClass);
@@ -536,6 +555,8 @@ function renderQuestion(item) {
         const button = elements.choiceButtons[choiceId];
         const textSpan = button.querySelector(".choice-text");
         textSpan.textContent = item.choices[i].text;
+        // Clear state classes from previous question
+        button.classList.remove("is-correct", "is-incorrect");
     }
 
     // Enable choice buttons, disable Next
