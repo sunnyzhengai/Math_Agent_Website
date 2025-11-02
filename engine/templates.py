@@ -50,7 +50,203 @@ SKILL_TEMPLATES = {
                 "rationale": "The vertex occurs at t = 2, the maximum height.",
             },
         ],
-    }
+    },
+    "quad.standard.vertex": {
+        "easy": [
+            {
+                "stem": "What is the vertex of y = x^2 - 6x + 5?",
+                "choices": ["(3, -4)", "(-3, -4)", "(3, 4)", "(6, 5)"],
+                "solution": 0,
+                "rationale": "Vertex x = -b/(2a) = 3, substitute to get y = -4.",
+            },
+            {
+                "stem": "Find the vertex of y = x^2 + 4x + 1.",
+                "choices": ["(-2, -3)", "(2, 3)", "(-4, 1)", "(-2, 3)"],
+                "solution": 0,
+                "rationale": "x = -b/2a = -2, y = (-2)^2 + 4(-2) + 1 = -3.",
+            },
+            {
+                "stem": "What is the vertex of y = x^2 - 2x + 1?",
+                "choices": ["(1, 0)", "(-1, 0)", "(1, 1)", "(0, 1)"],
+                "solution": 0,
+                "rationale": "x = 1, y = 0; the vertex is (1, 0).",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Find the vertex of y = 2x^2 - 8x + 5.",
+                "choices": ["(2, -3)", "(4, -3)", "(2, 3)", "(-2, -3)"],
+                "solution": 0,
+                "rationale": "x = -b/(2a) = 2, substitute: y = -3.",
+            },
+            {
+                "stem": "Find the vertex of y = -x^2 + 4x + 1.",
+                "choices": ["(2, 5)", "(2, -5)", "(-2, 5)", "(1, 4)"],
+                "solution": 0,
+                "rationale": "x = -b/(2a) = 2, y = -4 + 8 + 1 = 5.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "Find the vertex of y = 3x^2 - 12x + 7.",
+                "choices": ["(2, -5)", "(4, -5)", "(2, 5)", "(-2, -5)"],
+                "solution": 0,
+                "rationale": "x = -b/(2a) = 2, y = 3(4) - 24 + 7 = -5.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "A ball's height is modeled by h(t) = -5t^2 + 40t + 60. At what time does it reach maximum height?",
+                "choices": ["t = 4", "t = 8", "t = 2", "t = 6"],
+                "solution": 0,
+                "rationale": "t = -b/(2a) = 4 seconds.",
+            },
+            {
+                "stem": "For y = -16t^2 + 32t + 10, what is the maximum height?",
+                "choices": ["26 feet", "10 feet", "32 feet", "42 feet"],
+                "solution": 0,
+                "rationale": "At t = 1, h = -16(1) + 32 + 10 = 26 feet.",
+            },
+        ],
+    },
+    "quad.roots.factored": {
+        "easy": [
+            {
+                "stem": "Find the zeros of y = (x - 2)(x + 5).",
+                "choices": ["x = 2, -5", "x = -2, 5", "x = 2, 5", "x = -2, -5"],
+                "solution": 0,
+                "rationale": "Set each factor to zero: x = 2 and x = -5.",
+            },
+            {
+                "stem": "Find the zeros of y = (x + 3)(x - 7).",
+                "choices": ["x = -3, 7", "x = 3, -7", "x = -7, -3", "x = 7, 3"],
+                "solution": 0,
+                "rationale": "x = -3 and x = 7.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Find the zeros of y = -2(x + 1)(x - 4).",
+                "choices": ["x = -1, 4", "x = 1, -4", "x = -1, -4", "x = 1, 4"],
+                "solution": 0,
+                "rationale": "Set each factor = 0, a does not change roots.",
+            },
+            {
+                "stem": "Find the zeros of y = 3(x - 5)(x - 2).",
+                "choices": ["x = 5, 2", "x = -5, -2", "x = 5, -2", "x = 2, -5"],
+                "solution": 0,
+                "rationale": "x = 5 and x = 2.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "Find the zeros of y = -4(x + 2)(x + 6).",
+                "choices": ["x = -2, -6", "x = 2, 6", "x = 2, -6", "x = -2, 6"],
+                "solution": 0,
+                "rationale": "x = -2 and x = -6.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "The height of a ball is modeled by h(t) = -5(t - 1)(t - 6). When does the ball hit the ground?",
+                "choices": ["t = 1 s and t = 6 s", "t = -1 s and t = 6 s", "t = 5 s and t = 7 s", "t = 0 s and t = 6 s"],
+                "solution": 0,
+                "rationale": "h = 0 at t = 1 and t = 6.",
+            },
+        ],
+    },
+    "quad.solve.by_factoring": {
+        "easy": [
+            {
+                "stem": "Solve x^2 - 3x - 10 = 0.",
+                "choices": ["x = 5, -2", "x = -5, 2", "x = 5, 2", "x = -5, -2"],
+                "solution": 0,
+                "rationale": "(x - 5)(x + 2) = 0 → x = 5, -2.",
+            },
+            {
+                "stem": "Solve x^2 + x - 6 = 0.",
+                "choices": ["x = 2, -3", "x = -2, 3", "x = -2, -3", "x = 3, 2"],
+                "solution": 0,
+                "rationale": "(x + 3)(x - 2) = 0 → x = -3, 2.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Solve 2x^2 + 7x + 3 = 0.",
+                "choices": ["x = -1/2, -3", "x = 1/2, 3", "x = -3, -7", "x = -1, -2"],
+                "solution": 0,
+                "rationale": "(2x + 1)(x + 3) = 0 → x = -1/2, -3.",
+            },
+            {
+                "stem": "Solve 3x^2 - 12x + 9 = 0.",
+                "choices": ["x = 1, 3", "x = -1, -3", "x = 1, -3", "x = 0, 3"],
+                "solution": 0,
+                "rationale": "Divide by 3, factor (x - 1)(x - 3) = 0.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "Solve 2x^2 - 5x - 3 = 0.",
+                "choices": ["x = 3, -1/2", "x = -3, 1/2", "x = 1/3, -2", "x = -1, 3/2"],
+                "solution": 0,
+                "rationale": "(2x + 1)(x - 3) = 0 → x = -1/2, 3.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "A rectangle has area x^2 + 5x + 6 = 0 when length is (x + 2). What are the roots?",
+                "choices": ["x = -2, -3", "x = 2, 3", "x = -1, -6", "x = -2, 3"],
+                "solution": 0,
+                "rationale": "(x + 2)(x + 3) = 0 → x = -2, -3.",
+            },
+        ],
+    },
+    "quad.solve.by_formula": {
+        "easy": [
+            {
+                "stem": "Solve x^2 - 5x + 6 = 0 using the quadratic formula.",
+                "choices": ["x = 2, 3", "x = -2, -3", "x = 1, 6", "x = 3, -6"],
+                "solution": 0,
+                "rationale": "Discriminant = 25 - 24 = 1 → x = (5 ± 1)/2 = 2, 3.",
+            },
+            {
+                "stem": "Solve x^2 - 4x + 3 = 0.",
+                "choices": ["x = 1, 3", "x = -1, -3", "x = 1, -3", "x = 0, 3"],
+                "solution": 0,
+                "rationale": "x = (4 ± √(16 - 12))/2 = (4 ± 2)/2 → x = 1, 3.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Solve x^2 - 2x - 3 = 0 using the quadratic formula.",
+                "choices": ["x = 3, -1", "x = -3, 1", "x = 2, 3", "x = -2, -3"],
+                "solution": 0,
+                "rationale": "Discriminant = 4 + 12 = 16 → x = (2 ± 4)/2 = 3, -1.",
+            },
+            {
+                "stem": "Solve x^2 + 4x + 2 = 0.",
+                "choices": ["x = -2 ± √2", "x = 2 ± √2", "x = -4 ± √2", "x = -2 ± 2√2"],
+                "solution": 0,
+                "rationale": "x = (-4 ± √(16 - 8))/2 = (-4 ± √8)/2 = -2 ± √2.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "Solve 2x^2 + 3x + 7 = 0.",
+                "choices": ["x = (-3 ± i√47)/4", "x = (-3 ± √47)/4", "x = (-3 ± i√43)/4", "x = (3 ± i√47)/4"],
+                "solution": 0,
+                "rationale": "Discriminant = 9 - 56 = -47 → complex roots x = (-3 ± i√47)/4.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "A projectile follows h = -4.9t^2 + 20t + 1. When does it hit the ground (h=0)?",
+                "choices": ["t ≈ 0.05 s and t ≈ 4.1 s", "t ≈ -0.05 s and t ≈ 4.1 s", "t ≈ 1 s and t ≈ 3 s", "t ≈ 0.5 s and t ≈ 2 s"],
+                "solution": 0,
+                "rationale": "Set h=0; use quadratic formula → t ≈ 0.05, 4.1.",
+            },
+        ],
+    },
 }
 
 VALID_DIFFICULTIES = {"easy", "medium", "hard", "applied"}
