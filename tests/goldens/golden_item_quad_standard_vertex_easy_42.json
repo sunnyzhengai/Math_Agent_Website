@@ -2,27 +2,27 @@
   "item_id": "quad.standard.vertex:easy:42",
   "skill_id": "quad.standard.vertex",
   "difficulty": "easy",
-  "stem": "What is the vertex of y = x^2 - 2x + 1?",
+  "stem": "Find the vertex of y = -x^2 + 4x + 1.",
   "choices": [
     {
       "id": "A",
-      "text": "(1, 1)"
+      "text": "(-2, 5)"
     },
     {
       "id": "B",
-      "text": "(-1, 0)"
+      "text": "(2, -5)"
     },
     {
       "id": "C",
-      "text": "(0, 1)"
+      "text": "(1, 4)"
     },
     {
       "id": "D",
-      "text": "(1, 0)"
+      "text": "(2, 5)"
     }
   ],
   "solution_choice_id": "D",
-  "solution_text": "(1, 0)",
+  "solution_text": "(2, 5)",
   "tags": [
     "vertex_form"
   ]
