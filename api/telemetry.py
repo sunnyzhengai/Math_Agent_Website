@@ -94,6 +94,7 @@ class TelemetryLogger:
                 "ts": time.time(),
                 "server_id": self.server_id,
                 "version": self.app_version,
+                "schema": 1,  # Bump on breaking changes; helps with schema evolution
             }
             payload = dict(kwargs)
             
@@ -129,14 +130,14 @@ class TelemetryLogger:
         allowed_fields = {
             "generate": {
                 "event", "ts", "session_id", "mode", "skill_id", "difficulty",
-                "item_id", "stem_hash", "choice_ids", "latency_ms", "server_id", "version"
+                "item_id", "stem_hash", "choice_ids", "latency_ms", "server_id", "version", "schema"
             },
             "grade": {
                 "event", "ts", "session_id", "skill_id", "difficulty",
-                "item_id", "choice_id", "correct", "solution_choice_id", "latency_ms", "server_id", "version"
+                "item_id", "choice_id", "correct", "solution_choice_id", "latency_ms", "server_id", "version", "schema"
             },
             "cycle_reset": {
-                "event", "ts", "session_id", "skill_id", "difficulty", "server_id", "version"
+                "event", "ts", "session_id", "skill_id", "difficulty", "server_id", "version", "schema"
             },
         }
         
