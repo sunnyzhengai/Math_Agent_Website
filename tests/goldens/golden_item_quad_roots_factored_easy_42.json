@@ -1,0 +1,29 @@
+{
+  "item_id": "quad.roots.factored:easy:42",
+  "skill_id": "quad.roots.factored",
+  "difficulty": "easy",
+  "stem": "Find the zeros of y = (x - 2)(x + 5).",
+  "choices": [
+    {
+      "id": "A",
+      "text": "x = -2, -5"
+    },
+    {
+      "id": "B",
+      "text": "x = -2, 5"
+    },
+    {
+      "id": "C",
+      "text": "x = 2, 5"
+    },
+    {
+      "id": "D",
+      "text": "x = 2, -5"
+    }
+  ],
+  "solution_choice_id": "D",
+  "solution_text": "x = 2, -5",
+  "tags": [
+    "vertex_form"
+  ]
+}

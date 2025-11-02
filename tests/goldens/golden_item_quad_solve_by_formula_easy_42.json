@@ -1,0 +1,29 @@
+{
+  "item_id": "quad.solve.by_formula:easy:42",
+  "skill_id": "quad.solve.by_formula",
+  "difficulty": "easy",
+  "stem": "Solve x^2 - 5x + 6 = 0 using the quadratic formula.",
+  "choices": [
+    {
+      "id": "A",
+      "text": "x = 3, -6"
+    },
+    {
+      "id": "B",
+      "text": "x = -2, -3"
+    },
+    {
+      "id": "C",
+      "text": "x = 1, 6"
+    },
+    {
+      "id": "D",
+      "text": "x = 2, 3"
+    }
+  ],
+  "solution_choice_id": "D",
+  "solution_text": "x = 2, 3",
+  "tags": [
+    "vertex_form"
+  ]
+}

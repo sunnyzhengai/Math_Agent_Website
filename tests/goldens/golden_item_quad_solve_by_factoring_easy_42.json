@@ -1,0 +1,29 @@
+{
+  "item_id": "quad.solve.by_factoring:easy:42",
+  "skill_id": "quad.solve.by_factoring",
+  "difficulty": "easy",
+  "stem": "Solve x^2 - 3x - 10 = 0.",
+  "choices": [
+    {
+      "id": "A",
+      "text": "x = -5, -2"
+    },
+    {
+      "id": "B",
+      "text": "x = -5, 2"
+    },
+    {
+      "id": "C",
+      "text": "x = 5, 2"
+    },
+    {
+      "id": "D",
+      "text": "x = 5, -2"
+    }
+  ],
+  "solution_choice_id": "D",
+  "solution_text": "x = 5, -2",
+  "tags": [
+    "vertex_form"
+  ]
+}
