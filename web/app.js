@@ -28,8 +28,8 @@ const API_BASE = "";        // same origin; leave empty
 const seenByPool = new Map(); // key: `${skill}:${difficulty}` -> Set of stems
 const MAX_REPEAT_TRIES = 10;  // retry limit before resetting bag
 
-// Pool size hints: when bag reaches this size, it's exhausted
-const POOL_SIZE_HINT = {
+// Pool size hints: dynamically loaded from /skills/manifest, with defaults as fallback
+let POOL_SIZE_HINT = {
     "quad.graph.vertex:easy": 2,
     "quad.graph.vertex:medium": 1,
     "quad.graph.vertex:hard": 1,
@@ -87,9 +87,178 @@ const elements = {
 // Initialize
 // ============================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+// --- Load pool sizes from server manifest ---
+
+async function loadPoolSizes() {
+    try {
+        const response = await fetch(`${API_BASE}/skills/manifest`);
+        if (!response.ok) {
+            dbg("Failed to load pool sizes from manifest, using defaults");
+            return;
+        }
+        const manifest = await response.json();
+        // manifest format: { "quad.graph.vertex": { "easy": 2, "medium": 1, ... }, ... }
+        // Convert to our POOL_SIZE_HINT format: { "quad.graph.vertex:easy": 2, ... }
+        const updated = {};
+        for (const [skillId, difficulties] of Object.entries(manifest)) {
+            for (const [diff, count] of Object.entries(difficulties)) {
+                updated[`${skillId}:${diff}`] = count;
+            }
+        }
+        POOL_SIZE_HINT = updated;
+        dbg("Loaded pool sizes from manifest:", POOL_SIZE_HINT);
+    } catch (error) {
+        dbg("Error loading pool sizes from manifest:", error);
+    }
+}
+
+// --- Pool completion helpers ---
+
+function isPoolComplete(skillId, diff) {
+    const k = `${skillId}:${diff}`;
+    const poolSize = POOL_SIZE_HINT[k] ?? null;
+    const seen = seenByPool.get(k) ?? new Set();
+    return poolSize ? seen.size >= poolSize : false;
+}
+
+function isEntireSetComplete() {
+    // all skills × difficulties complete
+    for (const s of SKILL_SEQUENCE) {
+        for (const d of DEV_SEQUENCE) {
+            if (!isPoolComplete(s, d)) return false;
+        }
+    }
+    return true;
+}
+
+function clearLocalBag(skillId, difficulty) {
+    const k = `${skillId}:${difficulty}`;
+    seenByPool.set(k, new Set());
+}
+
+// --- Populate and enable dropdowns on load ---
+
+async function initSelectors() {
+    const skillSel = document.getElementById("skill-select");
+    const diffSel = document.getElementById("difficulty-select");
+
+    // Skills
+    SKILL_SEQUENCE.forEach((id, i) => {
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = id
+            .replace("quad.", "")
+            .replace(/\./g, " → ")
+            .replace(/_/g, " ");
+        skillSel.appendChild(opt);
+    });
+    skillSel.value = SKILL_SEQUENCE[skillIndex];
+
+    // Difficulties
+    DEV_SEQUENCE.forEach((d) => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d[0].toUpperCase() + d.slice(1);
+        diffSel.appendChild(opt);
+    });
+    diffSel.value = DEV_SEQUENCE[devIndex];
+
+    // Enable + wire events
+    skillSel.disabled = false;
+    diffSel.disabled = false;
+
+    skillSel.addEventListener("change", () => {
+        skillIndex = Math.max(0, SKILL_SEQUENCE.indexOf(skillSel.value));
+        clearLocalBag(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
+        updateProgress();
+        fetchGenerateNoRepeat(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
+    });
+
+    diffSel.addEventListener("change", () => {
+        devIndex = Math.max(0, DEV_SEQUENCE.indexOf(diffSel.value));
+        clearLocalBag(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
+        updateProgress();
+        fetchGenerateNoRepeat(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
+    });
+}
+
+// --- Update progress indicator ---
+
+function updateProgress() {
+    const skillId = SKILL_SEQUENCE[skillIndex];
+    const diff = DEV_SEQUENCE[devIndex];
+    const poolKey = `${skillId}:${diff}`;
+    const poolSize = POOL_SIZE_HINT[poolKey] ?? "?";
+    const seen = seenByPool.get(poolKey) ?? new Set();
+    const displaySkill = skillId
+        .replace("quad.", "")
+        .replace(/\./g, " → ")
+        .replace(/_/g, " ");
+    
+    const progressEl = document.getElementById("progress");
+    if (progressEl) {
+        progressEl.textContent = `Seen ${seen.size}/${poolSize} · ${diff} · ${displaySkill}`;
+    }
+}
+
+// --- Finish modal ---
+
+function showFinishModal() {
+    const modal = document.getElementById("finish-modal");
+    const summary = document.getElementById("modal-summary");
+    
+    const totalQuestions = Array.from(POOL_SIZE_HINT.values()).reduce((a, b) => a + b, 0);
+    summary.innerHTML = `
+        <strong>Accuracy:</strong> ${correct} correct out of ${attempted} attempted (${attempted > 0 ? Math.round(correct / attempted * 100) : 0}%)<br>
+        <strong>Total questions:</strong> ${totalQuestions} across ${SKILL_SEQUENCE.length} skills and ${DEV_SEQUENCE.length} difficulties
+    `;
+    
+    modal.hidden = false;
+    elements.nextBtn.disabled = true;
+    setButtonsEnabled(false);
+
+    document.getElementById("btn-restart").onclick = () => {
+        // Clear all local bags to replay everything
+        seenByPool.clear();
+        modal.hidden = true;
+        attempted = 0;
+        correct = 0;
+        elements.tally.textContent = `Correct ${correct} of ${attempted}`;
+        skillIndex = 0;
+        devIndex = 0;
+        document.getElementById("skill-select").value = SKILL_SEQUENCE[0];
+        document.getElementById("difficulty-select").value = DEV_SEQUENCE[0];
+        updateProgress();
+        fetchGenerateNoRepeat(SKILL_SEQUENCE[0], DEV_SEQUENCE[0]);
+    };
+
+    document.getElementById("btn-next-skill").onclick = () => {
+        // Jump to next skill (if any) at easy; if already last skill, just restart
+        skillIndex = Math.min(skillIndex + 1, SKILL_SEQUENCE.length - 1);
+        devIndex = 0;
+        modal.hidden = true;
+        document.getElementById("skill-select").value = SKILL_SEQUENCE[skillIndex];
+        document.getElementById("difficulty-select").value = DEV_SEQUENCE[devIndex];
+        clearLocalBag(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
+        updateProgress();
+        fetchGenerateNoRepeat(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
+    };
+}
+
+function maybeFinish() {
+    if (isEntireSetComplete()) {
+        showFinishModal();
+        return true;
+    }
+    return false;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
     initializeElements();
     attachEventHandlers();
+    await loadPoolSizes();  // Load server-truth pool sizes before initializing dropdowns
+    await initSelectors();
+    updateProgress();
     // start at current devIndex difficulty with first skill
     fetchGenerateNoRepeat(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
 });
@@ -274,6 +443,9 @@ function handleGradeResult(result) {
 // ============================================================================
 
 function onNext() {
+    // Check if entire set is complete before advancing
+    if (maybeFinish()) return;
+
     const skillId = SKILL_SEQUENCE[skillIndex];
     
     const currDiff = DEV_SEQUENCE[devIndex];
@@ -306,6 +478,11 @@ function onNext() {
         }
         dbg("ADVANCE difficulty to", DEV_SEQUENCE[devIndex], "skill to", SKILL_SEQUENCE[skillIndex]);
     }
+
+    // Update selector values to match current state
+    document.getElementById("skill-select").value = SKILL_SEQUENCE[skillIndex];
+    document.getElementById("difficulty-select").value = DEV_SEQUENCE[devIndex];
+    updateProgress();
 
     elements.nextBtn.disabled = true;
     fetchGenerateNoRepeat(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);

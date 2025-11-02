@@ -9,22 +9,19 @@
 <body>
     <!-- Header -->
     <header>
-        <h1 id="title">Math Agent — Quadratics</h1>
+        <div class="header-top">
+            <h1 id="title">Math Agent — Quadratics</h1>
+        </div>
         
-        <!-- Optional Controls (disabled for now) -->
+        <!-- Controls -->
         <div class="controls">
             <label for="skill-select">Skill:</label>
-            <select id="skill-select" disabled>
-                <option value="quad.graph.vertex">Vertex (Graph)</option>
-            </select>
+            <select id="skill-select" disabled></select>
             
             <label for="difficulty-select">Difficulty:</label>
-            <select id="difficulty-select" disabled>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-                <option value="applied">Applied</option>
-            </select>
+            <select id="difficulty-select" disabled></select>
+
+            <div id="progress" class="progress-indicator"></div>
         </div>
     </header>
 
@@ -64,6 +61,19 @@
             </a>
         </footer>
     </main>
+
+    <!-- Finish Modal -->
+    <div id="finish-modal" class="modal" hidden>
+        <div class="modal-card">
+            <h2>Set complete 🎉</h2>
+            <p>You answered every question in this set.</p>
+            <p class="modal-summary" id="modal-summary"></p>
+            <div class="modal-actions">
+                <button id="btn-restart" class="btn-primary">Restart this set</button>
+                <button id="btn-next-skill" class="btn-secondary">Next skill →</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
