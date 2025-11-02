@@ -137,9 +137,33 @@ APP_VERSION=0.1.0
 56 tests passing + 1 skipped (sampling) = 57 total
 ```
 
-### Phase 2e: Pending
+### Phase 2e: Content Expansion ✅ **COMPLETE**
 
-- 🔜 **2e** Content: Expand quadratics skill set (4+ skills, 1-2 templates each)
+- ✅ `quad.graph.vertex` (5 items) — Vertex from vertex form
+- ✅ `quad.standard.vertex` (8 items) — Vertex from standard form using -b/2a
+- ✅ `quad.roots.factored` (6 items) — Zeros from factored form
+- ✅ `quad.solve.by_factoring` (6 items) — Solve by factoring (ac-method)
+- ✅ `quad.solve.by_formula` (6 items) — Quadratic formula with complex roots
+
+**Pool Summary:**
+```
+5 quadratic skills
+31 total unique items across all difficulties
+~31 questions per session in cycle mode before pool exhaustion
+Coverage by difficulty: easy (2-3), medium (1-2), hard (1), applied (1-2)
+```
+
+**Telemetry Integration:**
+- Coverage tracking: which skills have low item counts
+- Accuracy by skill: identify too-easy/hard items
+- Reset frequency: pool size tuning signal
+
+**Test Results:**
+```
+All 31 new items validated
+59 tests passing + 1 skipped = 60 total
+Zero regressions
+```
 
 ## Contracts & Docs
 
