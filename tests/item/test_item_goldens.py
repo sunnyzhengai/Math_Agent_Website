@@ -46,7 +46,6 @@ def test_golden_quad_solve_by_factoring_easy_42():
     _cmp("quad.solve.by_factoring", "easy", 42, "golden_item_quad_solve_by_factoring_easy_42.json")
 
 
-@pytest.mark.skip(reason="Unskip after adding quad.solve.by_formula golden")
 def test_golden_quad_solve_by_formula_easy_42():
     """Golden: quad.solve.by_formula easy seed=42"""
     _cmp("quad.solve.by_formula", "easy", 42, "golden_item_quad_solve_by_formula_easy_42.json")

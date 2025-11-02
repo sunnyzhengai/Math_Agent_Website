@@ -64,7 +64,6 @@ def test_solve_by_factoring_spotchecks():
 
 # ---------- quad.solve.by_formula ----------
 
-@pytest.mark.skip(reason="Unskip after adding quad.solve.by_formula templates")
 def test_solve_by_formula_spotchecks():
     """Math sanity check: quadratic formula produces surd or rational roots"""
     item = generate_item("quad.solve.by_formula", "medium", seed=42)
