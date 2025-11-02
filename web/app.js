@@ -1,9 +1,20 @@
 // ============================================================================
+// Stem Normalization (defensive against Unicode, spacing variations)
+// ============================================================================
+
+const normStem = s =>
+  (s ?? "")
+    .normalize("NFKC")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+// ============================================================================
 // Module-level state
 // ============================================================================
 
 // DEV: toggle to test cycle mode (server-side no-repeat guarantee)
-const USE_CYCLE = false;  // set to true to enable cycle mode
+const USE_CYCLE = true;  // set to true to enable cycle mode
 const SESSION_ID = localStorage.getItem("sid") || 
                    (localStorage.setItem("sid", `session-${Date.now()}`), localStorage.getItem("sid"));
 
@@ -156,9 +167,14 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
             }
 
             item = await response.json();
-            const stem = item?.stem ?? "";
+            const stem = normStem(item?.stem ?? "");
 
             dbg("fetch attempt", attempt, "stem", stem);
+
+            // Warn if pool size hint is too small
+            if (poolSize && seenStems.size > poolSize) {
+                dbg("⚠️ POOL_SIZE_HINT too small for", poolKey, "— seen", seenStems.size, ">", poolSize);
+            }
 
             // Check if we've seen this stem before
             if (!seenStems.has(stem)) {
@@ -270,8 +286,11 @@ function onNext() {
 
     // If we've seen all unique stems for this pool, advance difficulty
     if (poolSize && seen.size >= poolSize) {
-        // Clear current pool so a future cycle can show them again
-        seenByPool.set(poolKey, new Set());
+        // Only reset client-side bag if NOT using server cycle mode
+        // (server cycle mode manages the bag server-side)
+        if (!USE_CYCLE) {
+            seenByPool.set(poolKey, new Set());
+        }
 
         // Advance or wrap
         if (devIndex < DEV_SEQUENCE.length - 1) {
