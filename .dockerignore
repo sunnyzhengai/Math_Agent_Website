@@ -1,0 +1,14 @@
+.git
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+logs/
+telemetry.rotate/
+.var/
+.venv/
+node_modules/
+dist/
+build/

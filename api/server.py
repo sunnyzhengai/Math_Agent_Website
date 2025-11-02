@@ -16,6 +16,8 @@ from pydantic import BaseModel
 from typing import Optional, List, Literal, Dict, Any
 from collections import OrderedDict
 import asyncio
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from engine.templates import generate_item, SKILL_TEMPLATES
 from engine.grader import grade_response
@@ -105,6 +107,31 @@ cycle_bags = LRUSeenBags(max_entries=2000)
 
 
 app = FastAPI(title="Math Agent API", version="0.1.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Add security headers middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
+    response.headers["X-DNS-Prefetch-Control"] = "off"
+    response.headers["X-Download-Options"] = "noopen"
+    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+    response.headers["X-Powered-By"] = "Math Agent"
+    response.headers["X-Request-ID"] = request.headers.get("X-Request-ID", "N/A")
+    return response
 
 
 # ============================================================================

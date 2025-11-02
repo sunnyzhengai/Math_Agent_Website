@@ -1,4 +1,4 @@
-.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry
+.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker
 
 help:
 	@echo "Math Agent — Development Commands"
@@ -11,6 +11,8 @@ help:
 	@echo "  make serve           Run FastAPI server (localhost:8000)"
 	@echo "  make telemetry       Tail telemetry log (Ctrl+C to exit)"
 	@echo "  make analyze-telemetry  Analyze telemetry events"
+	@echo "  make build-docker    Build Docker image"
+	@echo "  make run-docker      Run Docker container (port 8080)"
 	@echo "  make install         Install dependencies"
 	@echo "  make clean           Remove cache files"
 
@@ -57,3 +59,12 @@ clean:
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	@echo "✅ Cache cleaned!"
+
+build-docker:
+	@echo "🐳 Building Docker image..."
+	docker build -t math-agent:latest .
+	@echo "✅ Docker image built!"
+
+run-docker:
+	@echo "🚀 Running Docker container on port 8080..."
+	docker run --rm -p 8080:8080 -v "$(PWD)/logs:/app/logs" math-agent:latest

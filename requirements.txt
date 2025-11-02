@@ -3,6 +3,8 @@ pytest-cov==4.1.0
 pylint==3.0.3
 mypy==1.7.1
 black==23.12.1
-fastapi==0.104.1
-uvicorn==0.24.0
-pydantic==2.5.0
+fastapi==0.115.0
+uvicorn==0.30.6
+gunicorn==22.0.0
+pydantic==2.9.2
+python-dotenv==1.0.1
