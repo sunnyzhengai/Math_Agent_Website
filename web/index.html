@@ -27,6 +27,12 @@
 
     <!-- Main Content -->
     <main>
+        <!-- Why this next? (Planner Hint) -->
+        <section class="planner-hint" id="planner-hint" hidden>
+            <div class="planner-pill" id="planner-diff">Easy</div>
+            <div class="planner-text" id="planner-reason">Loading next-step guidance…</div>
+        </section>
+
         <!-- Question Area -->
         <section class="question-area">
             <div id="stem" class="stem"></div>
@@ -51,6 +57,12 @@
         <section class="feedback-area">
             <div id="feedback" class="feedback" aria-live="polite"></div>
             <button id="next-btn" class="next-btn" disabled>Next question</button>
+        </section>
+
+        <!-- Your Mastery Progress Card -->
+        <section class="progress-card" id="progress-card" hidden>
+            <h3>Your mastery</h3>
+            <ul id="progress-list"></ul>
         </section>
 
         <!-- Session Tally -->

@@ -136,6 +136,77 @@ function clearLocalBag(skillId, difficulty) {
     seenByPool.set(k, new Set());
 }
 
+// --- Planner Hint & Progress Card helpers ---
+
+async function refreshPlannerHint(skillId) {
+    try {
+        const body = { skill_id: skillId };
+        if (SESSION_ID) body.session_id = SESSION_ID;
+
+        const res = await fetch(`${API_BASE}/planner/next`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error("planner failed");
+        const data = await res.json();
+
+        const hint = document.getElementById("planner-hint");
+        const pill = document.getElementById("planner-diff");
+        const txt = document.getElementById("planner-reason");
+
+        pill.textContent = data.difficulty[0].toUpperCase() + data.difficulty.slice(1);
+        txt.textContent = data.reason;
+        hint.hidden = false;
+    } catch {
+        // Hide hint quietly if planner not available
+        const hint = document.getElementById("planner-hint");
+        if (hint) hint.hidden = true;
+    }
+}
+
+async function refreshProgress() {
+    try {
+        if (!SESSION_ID) return;
+        const res = await fetch(`${API_BASE}/progress/get`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: SESSION_ID }),
+        });
+        if (!res.ok) throw new Error("progress failed");
+        const data = await res.json();
+
+        const card = document.getElementById("progress-card");
+        const list = document.getElementById("progress-list");
+        list.innerHTML = "";
+
+        // Show only your skills, stable order
+        for (const skillId of SKILL_SEQUENCE) {
+            const s = data.skills[skillId];
+            if (!s) continue;
+            const li = document.createElement("li");
+            const label = skillId.replace("quad.", "").replace(/\./g, " → ").replace(/_/g, " ");
+            const pct = `${Math.round((s.p ?? 0) * 100)}%`;
+            li.innerHTML = `<span>${label}</span><span class="progress-pill">${pct}</span>`;
+            list.appendChild(li);
+        }
+
+        card.hidden = list.children.length === 0;
+    } catch {
+        const card = document.getElementById("progress-card");
+        if (card) card.hidden = true;
+    }
+}
+
+// Call after state changes to keep both in sync
+async function refreshGuidanceAndProgress() {
+    const skillId = SKILL_SEQUENCE[skillIndex];
+    await Promise.allSettled([
+        refreshPlannerHint(skillId),
+        refreshProgress()
+    ]);
+}
+
 // --- Populate and enable dropdowns on load ---
 
 async function initSelectors() {
@@ -487,6 +558,9 @@ function handleGradeResult(result) {
 
     // Otherwise allow the user to continue
     elements.nextBtn.disabled = false;
+
+    // NEW: mastery changed → refresh progress (planner can also change if session-aware)
+    refreshGuidanceAndProgress();
 }
 
 // ============================================================================
@@ -565,6 +639,9 @@ function renderQuestion(item) {
 
     // Clear feedback
     setFeedback("", null);
+
+    // NEW: show planner hint + mastery snapshot
+    refreshGuidanceAndProgress();
 }
 
 function setButtonsEnabled(enabled) {
