@@ -286,6 +286,13 @@ function attachEventHandlers() {
 // ============================================================================
 
 async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty = "easy") {
+    // Guard: don't fetch if we're done with the entire set
+    if (isEntireSetComplete()) {
+        dbg("Set already complete, showing finish modal");
+        showFinishModal();
+        return;
+    }
+
     if (isBusy) return;
 
     setButtonsEnabled(false);
@@ -327,6 +334,14 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
             });
 
             if (!response.ok) {
+                // If we're actually done, show finish instead of an error
+                if (isEntireSetComplete()) {
+                    document.body.classList.remove("busy");
+                    isBusy = false;
+                    showFinishModal();
+                    return;
+                }
+                
                 const errorData = await response.json().catch(() => ({}));
                 setFeedback(errorData.message || "Error loading question", null);
                 elements.nextBtn.disabled = false;
@@ -356,6 +371,14 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
             }
             // Otherwise: loop and try again
         } catch (error) {
+            // If we're actually done, show finish instead of an error
+            if (isEntireSetComplete()) {
+                document.body.classList.remove("busy");
+                isBusy = false;
+                showFinishModal();
+                return;
+            }
+            
             setFeedback("Couldn't reach server. Please try again.", null);
             elements.nextBtn.disabled = false;
             document.body.classList.remove("busy");
