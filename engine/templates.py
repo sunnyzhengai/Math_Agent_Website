@@ -54,104 +54,134 @@ SKILL_TEMPLATES = {
     "quad.standard.vertex": {
         "easy": [
             {
-                "stem": "What is the vertex of y = x^2 - 6x + 5?",
-                "choices": ["(3, -4)", "(-3, -4)", "(3, 4)", "(6, 5)"],
+                "stem": "Find the vertex of y = x^2 - 4x + 1.",
+                "choices": ["(2, -3)", "(2, 3)", "(-2, -3)", "(-2, 3)"],
                 "solution": 0,
-                "rationale": "Vertex x = -b/(2a) = 3, substitute to get y = -4.",
+                "rationale": "For y = ax^2 + bx + c, vertex is (h,k) with h = -b/(2a); k = f(h). Here a=1, b=-4, c=1 ⇒ h=2, k=-3.",
             },
             {
-                "stem": "Find the vertex of y = x^2 + 4x + 1.",
-                "choices": ["(-2, -3)", "(2, 3)", "(-4, 1)", "(-2, 3)"],
+                "stem": "Find the vertex of y = x^2 + 6x + 5.",
+                "choices": ["(-3, -4)", "(-3, 4)", "(3, -4)", "(-6, 5)"],
                 "solution": 0,
-                "rationale": "x = -b/2a = -2, y = (-2)^2 + 4(-2) + 1 = -3.",
-            },
-            {
-                "stem": "What is the vertex of y = x^2 - 2x + 1?",
-                "choices": ["(1, 0)", "(-1, 0)", "(1, 1)", "(0, 1)"],
-                "solution": 0,
-                "rationale": "x = 1, y = 0; the vertex is (1, 0).",
-            },
-        ],
-        "medium": [
-            {
-                "stem": "Find the vertex of y = 2x^2 - 8x + 5.",
-                "choices": ["(2, -3)", "(4, -3)", "(2, 3)", "(-2, -3)"],
-                "solution": 0,
-                "rationale": "x = -b/(2a) = 2, substitute: y = -3.",
+                "rationale": "a=1, b=6, c=5 ⇒ h=-6/(2)= -3; k = 1·9 + 6·(-3) + 5 = -4.",
             },
             {
                 "stem": "Find the vertex of y = -x^2 + 4x + 1.",
                 "choices": ["(2, 5)", "(2, -5)", "(-2, 5)", "(1, 4)"],
                 "solution": 0,
-                "rationale": "x = -b/(2a) = 2, y = -4 + 8 + 1 = 5.",
+                "rationale": "a=-1, b=4, c=1 ⇒ h = -4/(2·-1)=2; k = -4 + 8 + 1 = 5.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Find the vertex of y = 2x^2 - 8x + 3.",
+                "choices": ["(2, -5)", "(2, 5)", "(-2, -5)", "(4, -5)"],
+                "solution": 0,
+                "rationale": "a=2, b=-8, c=3 ⇒ h= -(-8)/(4)=2; k = 2·4 + (-8)·2 + 3 = -5.",
+            },
+            {
+                "stem": "Find the vertex of y = -3x^2 - 6x + 1.",
+                "choices": ["(-1, 4)", "(-1, -4)", "(1, 4)", "(-2, 4)"],
+                "solution": 0,
+                "rationale": "a=-3, b=-6 ⇒ h= -(-6)/(2·-3)= -1; k = -3·1 + (-6)·(-1) + 1 = 4.",
             },
         ],
         "hard": [
             {
-                "stem": "Find the vertex of y = 3x^2 - 12x + 7.",
-                "choices": ["(2, -5)", "(4, -5)", "(2, 5)", "(-2, -5)"],
+                "stem": "Find the vertex of y = 5x^2 + 10x + 7.",
+                "choices": ["(-1, 2)", "(-1, -2)", "(1, 2)", "(-2, 1)"],
                 "solution": 0,
-                "rationale": "x = -b/(2a) = 2, y = 3(4) - 24 + 7 = -5.",
+                "rationale": "a=5, b=10 ⇒ h = -10/(2·5) = -1; k = 5·1 + 10·(-1) + 7 = 2.",
             },
         ],
         "applied": [
             {
-                "stem": "A ball's height is modeled by h(t) = -5t^2 + 40t + 60. At what time does it reach maximum height?",
-                "choices": ["t = 4", "t = 8", "t = 2", "t = 6"],
+                "stem": "A projectile's height is h(t) = -16t^2 + 32t + 5. At what time is the maximum height reached?",
+                "choices": ["t = 1", "t = 2", "t = 0", "t = 3"],
                 "solution": 0,
-                "rationale": "t = -b/(2a) = 4 seconds.",
+                "rationale": "Vertex time is -b/(2a) with a=-16, b=32 ⇒ t=1.",
             },
             {
-                "stem": "For y = -16t^2 + 32t + 10, what is the maximum height?",
-                "choices": ["26 feet", "10 feet", "32 feet", "42 feet"],
+                "stem": "A company's profit is P(x) = -2x^2 + 12x + 1. For which x is profit maximized?",
+                "choices": ["x = 3", "x = 2", "x = 4", "x = 6"],
                 "solution": 0,
-                "rationale": "At t = 1, h = -16(1) + 32 + 10 = 26 feet.",
+                "rationale": "a=-2, b=12 ⇒ x = -b/(2a) = -12/(-4) = 3.",
             },
         ],
     },
     "quad.roots.factored": {
         "easy": [
             {
-                "stem": "Find the zeros of y = (x - 2)(x + 5).",
-                "choices": ["x = 2, -5", "x = -2, 5", "x = 2, 5", "x = -2, -5"],
+                "stem": "Find the roots of y = (x - 2)(x + 5).",
+                "choices": [
+                    "x = -5 and x = 2",
+                    "x = 5 and x = -2",
+                    "x = -2 and x = 5",
+                    "x = 2 and x = 5"
+                ],
                 "solution": 0,
-                "rationale": "Set each factor to zero: x = 2 and x = -5.",
+                "rationale": "Set each factor to zero: x−2=0 ⇒ x=2; x+5=0 ⇒ x=−5.",
             },
             {
-                "stem": "Find the zeros of y = (x + 3)(x - 7).",
-                "choices": ["x = -3, 7", "x = 3, -7", "x = -7, -3", "x = 7, 3"],
+                "stem": "Find the roots of y = (x + 1)(x + 4).",
+                "choices": [
+                    "x = -1 and x = -4",
+                    "x = 1 and x = 4",
+                    "x = -1 and x = 4",
+                    "x = 1 and x = -4"
+                ],
                 "solution": 0,
-                "rationale": "x = -3 and x = 7.",
+                "rationale": "x+1=0 ⇒ x=−1; x+4=0 ⇒ x=−4.",
             },
         ],
         "medium": [
             {
-                "stem": "Find the zeros of y = -2(x + 1)(x - 4).",
-                "choices": ["x = -1, 4", "x = 1, -4", "x = -1, -4", "x = 1, 4"],
+                "stem": "Find the roots of y = 2(x - 3)(x + 2).",
+                "choices": [
+                    "x = 3 and x = -2",
+                    "x = -3 and x = 2",
+                    "x = -3 and x = -2",
+                    "x = 3 and x = 2"
+                ],
                 "solution": 0,
-                "rationale": "Set each factor = 0, a does not change roots.",
+                "rationale": "Leading coefficient 2 doesn't change roots: x−3=0 ⇒ 3; x+2=0 ⇒ −2.",
             },
             {
-                "stem": "Find the zeros of y = 3(x - 5)(x - 2).",
-                "choices": ["x = 5, 2", "x = -5, -2", "x = 5, -2", "x = 2, -5"],
+                "stem": "Find the roots of y = -3(x + 1)(x + 5).",
+                "choices": [
+                    "x = -1 and x = -5",
+                    "x = 1 and x = -5",
+                    "x = -1 and x = 5",
+                    "x = 1 and x = 5"
+                ],
                 "solution": 0,
-                "rationale": "x = 5 and x = 2.",
+                "rationale": "−3 scales vertically, roots from factors: x=−1, x=−5.",
             },
         ],
         "hard": [
             {
-                "stem": "Find the zeros of y = -4(x + 2)(x + 6).",
-                "choices": ["x = -2, -6", "x = 2, 6", "x = 2, -6", "x = -2, 6"],
+                "stem": "Find the distinct real roots of y = (x - 4)^2 (x + 1).",
+                "choices": [
+                    "x = 4 and x = -1",
+                    "x = 4 only",
+                    "x = -1 only",
+                    "x = -4 and x = 1"
+                ],
                 "solution": 0,
-                "rationale": "x = -2 and x = -6.",
+                "rationale": "(x−4)^2 gives a repeated root at x=4; (x+1) ⇒ x=−1. Distinct roots: 4 and −1.",
             },
         ],
         "applied": [
             {
-                "stem": "The height of a ball is modeled by h(t) = -5(t - 1)(t - 6). When does the ball hit the ground?",
-                "choices": ["t = 1 s and t = 6 s", "t = -1 s and t = 6 s", "t = 5 s and t = 7 s", "t = 0 s and t = 6 s"],
+                "stem": "A ball's height is h(t) = -5(t - 1)(t - 6). When is it on the ground?",
+                "choices": [
+                    "t = 1 and t = 6",
+                    "t = -1 and t = 6",
+                    "t = 1 and t = -6",
+                    "t = 0 and t = 6"
+                ],
                 "solution": 0,
-                "rationale": "h = 0 at t = 1 and t = 6.",
+                "rationale": "Ground at h(t)=0 ⇒ t−1=0 or t−6=0 ⇒ t=1,6.",
             },
         ],
     },

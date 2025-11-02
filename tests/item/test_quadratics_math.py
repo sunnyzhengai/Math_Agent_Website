@@ -35,7 +35,6 @@ def test_standard_vertex_spotchecks():
 
 # ---------- quad.roots.factored ----------
 
-@pytest.mark.skip(reason="Unskip after adding quad.roots.factored templates")
 def test_roots_factored_spotchecks():
     """Math sanity check: factored form lists two roots"""
     # Use deterministic seed to check structure
@@ -45,7 +44,7 @@ def test_roots_factored_spotchecks():
     text = next(c["text"] for c in item["choices"] if c["id"] == correct_id)
     
     # Sanity: should contain two roots (x = ... and x = ...)
-    assert text.count("x") >= 2 and (" or " in text or "," in text), \
+    assert text.count("x") >= 2 and (" or " in text or "," in text or " and " in text), \
         f"Expected two roots in solution text: {text}"
 
 

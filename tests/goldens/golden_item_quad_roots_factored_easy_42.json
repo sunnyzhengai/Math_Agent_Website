@@ -2,27 +2,27 @@
   "item_id": "quad.roots.factored:easy:42",
   "skill_id": "quad.roots.factored",
   "difficulty": "easy",
-  "stem": "Find the zeros of y = (x - 2)(x + 5).",
+  "stem": "Find the roots of y = (x - 2)(x + 5).",
   "choices": [
     {
       "id": "A",
-      "text": "x = -2, -5"
+      "text": "x = 2 and x = 5"
     },
     {
       "id": "B",
-      "text": "x = -2, 5"
+      "text": "x = 5 and x = -2"
     },
     {
       "id": "C",
-      "text": "x = 2, 5"
+      "text": "x = -2 and x = 5"
     },
     {
       "id": "D",
-      "text": "x = 2, -5"
+      "text": "x = -5 and x = 2"
     }
   ],
   "solution_choice_id": "D",
-  "solution_text": "x = 2, -5",
+  "solution_text": "x = -5 and x = 2",
   "tags": [
     "vertex_form"
   ]
