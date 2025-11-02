@@ -50,7 +50,6 @@ def test_roots_factored_spotchecks():
 
 # ---------- quad.solve.by_factoring ----------
 
-@pytest.mark.skip(reason="Unskip after adding quad.solve.by_factoring templates")
 def test_solve_by_factoring_spotchecks():
     """Math sanity check: solving by factoring yields two solutions"""
     item = generate_item("quad.solve.by_factoring", "easy", seed=42)
@@ -59,7 +58,7 @@ def test_solve_by_factoring_spotchecks():
     text = next(c["text"] for c in item["choices"] if c["id"] == correct_id)
     
     # Basic shape: "x = ... or x = ..."
-    assert "x" in text and (" or " in text or "," in text), \
+    assert "x" in text and (" or " in text or "," in text or " and " in text), \
         f"Expected two solutions in factoring solution: {text}"
 
 

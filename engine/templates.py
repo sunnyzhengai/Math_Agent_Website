@@ -188,46 +188,76 @@ SKILL_TEMPLATES = {
     "quad.solve.by_factoring": {
         "easy": [
             {
-                "stem": "Solve x^2 - 3x - 10 = 0.",
-                "choices": ["x = 5, -2", "x = -5, 2", "x = 5, 2", "x = -5, -2"],
+                "stem": "Solve by factoring: x^2 - 7x + 12 = 0.",
+                "choices": [
+                    "x = 3 and x = 4",
+                    "x = -3 and x = -4",
+                    "x = -3 and x = 4",
+                    "x = 3 and x = -4"
+                ],
                 "solution": 0,
-                "rationale": "(x - 5)(x + 2) = 0 → x = 5, -2.",
+                "rationale": "x^2 - 7x + 12 = (x - 3)(x - 4)=0 ⇒ x=3,4.",
             },
             {
-                "stem": "Solve x^2 + x - 6 = 0.",
-                "choices": ["x = 2, -3", "x = -2, 3", "x = -2, -3", "x = 3, 2"],
+                "stem": "Solve by factoring: x^2 + 5x + 6 = 0.",
+                "choices": [
+                    "x = -2 and x = -3",
+                    "x = 2 and x = 3",
+                    "x = -2 and x = 3",
+                    "x = 2 and x = -3"
+                ],
                 "solution": 0,
-                "rationale": "(x + 3)(x - 2) = 0 → x = -3, 2.",
+                "rationale": "x^2 + 5x + 6 = (x + 2)(x + 3)=0 ⇒ x=−2,−3.",
             },
         ],
         "medium": [
             {
-                "stem": "Solve 2x^2 + 7x + 3 = 0.",
-                "choices": ["x = -1/2, -3", "x = 1/2, 3", "x = -3, -7", "x = -1, -2"],
+                "stem": "Solve by factoring: 2x^2 + 7x + 3 = 0.",
+                "choices": [
+                    "x = -\tfrac{1}{2} and x = -3",
+                    "x = \tfrac{1}{2} and x = 3",
+                    "x = -\tfrac{3}{2} and x = -1",
+                    "x = \tfrac{3}{2} and x = 1"
+                ],
                 "solution": 0,
-                "rationale": "(2x + 1)(x + 3) = 0 → x = -1/2, -3.",
+                "rationale": "2x^2 + 7x + 3 = (2x + 1)(x + 3)=0 ⇒ x=−1/2,−3.",
             },
             {
-                "stem": "Solve 3x^2 - 12x + 9 = 0.",
-                "choices": ["x = 1, 3", "x = -1, -3", "x = 1, -3", "x = 0, 3"],
+                "stem": "Solve by factoring: 3x^2 - x - 10 = 0.",
+                "choices": [
+                    "x = 2 and x = -\tfrac{5}{3}",
+                    "x = -2 and x = \tfrac{5}{3}",
+                    "x = -2 and x = -\tfrac{5}{3}",
+                    "x = 2 and x = \tfrac{5}{3}"
+                ],
                 "solution": 0,
-                "rationale": "Divide by 3, factor (x - 1)(x - 3) = 0.",
+                "rationale": "3x^2 − x − 10 = (3x + 5)(x − 2)=0 ⇒ x=2, −5/3.",
             },
         ],
         "hard": [
             {
-                "stem": "Solve 2x^2 - 5x - 3 = 0.",
-                "choices": ["x = 3, -1/2", "x = -3, 1/2", "x = 1/3, -2", "x = -1, 3/2"],
+                "stem": "Solve by factoring: 4x^2 - 12x + 9 = 0.",
+                "choices": [
+                    "x = \tfrac{3}{2}",
+                    "x = -\tfrac{3}{2}",
+                    "x = 3 and x = -3",
+                    "No real solutions"
+                ],
                 "solution": 0,
-                "rationale": "(2x + 1)(x - 3) = 0 → x = -1/2, 3.",
+                "rationale": "4x^2 − 12x + 9 = (2x − 3)^2=0 ⇒ x=3/2 (double root).",
             },
         ],
         "applied": [
             {
-                "stem": "A rectangle has area x^2 + 5x + 6 = 0 when length is (x + 2). What are the roots?",
-                "choices": ["x = -2, -3", "x = 2, 3", "x = -1, -6", "x = -2, 3"],
+                "stem": "A rectangle has side lengths x and x+5 with area 24. Find the positive value of x.",
+                "choices": [
+                    "x = 3",
+                    "x = 8",
+                    "x = 4",
+                    "x = 6"
+                ],
                 "solution": 0,
-                "rationale": "(x + 2)(x + 3) = 0 → x = -2, -3.",
+                "rationale": "x(x+5)=24 ⇒ x^2+5x−24=0 ⇒ (x+8)(x−3)=0 ⇒ x=−8 or 3. Positive length ⇒ x=3.",
             },
         ],
     },
