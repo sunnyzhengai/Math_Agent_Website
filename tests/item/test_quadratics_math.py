@@ -11,7 +11,6 @@ from tests._utils import parse_standard_form
 
 # ---------- quad.standard.vertex ----------
 
-@pytest.mark.skip(reason="Unskip after adding quad.standard.vertex templates")
 def test_standard_vertex_spotchecks():
     """Math sanity check: vertex formula h=-b/(2a), k=a*h^2+b*h+c"""
     items = SKILL_TEMPLATES["quad.standard.vertex"]["easy"]

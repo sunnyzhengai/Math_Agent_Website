@@ -22,21 +22,42 @@ def parse_standard_form(stem: str):
     Returns tuple (a, b, c) or None if parse fails.
     Handles implicit a=1, various spacing, and Unicode minus signs.
     """
-    s = norm_stem(stem).replace("−", "-").replace(" + ", "+").replace(" - ", "-")
+    import re
     
-    # Handle implicit a=1 (e.g., "y = x^2 - 6x + 5")
-    s = s.replace("y = x^2", "y = 1*x^2") \
-         .replace("x^2 +", "1*x^2 +") \
-         .replace("x^2 -", "1*x^2 -")
+    # Normalize the stem
+    s = norm_stem(stem).replace("−", "-")
     
-    m = _QUAD_RE.match(s)
+    # Extract just the equation part (y = ...)
+    # Look for "y = " and take everything after
+    eq_match = re.search(r'y\s*=\s*(.+?)\.?\s*$', s)
+    if not eq_match:
+        return None
+    
+    eq = eq_match.group(1).strip()
+    
+    # Normalize forms:
+    # "x^2 - 4x + 1" -> "1*x^2 - 4*x + 1"
+    # "2x^2 - 8x + 3" -> "2*x^2 - 8*x + 3"
+    
+    # First: insert implicit 1 for standalone x^2
+    eq = re.sub(r'^x\^2', '1*x^2', eq)  # Start of string
+    eq = re.sub(r'(\s)x\^2', r'\g<1>1*x^2', eq)  # After space
+    eq = re.sub(r'([-+])x\^2', r'\g<1>1*x^2', eq)  # After sign
+    
+    # Second: add * before x (not x^)
+    eq = re.sub(r'(\d)x(?!\^)', r'\g<1>*x', eq)
+    
+    # Now the equation should be like: "1*x^2 - 4*x + 1" or "2*x^2 - 8*x + 3"
+    # Match: [+-]? coeff*x^2 [+-] coeff*x [+-] constant
+    m = re.match(r'([+-]?\d+)\*x\^2\s*([+-])\s*(\d+)\*x\s*([+-])\s*(\d+)', eq)
+    
     if not m:
         return None
     
-    a = int(m.group("a"))
-    b_sign = -1 if m.group(2) == "-" or m.group(2) == "−" else 1
-    c_sign = -1 if m.group(4) == "-" or m.group(4) == "−" else 1
-    b = b_sign * int(m.group("b"))
-    c = c_sign * int(m.group("c"))
+    a = int(m.group(1))
+    b_sign = -1 if m.group(2) == "-" else 1
+    b = b_sign * int(m.group(3))
+    c_sign = -1 if m.group(4) == "-" else 1
+    c = c_sign * int(m.group(5))
     
     return a, b, c

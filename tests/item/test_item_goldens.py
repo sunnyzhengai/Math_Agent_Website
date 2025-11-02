@@ -31,7 +31,6 @@ def test_golden_quad_graph_vertex_easy_42():
     _cmp("quad.graph.vertex", "easy", 42, "golden_item_quad_graph_vertex_easy_42.json")
 
 
-@pytest.mark.skip(reason="Unskip after adding quad.standard.vertex golden")
 def test_golden_quad_standard_vertex_easy_42():
     """Golden: quad.standard.vertex easy seed=42"""
     _cmp("quad.standard.vertex", "easy", 42, "golden_item_quad_standard_vertex_easy_42.json")
