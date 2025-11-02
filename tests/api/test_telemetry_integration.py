@@ -11,6 +11,7 @@ from pathlib import Path
 import tempfile
 import asyncio
 import sys
+from collections import defaultdict
 
 # Add parent directories to path to enable imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
@@ -359,3 +360,103 @@ class TestGoldenTelemetrySchema:
         assert all(isinstance(c, str) for c in event["choice_ids"])
         assert isinstance(event["latency_ms"], (int, float))
         assert isinstance(event["schema"], int)
+
+
+class TestGoldenTelemetrySnapshot:
+    """
+    Lightweight snapshot test for schema regression detection.
+    
+    This test reads the golden telemetry sample and verifies:
+    - Valid JSON structure
+    - Only allowed fields per event type (no unexpected keys)
+    - Correct field types
+    - No schema drift
+    
+    Does NOT assert exact values (timestamps, item_ids, stem_hashes),
+    so it won't break on intentional changes—only structural issues.
+    """
+
+    def test_golden_telemetry_structure(self):
+        """
+        Verify golden_telemetry_sample.jsonl is structurally valid.
+        Catches accidental field additions/removals without being brittle.
+        """
+        golden_file = Path(__file__).parent.parent / "goldens" / "golden_telemetry_sample.jsonl"
+        assert golden_file.exists(), f"Golden file missing: {golden_file}"
+
+        # Read and parse
+        with open(golden_file) as f:
+            lines = [json.loads(line) for line in f if line.strip()]
+
+        assert len(lines) >= 9, f"Expected ≥9 events in golden, got {len(lines)}"
+
+        # Allowed fields per event type (from telemetry redactor)
+        allowed_fields = {
+            "generate": {
+                "event", "ts", "server_id", "version", "schema",
+                "session_id", "mode", "skill_id", "difficulty",
+                "item_id", "stem_hash", "choice_ids", "latency_ms"
+            },
+            "grade": {
+                "event", "ts", "server_id", "version", "schema",
+                "session_id", "skill_id", "difficulty",
+                "item_id", "choice_id", "correct", "solution_choice_id", "latency_ms"
+            },
+            "cycle_reset": {
+                "event", "ts", "server_id", "version", "schema",
+                "session_id", "skill_id", "difficulty"
+            },
+        }
+
+        event_counts = defaultdict(int)
+
+        for line_num, event in enumerate(lines, 1):
+            event_type = event.get("event")
+            assert event_type, f"Line {line_num}: missing 'event' field"
+
+            event_counts[event_type] += 1
+            allowed = allowed_fields.get(event_type, set())
+
+            # Check: no extra fields
+            extra = set(event.keys()) - allowed
+            assert not extra, \
+                f"Line {line_num} ({event_type}): unexpected fields {extra}"
+
+            # Check: required metadata
+            assert isinstance(event.get("ts"), (int, float)), \
+                f"Line {line_num}: ts must be numeric"
+            assert event.get("server_id") is not None, \
+                f"Line {line_num}: missing server_id"
+            assert event.get("version") is not None, \
+                f"Line {line_num}: missing version"
+            assert event.get("schema") == 1, \
+                f"Line {line_num}: schema must be 1"
+
+            # Event-specific type checks
+            if event_type == "generate":
+                assert isinstance(event.get("latency_ms"), (int, float))
+                assert event.get("stem_hash", "").startswith("sha1:"), \
+                    "stem_hash must be sha1:<hex>"
+                assert isinstance(event.get("choice_ids"), list)
+                assert len(event.get("choice_ids", [])) == 4
+
+            elif event_type == "grade":
+                assert isinstance(event.get("correct"), bool)
+                assert event.get("choice_id") in ["A", "B", "C", "D"]
+                assert event.get("solution_choice_id") in ["A", "B", "C", "D"]
+                assert isinstance(event.get("latency_ms"), (int, float))
+
+            elif event_type == "cycle_reset":
+                assert isinstance(event.get("session_id"), str), \
+                    "cycle_reset must have session_id (not null)"
+
+        # Verify mix of event types
+        assert event_counts["generate"] >= 6, "Golden should have ≥6 generate events"
+        assert event_counts["grade"] >= 2, "Golden should have ≥2 grade events"
+        assert event_counts["cycle_reset"] >= 1, "Golden should have ≥1 cycle_reset event"
+
+        # Summary (for debugging)
+        print(f"\n✅ Golden telemetry structure valid:")
+        print(f"   generate: {event_counts['generate']}")
+        print(f"   grade: {event_counts['grade']}")
+        print(f"   cycle_reset: {event_counts['cycle_reset']}")
