@@ -263,3 +263,99 @@ class TestRotation:
         else:
             # No rotation happened yet (threshold not reached), which is OK
             pass
+
+
+class TestTelemetrySchema:
+    """Test telemetry schema versioning and structure."""
+
+    def test_schema_version_present(self, client):
+        """
+        Verify that all telemetry events include schema version.
+        This helps catch schema drift in golden snapshots.
+        """
+        log_file = Path("logs") / "telemetry.jsonl"
+        
+        if log_file.exists():
+            old_lines = len(read_jsonl_lines(str(log_file)))
+        else:
+            old_lines = 0
+
+        # Generate and grade
+        r1 = client.post(
+            "/items/generate",
+            json={"skill_id": "quad.graph.vertex", "difficulty": "easy"}
+        )
+        assert r1.status_code == 200
+        item = r1.json()
+
+        r2 = client.post(
+            "/grade",
+            json={"item": item, "choice_id": item["solution_choice_id"]}
+        )
+        assert r2.status_code == 200
+
+        time.sleep(0.5)
+
+        lines = read_jsonl_lines(str(log_file))
+        new_events = lines[old_lines:]
+
+        # Verify schema field present in all new events
+        for event in new_events:
+            assert "schema" in event, f"Event missing schema: {event.get('event')}"
+            assert event.get("schema") == 1, f"Unexpected schema version: {event.get('schema')}"
+            assert isinstance(event.get("ts"), (int, float)), "ts must be numeric"
+            assert event.get("server_id") is not None, "server_id required"
+            assert event.get("version") is not None, "version required"
+
+
+class TestGoldenTelemetrySchema:
+    """Test that event schema matches golden sample (regression detection)."""
+
+    def test_generate_event_schema_matches_golden(self, client):
+        """
+        Verify generate event schema matches golden_telemetry_sample.jsonl.
+        If this test fails, it means the telemetry schema changed.
+        """
+        log_file = Path("logs") / "telemetry.jsonl"
+        
+        if log_file.exists():
+            old_count = len(read_jsonl_lines(str(log_file)))
+        else:
+            old_count = 0
+
+        # Generate one event
+        r = client.post(
+            "/items/generate",
+            json={"skill_id": "quad.graph.vertex", "difficulty": "easy"}
+        )
+        assert r.status_code == 200
+
+        time.sleep(0.3)
+
+        lines = read_jsonl_lines(str(log_file))
+        new_events = [e for e in lines[old_count:] if e.get("event") == "generate"]
+        assert len(new_events) > 0
+
+        event = new_events[0]
+        
+        # Verify exact fields match golden schema (catch drift)
+        expected_keys = {
+            "event", "ts", "server_id", "version", "schema",
+            "session_id", "mode", "skill_id", "difficulty",
+            "item_id", "stem_hash", "choice_ids", "latency_ms"
+        }
+        actual_keys = set(event.keys())
+        
+        # Allow extra fields (forward compatibility)
+        assert expected_keys.issubset(actual_keys), \
+            f"Missing keys: {expected_keys - actual_keys}"
+        
+        # Verify types match golden
+        assert isinstance(event["ts"], (int, float))
+        assert isinstance(event["item_id"], str)
+        assert isinstance(event["stem_hash"], str)
+        assert event["stem_hash"].startswith("sha1:"), "stem_hash must be sha1:<hex>"
+        assert isinstance(event["choice_ids"], list)
+        assert all(isinstance(c, str) for c in event["choice_ids"])
+        assert isinstance(event["latency_ms"], (int, float))
+        assert isinstance(event["schema"], int)

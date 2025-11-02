@@ -33,6 +33,7 @@ def analyze(filepath: str) -> None:
     correct_counts = defaultdict(int)  # skill_id -> correct count
     total_grades = defaultdict(int)  # skill_id -> total grades
     latencies = defaultdict(list)  # event_type -> [latency_ms values]
+    cycle_resets = defaultdict(int)  # (skill, difficulty) -> reset count
     
     with open(path, "r") as f:
         for line_num, line in enumerate(f, 1):
@@ -68,6 +69,13 @@ def analyze(filepath: str) -> None:
                 if is_correct:
                     correct_counts[skill] += 1
                 total_grades[skill] += 1
+            
+            # Cycle resets: track frequency by pool
+            if event_type == "cycle_reset":
+                skill = event.get("skill_id", "unknown")
+                difficulty = event.get("difficulty", "unknown")
+                key = (skill, difficulty)
+                cycle_resets[key] += 1
     
     # Print results
     print("\n" + "=" * 70)
@@ -105,6 +113,15 @@ def analyze(filepath: str) -> None:
         if total_attempts > 0:
             overall_pct = 100 * total_correct / total_attempts
             print(f"  OVERALL: {total_correct}/{total_attempts} ({overall_pct:.1f}%)")
+    
+    # Cycle resets
+    if cycle_resets:
+        print("\nCycle Resets by Pool:")
+        total_resets = sum(cycle_resets.values())
+        for (skill, difficulty) in sorted(cycle_resets.keys()):
+            count = cycle_resets[(skill, difficulty)]
+            print(f"  {skill} {difficulty}: {count} reset(s)")
+        print(f"  TOTAL RESETS: {total_resets}")
     
     # Latency
     if latencies:
