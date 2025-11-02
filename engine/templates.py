@@ -264,46 +264,76 @@ SKILL_TEMPLATES = {
     "quad.solve.by_formula": {
         "easy": [
             {
-                "stem": "Solve x^2 - 5x + 6 = 0 using the quadratic formula.",
-                "choices": ["x = 2, 3", "x = -2, -3", "x = 1, 6", "x = 3, -6"],
+                "stem": "Solve using the quadratic formula: x^2 - 5x + 6 = 0.",
+                "choices": [
+                    "x = 2 and x = 3",
+                    "x = -2 and x = -3",
+                    "x = -2 and x = 3",
+                    "x = 2 and x = -3"
+                ],
                 "solution": 0,
-                "rationale": "Discriminant = 25 - 24 = 1 → x = (5 ± 1)/2 = 2, 3.",
+                "rationale": "a=1,b=−5,c=6 ⇒ Δ=b^2−4ac=25−24=1 ⇒ x=(5±1)/2 ⇒ 2,3.",
             },
             {
-                "stem": "Solve x^2 - 4x + 3 = 0.",
-                "choices": ["x = 1, 3", "x = -1, -3", "x = 1, -3", "x = 0, 3"],
+                "stem": "Solve using the quadratic formula: x^2 + 4x + 3 = 0.",
+                "choices": [
+                    "x = -1 and x = -3",
+                    "x = 1 and x = 3",
+                    "x = -1 and x = 3",
+                    "x = 1 and x = -3"
+                ],
                 "solution": 0,
-                "rationale": "x = (4 ± √(16 - 12))/2 = (4 ± 2)/2 → x = 1, 3.",
+                "rationale": "a=1,b=4,c=3 ⇒ Δ=16−12=4 ⇒ x=(−4±2)/2 ⇒ −1,−3.",
             },
         ],
         "medium": [
             {
-                "stem": "Solve x^2 - 2x - 3 = 0 using the quadratic formula.",
-                "choices": ["x = 3, -1", "x = -3, 1", "x = 2, 3", "x = -2, -3"],
+                "stem": "Solve using the quadratic formula: x^2 - 2x - 1 = 0.",
+                "choices": [
+                    "x = 1 + √2 and x = 1 - √2",
+                    "x = 1 + √3 and x = 1 - √3",
+                    "x = -1 + √2 and x = -1 - √2",
+                    "x = 1 + 2√2 and x = 1 - 2√2"
+                ],
                 "solution": 0,
-                "rationale": "Discriminant = 4 + 12 = 16 → x = (2 ± 4)/2 = 3, -1.",
+                "rationale": "a=1,b=−2,c=−1 ⇒ Δ=4+4=8 ⇒ x=(2±√8)/2=1±√2.",
             },
             {
-                "stem": "Solve x^2 + 4x + 2 = 0.",
-                "choices": ["x = -2 ± √2", "x = 2 ± √2", "x = -4 ± √2", "x = -2 ± 2√2"],
+                "stem": "Solve using the quadratic formula: 2x^2 + x - 3 = 0.",
+                "choices": [
+                    "x = 1 and x = -\\tfrac{3}{2}",
+                    "x = -1 and x = \\tfrac{3}{2}",
+                    "x = \\tfrac{1}{2} and x = -3",
+                    "x = -\\tfrac{1}{2} and x = 3"
+                ],
                 "solution": 0,
-                "rationale": "x = (-4 ± √(16 - 8))/2 = (-4 ± √8)/2 = -2 ± √2.",
+                "rationale": "a=2,b=1,c=−3 ⇒ Δ=1+24=25 ⇒ x=(−1±5)/4 ⇒ 1, −3/2.",
             },
         ],
         "hard": [
             {
-                "stem": "Solve 2x^2 + 3x + 7 = 0.",
-                "choices": ["x = (-3 ± i√47)/4", "x = (-3 ± √47)/4", "x = (-3 ± i√43)/4", "x = (3 ± i√47)/4"],
+                "stem": "Solve using the quadratic formula: 3x^2 - 4x + 7 = 0.",
+                "choices": [
+                    "No real solutions",
+                    "x = \\tfrac{2 + \\sqrt{5}}{3} and x = \\tfrac{2 - \\sqrt{5}}{3}",
+                    "x = 1 + √2 and x = 1 - √2",
+                    "x = -\\tfrac{7}{3} and x = 1"
+                ],
                 "solution": 0,
-                "rationale": "Discriminant = 9 - 56 = -47 → complex roots x = (-3 ± i√47)/4.",
+                "rationale": "a=3,b=−4,c=7 ⇒ Δ=b^2−4ac=16−84=−68<0 ⇒ no real roots.",
             },
         ],
         "applied": [
             {
-                "stem": "A projectile follows h = -4.9t^2 + 20t + 1. When does it hit the ground (h=0)?",
-                "choices": ["t ≈ 0.05 s and t ≈ 4.1 s", "t ≈ -0.05 s and t ≈ 4.1 s", "t ≈ 1 s and t ≈ 3 s", "t ≈ 0.5 s and t ≈ 2 s"],
+                "stem": "A projectile's height is h(t) = -16t^2 + 32t + 48. When does it hit the ground (h=0)?",
+                "choices": [
+                    "t = 3 seconds",
+                    "t = 1 second",
+                    "t = 4 seconds",
+                    "t = 6 seconds"
+                ],
                 "solution": 0,
-                "rationale": "Set h=0; use quadratic formula → t ≈ 0.05, 4.1.",
+                "rationale": "Set −16t^2+32t+48=0 ⇒ divide by −16 ⇒ t^2−2t−3=0 ⇒ t=3 or −1; time ≥0 ⇒ 3 s.",
             },
         ],
     },
