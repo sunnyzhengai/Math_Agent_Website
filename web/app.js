@@ -348,6 +348,7 @@ async function fetchGenerateNoRepeat(skillId = "quad.graph.vertex", difficulty =
             // Check if we've seen this stem before
             if (!seenStems.has(stem)) {
                 seenStems.add(stem);
+                updateProgress();  // Update progress indicator immediately
                 renderQuestion(item);
                 document.body.classList.remove("busy");
                 isBusy = false;
@@ -434,7 +435,15 @@ function handleGradeResult(result) {
     // Update tally
     elements.tally.textContent = `Correct ${correct} of ${attempted}`;
 
-    // Enable Next button
+    // If the whole set is done, show the finish modal immediately
+    if (isEntireSetComplete()) {
+        elements.nextBtn.disabled = true;
+        setButtonsEnabled(false);
+        showFinishModal();
+        return;
+    }
+
+    // Otherwise allow the user to continue
     elements.nextBtn.disabled = false;
 }
 
