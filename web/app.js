@@ -23,11 +23,37 @@ const POOL_SIZE_HINT = {
     "quad.graph.vertex:medium": 1,
     "quad.graph.vertex:hard": 1,
     "quad.graph.vertex:applied": 1,
+    "quad.standard.vertex:easy": 3,
+    "quad.standard.vertex:medium": 2,
+    "quad.standard.vertex:hard": 1,
+    "quad.standard.vertex:applied": 2,
+    "quad.roots.factored:easy": 2,
+    "quad.roots.factored:medium": 2,
+    "quad.roots.factored:hard": 1,
+    "quad.roots.factored:applied": 1,
+    "quad.solve.by_factoring:easy": 2,
+    "quad.solve.by_factoring:medium": 2,
+    "quad.solve.by_factoring:hard": 1,
+    "quad.solve.by_factoring:applied": 1,
+    "quad.solve.by_formula:easy": 2,
+    "quad.solve.by_formula:medium": 2,
+    "quad.solve.by_formula:hard": 1,
+    "quad.solve.by_formula:applied": 1,
 };
 
 // DEV: cycle difficulties so you can see all 6 without repeats
 const DEV_SEQUENCE = ["easy", "medium", "hard", "applied"];
 let devIndex = 0;
+
+// Skill rotation: cycle through all 5 skills
+const SKILL_SEQUENCE = [
+    "quad.graph.vertex",
+    "quad.standard.vertex",
+    "quad.roots.factored",
+    "quad.solve.by_factoring",
+    "quad.solve.by_formula",
+];
+let skillIndex = 0;
 
 // Optional: debug logs
 const DEBUG = true;
@@ -53,8 +79,8 @@ const elements = {
 document.addEventListener("DOMContentLoaded", () => {
     initializeElements();
     attachEventHandlers();
-    // start at current devIndex difficulty
-    fetchGenerateNoRepeat("quad.graph.vertex", DEV_SEQUENCE[devIndex]);
+    // start at current devIndex difficulty with first skill
+    fetchGenerateNoRepeat(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
 });
 
 function initializeElements() {
@@ -232,14 +258,14 @@ function handleGradeResult(result) {
 // ============================================================================
 
 function onNext() {
-    const skillId = "quad.graph.vertex";
+    const skillId = SKILL_SEQUENCE[skillIndex];
     
     const currDiff = DEV_SEQUENCE[devIndex];
     const poolKey = `${skillId}:${currDiff}`;
     const poolSize = POOL_SIZE_HINT[poolKey] ?? null;
     const seen = seenByPool.get(poolKey) ?? new Set();
 
-    dbg("NEXT pressed; devIndex", devIndex, "diff", currDiff);
+    dbg("NEXT pressed; skillIndex", skillIndex, "diff", currDiff);
     dbg("pool", poolKey, "seen", seen.size, "of", poolSize);
 
     // If we've seen all unique stems for this pool, advance difficulty
@@ -252,12 +278,18 @@ function onNext() {
             devIndex += 1;
         } else {
             devIndex = 0; // wrap to easy
+            // Also advance skill when difficulty wraps
+            if (skillIndex < SKILL_SEQUENCE.length - 1) {
+                skillIndex += 1;
+            } else {
+                skillIndex = 0; // wrap to first skill
+            }
         }
-        dbg("ADVANCE difficulty to", DEV_SEQUENCE[devIndex]);
+        dbg("ADVANCE difficulty to", DEV_SEQUENCE[devIndex], "skill to", SKILL_SEQUENCE[skillIndex]);
     }
 
     elements.nextBtn.disabled = true;
-    fetchGenerateNoRepeat(skillId, DEV_SEQUENCE[devIndex]);
+    fetchGenerateNoRepeat(SKILL_SEQUENCE[skillIndex], DEV_SEQUENCE[devIndex]);
 }
 
 // ============================================================================
