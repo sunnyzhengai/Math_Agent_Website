@@ -23,6 +23,32 @@ from engine.templates import generate_item, SKILL_TEMPLATES
 from engine.grader import grade_response
 from engine.validators import validate_item
 
+# Import mastery & planner
+from engine.mastery import update_progress, SkillMastery
+from engine.planner import plan_next_difficulty
+
+# Import models (extended schemas)
+try:
+    from api.models import (
+        ProgressGetRequest, ProgressGetResponse, SkillProgress,
+        PlannerNextRequest, PlannerNextResponse,
+        GradeRequestExtended
+    )
+except ImportError:
+    # If models.py doesn't exist yet, define minimal stubs
+    ProgressGetRequest = None
+    ProgressGetResponse = None
+    PlannerNextRequest = None
+    PlannerNextResponse = None
+    GradeRequestExtended = None
+
+# Import state store
+try:
+    from api.state import progress_store
+except ImportError:
+    # Fallback: minimal in-memory store
+    progress_store = None
+
 # Import cycle_manager - use absolute import with fallback
 try:
     from api.cycle_manager import cycle_bags
@@ -180,6 +206,9 @@ class GradeRequest(BaseModel):
     """Request schema for POST /grade"""
     item: dict
     choice_id: str
+    # NEW (optional): for mastery tracking
+    session_id: Optional[str] = None
+    confidence: Optional[int] = None  # 1-5, None for neutral
 
 
 class GradeResponse(BaseModel):
@@ -461,11 +490,37 @@ async def grade_endpoint(request: GradeRequest):
         result = grade_response(item=request.item, choice_id=request.choice_id)
         latency_ms = float((time.time() - t0) * 1000.0)
         
+        # NEW: Update mastery if session_id and skill_id are provided
+        session_id = request.session_id or "anon"
+        skill_id = request.item.get("skill_id")
+        
+        if skill_id and progress_store:
+            try:
+                # Get current state snapshot
+                current_state = await progress_store.get_session(session_id)
+                
+                # Update mastery using pure function
+                updated_state = update_progress(
+                    state=current_state,
+                    skill_id=skill_id,
+                    correct=bool(result["correct"]),
+                    now=time.time(),
+                    confidence=request.confidence,
+                )
+                
+                # Persist updated skill state
+                await progress_store.upsert_skill(
+                    session_id, skill_id, updated_state[skill_id]
+                )
+            except Exception as e:
+                # Fail-open: don't crash if mastery update fails
+                pass
+        
         # Log telemetry (async, fire-and-forget)
         try:
             asyncio.create_task(log_event(
                 "grade",
-                session_id=None,  # simplest for now; link via item_id
+                session_id=request.session_id,
                 skill_id=request.item.get("skill_id"),
                 difficulty=request.item.get("difficulty"),
                 item_id=request.item.get("item_id"),
@@ -531,6 +586,78 @@ async def skills_manifest() -> Dict[str, Dict[str, int]]:
     return {
         skill_id: {difficulty: len(templates) for difficulty, templates in skill_templates.items()}
         for skill_id, skill_templates in SKILL_TEMPLATES.items()
+    }
+
+
+# ============================================================================
+# Mastery & Planner Endpoints (NEW)
+# ============================================================================
+
+@app.post("/progress/get")
+async def get_progress(req: Dict[str, str]):
+    """
+    Retrieve mastery state for a session.
+    
+    Request: {"session_id": "..."}
+    Response: {"session_id": "...", "skills": {"skill_id": {"p": 0.5, "attempts": 2, "streak": 1, "last_ts": 123.45}, ...}}
+    """
+    if not progress_store:
+        raise HTTPException(status_code=503, detail="Progress store not available")
+    
+    session_id = req.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Missing session_id")
+    
+    sess = await progress_store.get_session(session_id)
+    skills_data = {}
+    for skill_id, mastery in sess.items():
+        skills_data[skill_id] = {
+            "p": mastery.p,
+            "attempts": mastery.attempts,
+            "streak": mastery.streak,
+            "last_ts": mastery.last_ts,
+        }
+    
+    return {
+        "session_id": session_id,
+        "skills": skills_data,
+    }
+
+
+@app.post("/planner/next")
+async def planner_next(req: Dict[str, Any]):
+    """
+    Get recommended next difficulty for a skill based on mastery.
+    
+    Request: {"skill_id": "quad.graph.vertex", "session_id": "...", "p_override": null}
+    Response: {"difficulty": "easy", "reason": "...", "p_used": 0.5}
+    
+    Priority for p value: p_override > session state > default (0.5)
+    """
+    skill_id = req.get("skill_id")
+    if not skill_id:
+        raise HTTPException(status_code=400, detail="Missing skill_id")
+    
+    # Determine p to use: override → session → default
+    p_used = 0.5
+    
+    if req.get("p_override") is not None:
+        try:
+            p_used = float(req.get("p_override"))
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="Invalid p_override")
+    elif req.get("session_id") and progress_store:
+        sess = await progress_store.get_session(req.get("session_id"))
+        if skill_id in sess:
+            p_used = sess[skill_id].p
+    
+    # Get recommendation from planner
+    difficulty, reason = plan_next_difficulty(p_used)
+    
+    return {
+        "difficulty": difficulty,
+        "reason": reason,
+        "p_used": p_used,
     }
 
 
