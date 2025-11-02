@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — Math Agent</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .legal h2 { margin-top: 2rem; margin-bottom: 0.75rem; }
+    .legal h3 { margin-top: 1.25rem; margin-bottom: 0.5rem; }
+    .legal p, .legal li { color: #444; line-height: 1.7; }
+    .legal code { background: #f6f6f6; padding: 0.1rem 0.25rem; border-radius: 3px; font-family: 'Monaco', 'Courier New', monospace; }
+    .badge { display: inline-block; background: #eef; border: 1px solid #ccd; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8rem; color: #334; font-weight: 600; }
+    .legal ul { padding-left: 1.5rem; margin: 0.75rem 0; }
+    .legal li { margin-bottom: 0.5rem; }
+    .legal a { color: var(--primary); text-decoration: none; }
+    .legal a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main style="max-width: 860px; margin: 0 auto;">
+    <header style="text-align: center; padding: 2rem 1rem;">
+      <h1>Privacy Policy</h1>
+      <p class="progress-indicator">Last updated: <strong>November 2, 2025</strong></p>
+    </header>
+
+    <section class="question-area legal">
+      <p><span class="badge">Summary</span> We built Math Agent for practice and learning. We do <strong>not</strong> collect names, emails, or other personally identifying information. We log minimal, pseudonymous telemetry to help improve question quality and performance.</p>
+
+      <h2>What we collect</h2>
+      <ul>
+        <li><strong>Session ID</strong> (stored in your browser's <code>localStorage</code>): a random string like <code>session-1699999999999</code>. This is pseudonymous and can be cleared anytime (see <em>Your choices</em>).</li>
+        <li><strong>Event telemetry</strong> (append-only JSONL):
+          <ul>
+            <li><code>event</code> type (e.g., <code>generate</code>, <code>grade</code>, <code>cycle_reset</code>)</li>
+            <li><code>ts</code> (timestamp), <code>server_id</code>, <code>version</code></li>
+            <li><code>skill_id</code>, <code>difficulty</code>, <code>item_id</code></li>
+            <li><code>stem_hash</code> (SHA-1 of the question text) — <strong>we never store the plain stem</strong></li>
+            <li><code>choice_ids</code> (A–D), <code>choice_id</code> picked, <code>correct</code>, <code>solution_choice_id</code></li>
+            <li><code>latency_ms</code> (performance timing)</li>
+          </ul>
+        </li>
+        <li><strong>No PII</strong>: we do not ask for or store names, emails, phone numbers, addresses, biometric data, or payment info.</li>
+      </ul>
+
+      <h2>How we use it</h2>
+      <ul>
+        <li>Measure coverage (which skills/difficulties are attempted)</li>
+        <li>Detect repeats and pool exhaustion to improve content rotation</li>
+        <li>Track aggregate accuracy and latency to tune difficulty and performance</li>
+      </ul>
+
+      <h2>Legal basis (EEA/UK)</h2>
+      <p>We process minimal telemetry under our legitimate interests to operate and improve the service, balanced against your rights and expectations.</p>
+
+      <h2>Retention</h2>
+      <ul>
+        <li>Telemetry logs rotate by size (default ~5&nbsp;MB per file). We typically keep rotated files up to 90 days, then delete.</li>
+        <li>Browser <code>localStorage</code> persists until you clear it (see <em>Your choices</em>).</li>
+      </ul>
+
+      <h2>Sharing</h2>
+      <ul>
+        <li>We don't sell data. We may use infrastructure providers (e.g., hosting/CDN) solely to run the service.</li>
+        <li>We may disclose if required by law or to protect service integrity and users.</li>
+      </ul>
+
+      <h2>Security</h2>
+      <ul>
+        <li>Append-only JSONL with allowlisted fields and hashed stems</li>
+        <li>Access controls limited to service operators</li>
+        <li>Transport over HTTPS when deployed</li>
+      </ul>
+
+      <h2>Your choices & controls</h2>
+      <ul>
+        <li><strong>Reset session:</strong> Clear your browser storage for this site (or click the button below). This removes the pseudonymous session ID.</li>
+        <li><strong>Private/Incognito windows:</strong> avoid persisting a session ID beyond the window.</li>
+        <li><strong>Telemetry opt-out (operators):</strong> set <code>TELEMETRY_ENABLED=false</code> on the server or reduce <code>TELEMETRY_SAMPLE_RATE</code>.</li>
+      </ul>
+
+      <div style="margin-top: 1.5rem; padding: 1rem; background: var(--primary-50); border-radius: 4px;">
+        <button id="reset-session-btn" style="background: var(--primary); color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Reset Session Now</button>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #555;">This will clear your session ID from browser storage and reload the page.</p>
+      </div>
+
+      <h2>Children's privacy</h2>
+      <p>Math Agent collects no personal information from users. It is appropriate for learners, including teens. If you are a parent/guardian and believe we inadvertently collected personal information, contact us and we will delete it. We do not knowingly collect information from children under 13 in a manner that requires verifiable parental consent under COPPA.</p>
+
+      <h2>Do Not Sell or Share (CCPA/CPRA)</h2>
+      <p>We do not sell or share personal information as defined by the CCPA/CPRA.</p>
+
+      <h2>International transfers</h2>
+      <p>Telemetry may be processed on servers outside your country. We take steps to protect data consistent with this policy.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>We may update this page as the app evolves. Material changes will be noted with an updated "Last updated" date.</p>
+
+      <h2>Contact</h2>
+      <p>Questions or requests? Email <a href="mailto:privacy@your-domain.com">privacy@your-domain.com</a>. If you are an institution deploying your own instance, please replace this contact with your organization's address.</p>
+    </section>
+
+    <footer class="footer">
+      <div class="tally">Thanks for using Math Agent!</div>
+      <a id="repo-link" href="/">Back to Practice</a>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById('reset-session-btn').addEventListener('click', function() {
+      localStorage.removeItem('sid');
+      alert('Session cleared. Reloading...');
+      location.reload();
+    });
+  </script>
+</body>
+</html>
