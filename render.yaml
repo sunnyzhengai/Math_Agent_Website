@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: math-agent-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -k uvicorn.workers.UvicornWorker api.server:app --bind 0.0.0.0:$PORT --timeout 90
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: TELEMETRY_ENABLED
+        value: "true"
+      - key: TELEMETRY_PATH
+        value: data/telemetry.jsonl
+      - key: TELEMETRY_MAX_BYTES
+        value: "5242880"
+      - key: TELEMETRY_SAMPLE_RATE
+        value: "1.0"
+      - key: SERVER_ID
+        value: render
+      - key: APP_VERSION
+        value: 0.1.0
+      - key: PROGRESS_AUTOSAVE_SECS
+        value: "60"
+      - key: PROGRESS_PATH
+        value: data/progress.json
+      - key: CORS_ORIGINS
+        value: "https://themathagent.com https://www.themathagent.com"
+    disk:
+      name: persistent-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
