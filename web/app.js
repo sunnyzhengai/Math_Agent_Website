@@ -496,6 +496,7 @@ async function onChoiceClick(choiceId) {
             body: JSON.stringify({
                 item: currentItem,
                 choice_id: choiceId,
+                session_id: SESSION_ID,
             }),
         });
 
