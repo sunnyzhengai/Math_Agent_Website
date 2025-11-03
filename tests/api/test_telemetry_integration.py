@@ -93,7 +93,11 @@ class TestGenerateEventShape:
         lines = read_jsonl_lines(str(log_file))
         assert len(lines) > old_lines, "Expected at least one new telemetry line"
 
-        event = lines[-1]  # Last line
+        # Find the most recent 'generate' event (not just any event)
+        generate_events = [e for e in lines[old_lines:] if e.get("event") == "generate"]
+        assert len(generate_events) > 0, "Expected at least one new 'generate' event"
+        
+        event = generate_events[-1]  # Last 'generate' event
         assert event.get("event") == "generate", "Event type must be 'generate'"
         assert event.get("item_id"), "Must have item_id"
         assert "stem_hash" in event or event.get("stem_hash") is None, "Must have stem_hash or None"
