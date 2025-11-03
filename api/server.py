@@ -9,13 +9,16 @@ import os
 import sys
 import json
 import time
+import asyncio
+import contextlib
+import tempfile
 from pathlib import Path
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List, Literal, Dict, Any
 from collections import OrderedDict
-import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -26,6 +29,36 @@ from engine.validators import validate_item
 # Import mastery & planner
 from engine.mastery import update_progress, SkillMastery
 from engine.planner import plan_next_difficulty
+
+# Import persistence
+def load_json(path: str) -> Optional[Dict[str, Any]]:
+    """Load JSON from a file."""
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
+    except json.JSONDecodeError:
+        return None
+    except Exception:
+        return None
+
+
+def save_json_atomic(path: str, data: Dict[str, Any]) -> None:
+    """Save JSON to a file atomically."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+        json.dump(data, f)
+        f.flush()
+        os.fsync(f.fileno())
+    try:
+        os.replace(f.name, path)
+    except FileNotFoundError:
+        # If the original file doesn't exist, just rename the new file
+        os.rename(f.name, path)
+    except Exception:
+        os.remove(f.name)
+        raise
+
 
 # Import models (extended schemas)
 try:
@@ -132,7 +165,78 @@ class LRUSeenBags:
 cycle_bags = LRUSeenBags(max_entries=2000)
 
 
-app = FastAPI(title="Math Agent API", version="0.1.0")
+# ============================================================================
+# Persistence Configuration
+# ============================================================================
+
+PROGRESS_PATH = os.getenv("PROGRESS_PATH", "data/progress.json")
+PROGRESS_AUTOSAVE_SECS = float(os.getenv("PROGRESS_AUTOSAVE_SECS", "0"))  # 0 = disabled
+
+_autosave_task = None
+
+
+async def _autosave_loop() -> None:
+    """Background task to save mastery state periodically."""
+    interval = PROGRESS_AUTOSAVE_SECS
+    if interval <= 0:
+        return
+
+    while True:
+        try:
+            await asyncio.sleep(interval)
+            if progress_store:
+                async with progress_store._lock:
+                    save_json_atomic(PROGRESS_PATH, progress_store.snapshot())
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            # fail-open: never crash the server on persist errors
+            pass
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Manage app lifecycle: load state on startup, save on shutdown.
+    
+    Environment variables:
+      PROGRESS_PATH: where to persist mastery (default: data/progress.json)
+      PROGRESS_AUTOSAVE_SECS: autosave interval in seconds (default: 0 = disabled)
+    """
+    # --- STARTUP ---
+    try:
+        if progress_store:
+            payload = load_json(PROGRESS_PATH)
+            if payload:
+                async with progress_store._lock:
+                    progress_store.restore(payload)
+    except Exception:
+        pass  # fail-open
+
+    global _autosave_task
+    if PROGRESS_AUTOSAVE_SECS > 0 and progress_store:
+        _autosave_task = asyncio.create_task(_autosave_loop())
+
+    yield
+
+    # --- SHUTDOWN ---
+    try:
+        if _autosave_task:
+            _autosave_task.cancel()
+            with contextlib.suppress(Exception):
+                await _autosave_task
+    except Exception:
+        pass
+
+    try:
+        if progress_store:
+            async with progress_store._lock:
+                save_json_atomic(PROGRESS_PATH, progress_store.snapshot())
+    except Exception:
+        pass  # fail-open
+
+
+app = FastAPI(title="Math Agent API", version="0.1.0", lifespan=lifespan)
 
 # Add CORS middleware
 app.add_middleware(
@@ -659,6 +763,39 @@ async def planner_next(req: Dict[str, Any]):
         "reason": reason,
         "p_used": p_used,
     }
+
+
+# ============================================================================
+# Persistence Endpoint (Optional: read persisted progress)
+# ============================================================================
+
+@app.get("/progress")
+async def get_all_progress(session_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Read persisted mastery state (debugging / admin endpoint).
+    
+    Query params:
+      session_id (optional): if provided, return only this session's progress
+    
+    Returns:
+      {"sessions": {session_id: {skill_id: {p, attempts, streak, last_ts}, ...}, ...}}
+    
+    If session_id is provided:
+      {"sessions": {session_id: {skill_id: {...}, ...}}}
+    
+    Note: No authentication; use with caution in production.
+    """
+    if not progress_store:
+        raise HTTPException(status_code=503, detail="Progress store not available")
+    
+    async with progress_store._lock:
+        snap = progress_store.snapshot()
+    
+    if session_id:
+        subset = snap.get("sessions", {}).get(session_id, {})
+        return {"sessions": {session_id: subset}}
+    
+    return snap
 
 
 # ============================================================================
