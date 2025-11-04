@@ -10,6 +10,7 @@ from .base import Agent
 from .oracle import OracleAgent
 from .always_a import AlwaysAAgent
 from .random_guess import RandomGuessAgent
+from .rule_router import RuleRouterAgent
 
 
 # Registry maps agent names to classes (not instances)
@@ -17,6 +18,7 @@ _REGISTRY: Dict[str, Type[Agent]] = {
     "oracle": OracleAgent,
     "always_a": AlwaysAAgent,
     "random": RandomGuessAgent,
+    "rules": RuleRouterAgent,
 }
 
 
