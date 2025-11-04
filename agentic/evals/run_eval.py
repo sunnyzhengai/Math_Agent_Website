@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-Agent eval harness: deterministic baseline for regression testing.
+Agent eval harness: compare agent strategies under deterministic test cases.
+
+Supports multiple agents (oracle, random, always_a, etc.) with comprehensive
+error categorization and per-agent reporting.
 
 Usage:
-    python3 -m agentic.evals.run_eval [--seed-path PATH] [--report-path PATH] [--min-accuracy PCT]
+    python3 -m agentic.evals.run_eval [--agent AGENT] [--cases PATH] [--out PATH]
 
-Baseline: Always picks the correct option (upper bound for agent strategies).
-Output: JSONL with per-case results and overall accuracy.
-
-See: agentic/evals/seed_math.jsonl (test cases)
-     agentic/evals/test_eval_harness.py (contract tests)
+Agents:
+    oracle    - Always picks correct answer (upper bound / regression guard)
+    random    - Picks deterministically random choice
+    always_a  - Always picks choice A (sanity check)
 """
 
 import json
@@ -22,10 +24,11 @@ from typing import Dict, Any, List, Tuple
 
 from engine.templates import generate_item
 from engine.grader import grade_response
+from agentic.agents.registry import get_agent, list_agents
 
 
 def load_jsonl(p: Path) -> List[Dict[str, Any]]:
-    """Load JSONL file; skip empty lines."""
+    """Load JSONL file; skip empty lines and comments."""
     try:
         return [
             json.loads(line)
@@ -36,29 +39,41 @@ def load_jsonl(p: Path) -> List[Dict[str, Any]]:
         raise RuntimeError(f"Failed to load {p}: {e}")
 
 
-def run_case(case: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
+def run_case(case: Dict[str, Any], agent_name: str) -> Tuple[bool, Dict[str, Any]]:
     """
-    Run a single test case: generate item, grade with correct answer, measure latency.
+    Run a single test case with an agent.
+
+    Steps:
+    1. Generate item deterministically
+    2. Agent chooses a response
+    3. Grade the response
+    4. Record result with latency and error info
 
     Args:
-        case: {id, skill_id, difficulty, seed}
+        case: Test case dict {id, skill_id, difficulty, seed}
+        agent_name: Name of agent to use
 
     Returns:
-        (ok: bool, row: dict) where ok=True if grading succeeded and was correct,
-        row includes: id, skill_id, difficulty, seed, status, ok, gen_ms, grade_ms, stem_hash, [error]
+        (ok: bool, row: dict) where ok=True if grading succeeded and was correct.
+        Row includes: id, agent, skill_id, difficulty, seed, status, ok,
+                      picked, solution, gen_ms, grade_ms, stem_hash, error
     """
     case_id = case.get("id", "unknown")
     skill_id = case.get("skill_id")
     difficulty = case.get("difficulty")
     seed = case.get("seed")
 
+    # Initialize row with all fields
     row = {
         "id": case_id,
+        "agent": agent_name,
         "skill_id": skill_id,
         "difficulty": difficulty,
         "seed": seed,
-        "status": None,  # "ok" | "generate_error" | "grade_error" | "incorrect"
+        "status": None,  # "ok" | "generate_error" | "agent_error" | "grade_error" | "incorrect"
         "ok": False,
+        "picked": None,
+        "solution": None,
         "gen_ms": None,
         "grade_ms": None,
         "stem_hash": None,
@@ -69,65 +84,83 @@ def run_case(case: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
     try:
         t0 = time.time()
         item = generate_item(skill_id, difficulty, seed=seed)
-        gen_ms = (time.time() - t0) * 1000.0
-        row["gen_ms"] = round(gen_ms, 2)
+        row["gen_ms"] = round((time.time() - t0) * 1000, 2)
     except Exception as e:
         row["status"] = "generate_error"
         row["error"] = str(e)
         return False, row
 
-    # Compute stem hash (first 10 chars of SHA1)
+    # Record solution and stem hash for all cases
     try:
+        row["solution"] = item["solution_choice_id"]
         stem_hash = hashlib.sha1(item.get("stem", "").encode()).hexdigest()[:10]
         row["stem_hash"] = stem_hash
     except Exception:
         pass
 
-    # Step 2: Grade with correct answer (baseline: 100% accuracy upper bound)
-    # This proves the engine is working; real agents will score lower.
+    # Step 2: Get agent's choice
+    try:
+        agent = get_agent(agent_name)
+        choice_id = agent.choose(item)
+
+        # Validate choice is in valid set
+        if choice_id not in ["A", "B", "C", "D"]:
+            raise ValueError(f"invalid_choice:{choice_id}")
+
+        row["picked"] = choice_id
+    except Exception as e:
+        row["status"] = "agent_error"
+        row["error"] = str(e)
+        return False, row
+
+    # Step 3: Grade the response
     try:
         t1 = time.time()
-        correct_choice = item.get("solution_choice_id")
-        result = grade_response(item, correct_choice)
-        grade_ms = (time.time() - t1) * 1000.0
-        row["grade_ms"] = round(grade_ms, 2)
+        result = grade_response(item, choice_id)
+        row["grade_ms"] = round((time.time() - t1) * 1000, 2)
     except Exception as e:
         row["status"] = "grade_error"
         row["error"] = str(e)
         return False, row
 
-    # Step 3: Check correctness
-    is_correct = result.get("correct", False)
+    # Step 4: Determine outcome
+    is_correct = bool(result.get("correct", False))
     if is_correct:
         row["status"] = "ok"
         row["ok"] = True
         return True, row
     else:
         row["status"] = "incorrect"
-        row["error"] = f"Expected correct, got: {result.get('explanation', 'unknown')}"
+        row["error"] = f"Selected {choice_id}, correct is {row['solution']}"
         return False, row
 
 
-def main(
-    seed_path: str = "agentic/evals/seed_math.jsonl",
-    report_path: str = "agentic/evals/report.jsonl",
-    min_accuracy: float = 1.0,
-    verbose: bool = False,
-) -> int:
-    """
-    Run eval harness on seed set.
+def main():
+    """Run eval harness with specified agent."""
+    parser = argparse.ArgumentParser(
+        description="Agent eval harness: compare strategies on seed set"
+    )
+    parser.add_argument(
+        "--agent",
+        default="oracle",
+        choices=list_agents(),
+        help=f"Agent to evaluate (default: oracle)",
+    )
+    parser.add_argument(
+        "--cases",
+        default="agentic/evals/seed_math.jsonl",
+        help="Path to JSONL seed cases",
+    )
+    parser.add_argument(
+        "--out",
+        default="agentic/evals/report.jsonl",
+        help="Path to write JSONL report",
+    )
 
-    Args:
-        seed_path: Path to JSONL seed file
-        report_path: Path to write JSONL report
-        min_accuracy: Minimum accuracy threshold (0.0-1.0); fail if below
-        verbose: Print per-case results
+    args = parser.parse_args()
 
-    Returns:
-        0 if accuracy >= min_accuracy, else 1
-    """
-    in_path = Path(seed_path)
-    out_path = Path(report_path)
+    in_path = Path(args.cases)
+    out_path = Path(args.out)
 
     # Ensure output directory exists
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,17 +181,10 @@ def main(
     passed = 0
 
     for c in cases:
-        ok, row = run_case(c)
+        ok, row = run_case(c, args.agent)
         rows.append(row)
         if ok:
             passed += 1
-
-        if verbose:
-            status = row["status"]
-            print(
-                f"  {row['id']:8s} | {row['skill_id']:25s} | {row['difficulty']:8s} | {status:15s}",
-                file=sys.stderr,
-            )
 
     # Write report
     try:
@@ -171,13 +197,14 @@ def main(
     # Print summary
     total = len(rows)
     acc = passed / total if total else 0.0
-    print(f"[eval] {passed}/{total} passed · accuracy={acc:.2%}")
+    print(f"[eval] agent={args.agent:10s} {passed}/{total} passed · accuracy={acc:.2%}")
     print(f"[eval] report -> {out_path}")
 
-    # Check threshold
-    if acc < min_accuracy:
+    # CI gate: strict only for oracle (should be 100%)
+    # Other agents are informative only
+    if args.agent == "oracle" and passed < total:
         print(
-            f"[eval] FAIL: accuracy {acc:.2%} < threshold {min_accuracy:.2%}",
+            f"[eval] FAIL: oracle accuracy {acc:.2%} < 100% (regression)",
             file=sys.stderr,
         )
         return 1
@@ -186,32 +213,4 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Agent eval harness baseline")
-    parser.add_argument(
-        "--seed-path",
-        default="agentic/evals/seed_math.jsonl",
-        help="Path to JSONL seed file",
-    )
-    parser.add_argument(
-        "--report-path",
-        default="agentic/evals/report.jsonl",
-        help="Path to write JSONL report",
-    )
-    parser.add_argument(
-        "--min-accuracy",
-        type=float,
-        default=1.0,
-        help="Minimum accuracy threshold (0.0-1.0)",
-    )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Print per-case results"
-    )
-
-    args = parser.parse_args()
-    exit_code = main(
-        seed_path=args.seed_path,
-        report_path=args.report_path,
-        min_accuracy=args.min_accuracy,
-        verbose=args.verbose,
-    )
-    sys.exit(exit_code)
+    sys.exit(main())

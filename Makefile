@@ -1,4 +1,4 @@
-.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down eval eval-test eval-ci
+.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down eval eval-test eval-ci eval-agent eval-matrix
 
 help:
 	@echo "Math Agent — Development Commands"
@@ -14,6 +14,8 @@ help:
 	@echo "  make eval            Run agent eval harness (baseline)"
 	@echo "  make eval-test       Run eval harness tests"
 	@echo "  make eval-ci         Run eval tests + harness"
+	@echo "  make eval-agent      Run eval with specific agent (e.g. make eval-agent AGENT=random)"
+	@echo "  make eval-matrix     Compare all agents (oracle, random, always_a)"
 	@echo "  make build-docker    Build Docker image"
 	@echo "  make run-docker      Run Docker container (port 8080)"
 	@echo "  make docker-up       Start docker-compose stack (port 80)"
@@ -56,15 +58,26 @@ analyze-telemetry:
 	@python3 tools/analyze_telemetry.py logs/telemetry.jsonl
 
 eval:
-	@echo "🤖 Running agent eval harness (baseline)..."
-	python3 -m agentic.evals.run_eval -v
+	@echo "🤖 Running agent eval harness (oracle)..."
+	python3 -m agentic.evals.run_eval --agent oracle
 
 eval-test:
 	@echo "🧪 Running eval harness contract tests..."
-	python3 -m pytest agentic/evals/test_eval_harness.py -v
+	python3 -m pytest agentic/evals/test_eval_agents.py agentic/agents/test_agents.py -v
 
 eval-ci: eval-test eval
 	@echo "✅ Agent eval CI passed!"
+
+eval-agent:
+	@echo "🤖 Running eval with agent: $(AGENT)"
+	python3 -m agentic.evals.run_eval --agent $(AGENT)
+
+eval-matrix:
+	@echo "📊 Running agent comparison matrix..."
+	python3 -m agentic.evals.run_eval --agent oracle --out agentic/evals/report.oracle.jsonl
+	python3 -m agentic.evals.run_eval --agent random --out agentic/evals/report.random.jsonl
+	python3 -m agentic.evals.run_eval --agent always_a --out agentic/evals/report.always_a.jsonl
+	@echo "📊 Reports written to agentic/evals/"
 
 install:
 	pip install -r requirements.txt
