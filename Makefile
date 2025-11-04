@@ -1,4 +1,4 @@
-.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down
+.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down eval eval-test eval-ci
 
 help:
 	@echo "Math Agent — Development Commands"
@@ -11,6 +11,9 @@ help:
 	@echo "  make serve           Run FastAPI server (localhost:8000)"
 	@echo "  make telemetry       Tail telemetry log (Ctrl+C to exit)"
 	@echo "  make analyze-telemetry  Analyze telemetry events"
+	@echo "  make eval            Run agent eval harness (baseline)"
+	@echo "  make eval-test       Run eval harness tests"
+	@echo "  make eval-ci         Run eval tests + harness"
 	@echo "  make build-docker    Build Docker image"
 	@echo "  make run-docker      Run Docker container (port 8080)"
 	@echo "  make docker-up       Start docker-compose stack (port 80)"
@@ -51,6 +54,17 @@ telemetry:
 analyze-telemetry:
 	@echo "📈 Analyzing telemetry..."
 	@python3 tools/analyze_telemetry.py logs/telemetry.jsonl
+
+eval:
+	@echo "🤖 Running agent eval harness (baseline)..."
+	python3 -m agentic.evals.run_eval -v
+
+eval-test:
+	@echo "🧪 Running eval harness contract tests..."
+	python3 -m pytest agentic/evals/test_eval_harness.py -v
+
+eval-ci: eval-test eval
+	@echo "✅ Agent eval CI passed!"
 
 install:
 	pip install -r requirements.txt

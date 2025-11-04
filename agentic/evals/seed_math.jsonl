@@ -1,0 +1,10 @@
+# Deterministic seed set for agent eval harness
+# Format: {id, skill_id, difficulty, seed}
+# Usage: Used by agentic/evals/run_eval.py for regression testing
+# All seeds are fixed to ensure reproducibility across runs
+{"id":"vtx-1","skill_id":"quad.graph.vertex","difficulty":"easy","seed":42}
+{"id":"vtx-2","skill_id":"quad.graph.vertex","difficulty":"medium","seed":43}
+{"id":"std-1","skill_id":"quad.standard.vertex","difficulty":"easy","seed":11}
+{"id":"roots-1","skill_id":"quad.roots.factored","difficulty":"medium","seed":12}
+{"id":"fact-1","skill_id":"quad.solve.by_factoring","difficulty":"easy","seed":21}
+{"id":"form-1","skill_id":"quad.solve.by_formula","difficulty":"easy","seed":31}
