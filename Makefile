@@ -1,5 +1,8 @@
 .PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down eval eval-test eval-ci eval-agent eval-matrix
 
+agent ?= rules
+cases ?=
+
 help:
 	@echo "Math Agent — Development Commands"
 	@echo ""
@@ -11,11 +14,11 @@ help:
 	@echo "  make serve           Run FastAPI server (localhost:8000)"
 	@echo "  make telemetry       Tail telemetry log (Ctrl+C to exit)"
 	@echo "  make analyze-telemetry  Analyze telemetry events"
-	@echo "  make eval            Run agent eval harness (baseline)"
+	@echo "  make eval            Run agent eval harness (oracle)"
 	@echo "  make eval-test       Run eval harness tests"
 	@echo "  make eval-ci         Run eval tests + harness"
-	@echo "  make eval-agent      Run eval with specific agent (e.g. make eval-agent AGENT=random)"
-	@echo "  make eval-matrix     Compare all agents (oracle, random, always_a)"
+	@echo "  make eval-agent      Run eval with specific agent (e.g. make eval-agent agent=random)"
+	@echo "  make eval-matrix     Compare all agents (oracle, random, always_a, rules)"
 	@echo "  make build-docker    Build Docker image"
 	@echo "  make run-docker      Run Docker container (port 8080)"
 	@echo "  make docker-up       Start docker-compose stack (port 80)"
@@ -69,8 +72,8 @@ eval-ci: eval-test eval
 	@echo "✅ Agent eval CI passed!"
 
 eval-agent:
-	@echo "🤖 Running eval with agent: $(AGENT)"
-	python3 -m agentic.evals.run_eval --agent $(AGENT)
+	@echo "🤖 Running eval with agent: $(agent) $(if $(cases),cases=$(cases),)"
+	python3 -m agentic.evals.run_eval --agent $(agent) $(if $(cases),--cases $(cases),)
 
 eval-matrix:
 	@echo "📊 Running agent comparison matrix..."
