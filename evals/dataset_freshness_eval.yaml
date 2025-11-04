@@ -1,0 +1,7 @@
+name: dataset_freshness
+description: Dataset export age < 24h
+inputs:
+  - type: file
+    path: datasets/telemetry_latest.jsonl
+thresholds:
+  max_age_seconds: 86400

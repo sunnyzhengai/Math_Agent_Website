@@ -1,0 +1,9 @@
+name: validity
+description: Percent of sampled generated items that pass validators.
+inputs:
+  - type: telemetry
+    event: generate
+sample:
+  max_rows: 200
+thresholds:
+  min_pct: 0.90

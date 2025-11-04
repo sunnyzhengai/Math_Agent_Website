@@ -1,0 +1,7 @@
+name: telemetry_completeness
+description: Required fields present by event type.
+inputs:
+  - type: telemetry
+    event: any
+thresholds:
+  min_pct: 0.95

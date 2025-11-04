@@ -1,0 +1,7 @@
+name: coverage
+description: Percent of (skill,difficulty) pools present with size ≥ 1.
+inputs:
+  - type: http
+    route: /skills/manifest
+thresholds:
+  min_pct: 0.95

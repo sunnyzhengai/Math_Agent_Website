@@ -1,0 +1,12 @@
+name: latency
+description: p50/p90 latency for /items/generate and /grade.
+inputs:
+  - type: telemetry
+    event: any
+thresholds:
+  generate:
+    p50_ms: 80
+    p90_ms: 200
+  grade:
+    p50_ms: 50
+    p90_ms: 150
