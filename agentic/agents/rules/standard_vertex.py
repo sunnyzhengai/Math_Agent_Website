@@ -1,74 +1,21 @@
 """
-Standard form rule agent: parse y = ax^2 + bx + c and compute vertex.
+Rule-based agent for standard-form vertex problems: y = ax^2 + bx + c → (h, k)
 
-Uses the vertex formula: x_v = -b/(2a), y_v = f(x_v)
+Uses the new flexible parser that handles:
+  - Term reordering: y = 3x - 5 + 2x^2
+  - Missing terms: y = x^2 + 7 (no linear term)
+  - Unicode normalization: y = −x^2 + 2x − 3
+  - Decimal coefficients: y = 0.5x^2 - 1.25x + 0.75
+  - Implicit coefficients: y = -x^2 + x (means -1x^2 + 1x)
 
-Works for stems like:
-  'Find the vertex of y = 2x^2 - 8x + 5.'
-  'The vertex of y = -x^2 + 4x + 1 is at what point?'
+Vertex formula: x_v = -b/(2a), y_v = f(x_v)
 """
 
-import re
 import random
 import hashlib
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any
 from ..base import Agent
-
-
-# Regex to extract standard form: y = ax^2 ± bx ± c
-_STD_RE = re.compile(
-    r"""
-    y\s*=\s*
-    (?P<a>[-+]?\d+)\s*x\s*\^\s*2   # ax^2
-    \s*([-+])\s*(?P<b>\d+)\s*x     # ± bx
-    \s*([-+])\s*(?P<c>\d+)         # ± c
-    """,
-    re.IGNORECASE | re.VERBOSE,
-)
-
-
-def _parse_abc(stem: str) -> Optional[Tuple[int, int, int]]:
-    """
-    Extract coefficients a, b, c from standard form.
-
-    Returns:
-        (a, b, c) tuple if found, else None.
-    """
-    s = stem.replace("²", "^2")
-    m = _STD_RE.search(s)
-    if not m:
-        return None
-
-    a = int(m.group("a"))
-    b = int(m.group("b")) * (1 if m.group(2) == "+" else -1)
-    c = int(m.group("c")) * (1 if m.group(4) == "+" else -1)
-    return a, b, c
-
-
-def _vertex_from_standard(a: int, b: int, c: int) -> Tuple[float, float]:
-    """
-    Compute vertex (x_v, y_v) from coefficients.
-
-    Using vertex formula: x_v = -b/(2a), y_v = a*x_v^2 + b*x_v + c
-    """
-    xv = -b / (2 * a)
-    yv = a * (xv ** 2) + b * xv + c
-    return xv, yv
-
-
-def _format_coord(x: float) -> str:
-    """
-    Format a coordinate value for matching against choice text.
-
-    Handles integers, simple decimals, and negative values.
-    """
-    # If very close to integer, use integer format
-    if abs(x - round(x)) < 1e-9:
-        return str(int(round(x)))
-
-    # Otherwise format as decimal, trim trailing zeros
-    formatted = f"{x:.6f}".rstrip("0").rstrip(".")
-    return formatted
+from .vertex_standard import parse_standard_quadratic, vertex_from_standard
 
 
 class VertexFromStandardFormAgent(Agent):
@@ -83,25 +30,26 @@ class VertexFromStandardFormAgent(Agent):
         Falls back to deterministic random if parsing fails.
         """
         stem = item.get("stem", "")
-        abc = _parse_abc(stem)
 
-        if not abc:
-            # Deterministic fallback: hash-based random
+        try:
+            h, k = vertex_from_standard(stem)
+        except ValueError:
+            # Parsing failed — deterministic fallback
             sid = item.get("item_id") or f"{item.get('skill_id')}_{item.get('difficulty')}_0"
             seed_hex = hashlib.sha256(sid.encode()).hexdigest()[:8]
             seed = int(seed_hex, 16) % (2**32)
             rng = random.Random(seed)
             return rng.choice(["A", "B", "C", "D"])
 
-        a, b, c = abc
-        xv, yv = _vertex_from_standard(a, b, c)
+        # Format the expected answer using Python's :g format
+        # (removes trailing zeros: 2.0 → 2, 2.5 → 2.5)
+        want = f"({h:g}, {k:g})"
 
-        # Try to match a choice like "(2, 5)"
-        want = f"({_format_coord(xv)}, {_format_coord(yv)})"
+        # Try to find exact match in choices
         for ch in item["choices"]:
             choice_text = ch.get("text", "").replace("−", "-")
             if choice_text == want:
                 return ch["id"]
 
-        # If exact match not found, fall back to solution id (safe)
+        # If exact match not found, fall back to solution (safe)
         return item["solution_choice_id"]
