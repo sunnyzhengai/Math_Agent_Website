@@ -9,7 +9,7 @@ from typing import Dict, Any
 from .base import Agent
 from .rules.vertex_from_vertexform import VertexFromVertexFormAgent
 from .rules.standard_vertex import VertexFromStandardFormAgent
-from .rules.factoring_agent import FactoringAgent
+from .rules.solve_factoring_agent import SolveFactoringAgent
 from .rules.factored_roots_agent import FactoredRootsAgent
 from .rules.solve_formula_agent import SolveFormulaAgent
 from .random_guess import RandomGuessAgent
@@ -18,7 +18,7 @@ from .random_guess import RandomGuessAgent
 # Instantiate rule agents (stateless, safe to share)
 _VTXFORM = VertexFromVertexFormAgent()
 _STD = VertexFromStandardFormAgent()
-_FACTORING = FactoringAgent()
+_SOLVE_FACTORING = SolveFactoringAgent()
 _FACTORED_ROOTS = FactoredRootsAgent()
 _FORMULA = SolveFormulaAgent()
 _RAND = RandomGuessAgent()
@@ -54,7 +54,7 @@ class RuleRouterAgent(Agent):
             return _STD.choose(item)
 
         if skill_id == "quad.solve.by_factoring":
-            return _FACTORING.choose(item)
+            return _SOLVE_FACTORING.choose(item)
 
         if skill_id == "quad.roots.factored":
             return _FACTORED_ROOTS.choose(item)
