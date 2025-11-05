@@ -11,6 +11,7 @@ from .rules.vertex_from_vertexform import VertexFromVertexFormAgent
 from .rules.standard_vertex import VertexFromStandardFormAgent
 from .rules.factoring_agent import FactoringAgent
 from .rules.factored_roots_agent import FactoredRootsAgent
+from .rules.solve_formula_agent import SolveFormulaAgent
 from .random_guess import RandomGuessAgent
 
 
@@ -19,6 +20,7 @@ _VTXFORM = VertexFromVertexFormAgent()
 _STD = VertexFromStandardFormAgent()
 _FACTORING = FactoringAgent()
 _FACTORED_ROOTS = FactoredRootsAgent()
+_FORMULA = SolveFormulaAgent()
 _RAND = RandomGuessAgent()
 
 
@@ -31,6 +33,7 @@ class RuleRouterAgent(Agent):
     - quad.standard.vertex → standard form parsing + vertex calculation
     - quad.solve.by_factoring → integer factoring solver
     - quad.roots.factored → factored form root extraction
+    - quad.solve.by_formula → quadratic formula solver
     - (others) → deterministic random fallback
     """
 
@@ -56,7 +59,10 @@ class RuleRouterAgent(Agent):
         if skill_id == "quad.roots.factored":
             return _FACTORED_ROOTS.choose(item)
 
-        # Extend here for more skills (e.g., quadratic formula)
+        if skill_id == "quad.solve.by_formula":
+            return _FORMULA.choose(item)
+
+        # Extend here for more skills
 
         # Default: deterministic random
         return _RAND.choose(item)
