@@ -14,6 +14,8 @@ from .rules.factored_roots_agent import FactoredRootsAgent
 from .rules.solve_formula_agent import SolveFormulaAgent
 from .rules.discriminant_agent import DiscriminantAnalysisAgent
 from .rules.intercepts_agent import InterceptsAgent
+from .rules.complete_square_agent import CompleteSquareAgent
+from .rules.axis_symmetry_agent import AxisSymmetryAgent
 from .random_guess import RandomGuessAgent
 
 
@@ -25,6 +27,8 @@ _FACTORED_ROOTS = FactoredRootsAgent()
 _FORMULA = SolveFormulaAgent()
 _DISCRIMINANT = DiscriminantAnalysisAgent()
 _INTERCEPTS = InterceptsAgent()
+_COMPLETE_SQUARE = CompleteSquareAgent()
+_AXIS_SYMMETRY = AxisSymmetryAgent()
 _RAND = RandomGuessAgent()
 
 
@@ -40,6 +44,8 @@ class RuleRouterAgent(Agent):
     - quad.solve.by_formula → quadratic formula solver
     - quad.discriminant.analysis → discriminant calculation and root analysis
     - quad.intercepts → x and y intercept finding
+    - quad.complete.square → completing the square transformations
+    - quad.axis.symmetry → axis of symmetry calculation
     - (others) → deterministic random fallback
     """
 
@@ -73,6 +79,12 @@ class RuleRouterAgent(Agent):
 
         if skill_id == "quad.intercepts":
             return _INTERCEPTS.choose(item)
+
+        if skill_id == "quad.complete.square":
+            return _COMPLETE_SQUARE.choose(item)
+
+        if skill_id == "quad.axis.symmetry":
+            return _AXIS_SYMMETRY.choose(item)
 
         # Extend here for more skills
 

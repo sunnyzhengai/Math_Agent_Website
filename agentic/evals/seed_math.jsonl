@@ -38,3 +38,14 @@
 {"id":"int-2","skill_id":"quad.intercepts","difficulty":"medium","seed":62}
 {"id":"int-3","skill_id":"quad.intercepts","difficulty":"hard","seed":63}
 {"id":"int-4","skill_id":"quad.intercepts","difficulty":"applied","seed":64}
+
+# PHASE 3 SEED SET (Final skills)
+# Complete the skill expansion
+{"id":"cs-1","skill_id":"quad.complete.square","difficulty":"easy","seed":71}
+{"id":"cs-2","skill_id":"quad.complete.square","difficulty":"medium","seed":72}
+{"id":"cs-3","skill_id":"quad.complete.square","difficulty":"hard","seed":73}
+{"id":"cs-4","skill_id":"quad.complete.square","difficulty":"applied","seed":74}
+{"id":"axis-1","skill_id":"quad.axis.symmetry","difficulty":"easy","seed":81}
+{"id":"axis-2","skill_id":"quad.axis.symmetry","difficulty":"medium","seed":82}
+{"id":"axis-3","skill_id":"quad.axis.symmetry","difficulty":"hard","seed":83}
+{"id":"axis-4","skill_id":"quad.axis.symmetry","difficulty":"applied","seed":84}

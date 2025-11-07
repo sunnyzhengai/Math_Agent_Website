@@ -588,6 +588,145 @@ SKILL_TEMPLATES = {
             },
         ],
     },
+    "quad.complete.square": {
+        "easy": [
+            {
+                "stem": "Complete the square for x^2 + 6x.",
+                "choices": [
+                    "(x + 3)^2 - 9",
+                    "(x + 3)^2 + 9", 
+                    "(x - 3)^2 - 9",
+                    "(x + 6)^2 - 36"
+                ],
+                "solution": 0,
+                "rationale": "x² + 6x = (x + 3)² - 9. Take half of 6, square it: (6/2)² = 9.",
+            },
+            {
+                "stem": "Complete the square for x^2 - 8x.",
+                "choices": [
+                    "(x - 4)^2 - 16",
+                    "(x + 4)^2 - 16",
+                    "(x - 4)^2 + 16", 
+                    "(x - 8)^2 - 64"
+                ],
+                "solution": 0,
+                "rationale": "x² - 8x = (x - 4)² - 16. Take half of -8, square it: (-8/2)² = 16.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Complete the square for x^2 + 5x + 3.",
+                "choices": [
+                    "(x + \\tfrac{5}{2})^2 - \\tfrac{13}{4}",
+                    "(x + \\tfrac{5}{2})^2 + \\tfrac{13}{4}",
+                    "(x - \\tfrac{5}{2})^2 - \\tfrac{13}{4}",
+                    "(x + 5)^2 - 22"
+                ],
+                "solution": 0,
+                "rationale": "x² + 5x + 3 = (x + 5/2)² - 25/4 + 3 = (x + 5/2)² - 13/4.",
+            },
+            {
+                "stem": "Complete the square for 2x^2 + 8x + 1.",
+                "choices": [
+                    "2(x + 2)^2 - 7",
+                    "2(x + 2)^2 + 7",
+                    "2(x - 2)^2 - 7",
+                    "(x + 4)^2 - 15"
+                ],
+                "solution": 0,
+                "rationale": "2x² + 8x + 1 = 2(x² + 4x) + 1 = 2((x + 2)² - 4) + 1 = 2(x + 2)² - 7.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "Complete the square for 3x^2 - 12x + 5.",
+                "choices": [
+                    "3(x - 2)^2 - 7",
+                    "3(x - 2)^2 + 7",
+                    "3(x + 2)^2 - 7",
+                    "(x - 4)^2 - 11"
+                ],
+                "solution": 0,
+                "rationale": "3x² - 12x + 5 = 3(x² - 4x) + 5 = 3((x - 2)² - 4) + 5 = 3(x - 2)² - 7.",
+            },
+            {
+                "stem": "Complete the square for -x^2 + 6x - 2.",
+                "choices": [
+                    "-(x - 3)^2 + 7",
+                    "-(x + 3)^2 + 7",
+                    "-(x - 3)^2 - 7",
+                    "-(x - 6)^2 + 34"
+                ],
+                "solution": 0,
+                "rationale": "-x² + 6x - 2 = -(x² - 6x) - 2 = -((x - 3)² - 9) - 2 = -(x - 3)² + 7.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "A ball's height is h(t) = -16t^2 + 32t + 5. Complete the square to find vertex form.",
+                "choices": [
+                    "-16(t - 1)^2 + 21",
+                    "-16(t + 1)^2 + 21", 
+                    "-16(t - 1)^2 - 11",
+                    "-16(t - 2)^2 + 69"
+                ],
+                "solution": 0,
+                "rationale": "-16t² + 32t + 5 = -16(t² - 2t) + 5 = -16((t - 1)² - 1) + 5 = -16(t - 1)² + 21.",
+            },
+        ],
+    },
+    "quad.axis.symmetry": {
+        "easy": [
+            {
+                "stem": "Find the axis of symmetry for y = x^2 + 4x + 1.",
+                "choices": ["x = -2", "x = 2", "x = -4", "x = 1"],
+                "solution": 0,
+                "rationale": "Axis of symmetry: x = -b/(2a) = -4/(2·1) = -2.",
+            },
+            {
+                "stem": "Find the axis of symmetry for y = x^2 - 6x + 5.",
+                "choices": ["x = 3", "x = -3", "x = 6", "x = -6"],
+                "solution": 0,
+                "rationale": "Axis of symmetry: x = -b/(2a) = -(-6)/(2·1) = 3.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Find the axis of symmetry for y = 2x^2 + 8x - 3.",
+                "choices": ["x = -2", "x = 2", "x = -4", "x = 4"],
+                "solution": 0,
+                "rationale": "Axis of symmetry: x = -b/(2a) = -8/(2·2) = -2.",
+            },
+            {
+                "stem": "Find the axis of symmetry for y = -3x^2 + 6x + 1.",
+                "choices": ["x = 1", "x = -1", "x = 2", "x = -2"],
+                "solution": 0,
+                "rationale": "Axis of symmetry: x = -b/(2a) = -6/(2·-3) = 1.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "Find the axis of symmetry for y = 0.5x^2 - 3x + 7.",
+                "choices": ["x = 3", "x = -3", "x = 1.5", "x = 6"],
+                "solution": 0,
+                "rationale": "Axis of symmetry: x = -b/(2a) = -(-3)/(2·0.5) = 3.",
+            },
+            {
+                "stem": "For y = ax^2 + 6x + c, if the axis of symmetry is x = -1, what is a?",
+                "choices": ["a = 3", "a = -3", "a = 6", "a = -6"],
+                "solution": 0,
+                "rationale": "x = -b/(2a) = -1, so -6/(2a) = -1, therefore a = 3.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "A projectile's path is h(t) = -16t^2 + 64t + 10. At what time is maximum height?",
+                "choices": ["t = 2", "t = 4", "t = 1", "t = 8"],
+                "solution": 0,
+                "rationale": "Maximum at axis of symmetry: t = -b/(2a) = -64/(2·-16) = 2.",
+            },
+        ],
+    },
 }
 
 VALID_DIFFICULTIES = {"easy", "medium", "hard", "applied"}
