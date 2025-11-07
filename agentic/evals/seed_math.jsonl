@@ -2,9 +2,39 @@
 # Format: {id, skill_id, difficulty, seed}
 # Usage: Used by agentic/evals/run_eval.py for regression testing
 # All seeds are fixed to ensure reproducibility across runs
+
+# ORIGINAL SEED SET (Phase 0 - baseline)
 {"id":"vtx-1","skill_id":"quad.graph.vertex","difficulty":"easy","seed":42}
 {"id":"vtx-2","skill_id":"quad.graph.vertex","difficulty":"medium","seed":43}
 {"id":"std-1","skill_id":"quad.standard.vertex","difficulty":"easy","seed":11}
 {"id":"roots-1","skill_id":"quad.roots.factored","difficulty":"medium","seed":12}
 {"id":"fact-1","skill_id":"quad.solve.by_factoring","difficulty":"easy","seed":21}
 {"id":"form-1","skill_id":"quad.solve.by_formula","difficulty":"easy","seed":31}
+
+# EXPANDED SEED SET (Phase 1 - comprehensive coverage)
+# Add hard/applied difficulties for existing skills
+{"id":"vtx-3","skill_id":"quad.graph.vertex","difficulty":"hard","seed":44}
+{"id":"vtx-4","skill_id":"quad.graph.vertex","difficulty":"applied","seed":45}
+{"id":"std-2","skill_id":"quad.standard.vertex","difficulty":"medium","seed":13}
+{"id":"std-3","skill_id":"quad.standard.vertex","difficulty":"hard","seed":14}
+{"id":"std-4","skill_id":"quad.standard.vertex","difficulty":"applied","seed":15}
+{"id":"roots-2","skill_id":"quad.roots.factored","difficulty":"easy","seed":16}
+{"id":"roots-3","skill_id":"quad.roots.factored","difficulty":"hard","seed":17}
+{"id":"roots-4","skill_id":"quad.roots.factored","difficulty":"applied","seed":18}
+{"id":"fact-2","skill_id":"quad.solve.by_factoring","difficulty":"medium","seed":22}
+{"id":"fact-3","skill_id":"quad.solve.by_factoring","difficulty":"hard","seed":23}
+{"id":"fact-4","skill_id":"quad.solve.by_factoring","difficulty":"applied","seed":24}
+{"id":"form-2","skill_id":"quad.solve.by_formula","difficulty":"medium","seed":32}
+{"id":"form-3","skill_id":"quad.solve.by_formula","difficulty":"hard","seed":33}
+{"id":"form-4","skill_id":"quad.solve.by_formula","difficulty":"applied","seed":34}
+
+# PHASE 2 SEED SET (New skills)
+# Add coverage for new skills
+{"id":"disc-1","skill_id":"quad.discriminant.analysis","difficulty":"easy","seed":51}
+{"id":"disc-2","skill_id":"quad.discriminant.analysis","difficulty":"medium","seed":52}
+{"id":"disc-3","skill_id":"quad.discriminant.analysis","difficulty":"hard","seed":53}
+{"id":"disc-4","skill_id":"quad.discriminant.analysis","difficulty":"applied","seed":54}
+{"id":"int-1","skill_id":"quad.intercepts","difficulty":"easy","seed":61}
+{"id":"int-2","skill_id":"quad.intercepts","difficulty":"medium","seed":62}
+{"id":"int-3","skill_id":"quad.intercepts","difficulty":"hard","seed":63}
+{"id":"int-4","skill_id":"quad.intercepts","difficulty":"applied","seed":64}

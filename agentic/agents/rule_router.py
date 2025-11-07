@@ -12,6 +12,8 @@ from .rules.standard_vertex import VertexFromStandardFormAgent
 from .rules.solve_factoring_agent import SolveFactoringAgent
 from .rules.factored_roots_agent import FactoredRootsAgent
 from .rules.solve_formula_agent import SolveFormulaAgent
+from .rules.discriminant_agent import DiscriminantAnalysisAgent
+from .rules.intercepts_agent import InterceptsAgent
 from .random_guess import RandomGuessAgent
 
 
@@ -21,6 +23,8 @@ _STD = VertexFromStandardFormAgent()
 _SOLVE_FACTORING = SolveFactoringAgent()
 _FACTORED_ROOTS = FactoredRootsAgent()
 _FORMULA = SolveFormulaAgent()
+_DISCRIMINANT = DiscriminantAnalysisAgent()
+_INTERCEPTS = InterceptsAgent()
 _RAND = RandomGuessAgent()
 
 
@@ -34,6 +38,8 @@ class RuleRouterAgent(Agent):
     - quad.solve.by_factoring → integer factoring solver
     - quad.roots.factored → factored form root extraction
     - quad.solve.by_formula → quadratic formula solver
+    - quad.discriminant.analysis → discriminant calculation and root analysis
+    - quad.intercepts → x and y intercept finding
     - (others) → deterministic random fallback
     """
 
@@ -61,6 +67,12 @@ class RuleRouterAgent(Agent):
 
         if skill_id == "quad.solve.by_formula":
             return _FORMULA.choose(item)
+
+        if skill_id == "quad.discriminant.analysis":
+            return _DISCRIMINANT.choose(item)
+
+        if skill_id == "quad.intercepts":
+            return _INTERCEPTS.choose(item)
 
         # Extend here for more skills
 

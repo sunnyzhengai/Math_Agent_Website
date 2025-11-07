@@ -439,6 +439,155 @@ SKILL_TEMPLATES = {
             },
         ],
     },
+    "quad.discriminant.analysis": {
+        "easy": [
+            {
+                "stem": "For x^2 + 5x + 6 = 0, what is the discriminant?",
+                "choices": ["1", "-1", "25", "36"],
+                "solution": 0,
+                "rationale": "Δ = b² - 4ac = 5² - 4(1)(6) = 25 - 24 = 1.",
+            },
+            {
+                "stem": "For x^2 - 4x + 4 = 0, what is the discriminant?",
+                "choices": ["0", "4", "16", "-8"],
+                "solution": 0,
+                "rationale": "Δ = b² - 4ac = (-4)² - 4(1)(4) = 16 - 16 = 0.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "For 2x^2 + 3x - 1 = 0, what is the discriminant?",
+                "choices": ["17", "9", "1", "-7"],
+                "solution": 0,
+                "rationale": "Δ = b² - 4ac = 3² - 4(2)(-1) = 9 + 8 = 17.",
+            },
+            {
+                "stem": "Analyze the nature of roots for x^2 - 6x + 9 = 0.",
+                "choices": [
+                    "One repeated real root",
+                    "Two distinct real roots",
+                    "No real roots",
+                    "Infinitely many roots"
+                ],
+                "solution": 0,
+                "rationale": "Δ = (-6)² - 4(1)(9) = 36 - 36 = 0. Since Δ = 0, one repeated root.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "For 3x^2 - 2x + 5 = 0, what can you conclude about the roots?",
+                "choices": [
+                    "No real roots",
+                    "Two distinct real roots",
+                    "One repeated real root",
+                    "Two rational roots"
+                ],
+                "solution": 0,
+                "rationale": "Δ = (-2)² - 4(3)(5) = 4 - 60 = -56 < 0. No real roots.",
+            },
+            {
+                "stem": "For ax^2 + bx + c = 0 with Δ = 25, which statement is true?",
+                "choices": [
+                    "Two distinct real roots",
+                    "One repeated real root", 
+                    "No real roots",
+                    "Cannot determine"
+                ],
+                "solution": 0,
+                "rationale": "Since Δ = 25 > 0, there are two distinct real roots.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "A ball's path is h(t) = -5t^2 + 20t + 1. Does it reach maximum height?",
+                "choices": [
+                    "Yes, at one specific time",
+                    "Yes, at two different times",
+                    "No, it only decreases",
+                    "Cannot determine"
+                ],
+                "solution": 0,
+                "rationale": "Since a = -5 < 0, parabola opens down, so one maximum exists.",
+            },
+        ],
+    },
+    "quad.intercepts": {
+        "easy": [
+            {
+                "stem": "Find the y-intercept of y = x^2 + 3x + 2.",
+                "choices": ["2", "-2", "3", "0"],
+                "solution": 0,
+                "rationale": "Y-intercept occurs at x = 0: y = 0² + 3(0) + 2 = 2.",
+            },
+            {
+                "stem": "Find the x-intercepts of y = (x - 1)(x - 3).",
+                "choices": [
+                    "x = 1 and x = 3",
+                    "x = -1 and x = -3", 
+                    "x = 0 and x = 4",
+                    "x = 2 only"
+                ],
+                "solution": 0,
+                "rationale": "Set y = 0: (x-1)(x-3) = 0 ⇒ x = 1 or x = 3.",
+            },
+        ],
+        "medium": [
+            {
+                "stem": "Find the x-intercepts of y = x^2 - 5x + 6.",
+                "choices": [
+                    "x = 2 and x = 3",
+                    "x = -2 and x = -3",
+                    "x = 1 and x = 6",
+                    "x = 5 and x = 6"
+                ],
+                "solution": 0,
+                "rationale": "Set y = 0: x² - 5x + 6 = 0 ⇒ (x-2)(x-3) = 0 ⇒ x = 2, 3.",
+            },
+            {
+                "stem": "Find both intercepts of y = 2x^2 + 4x - 6.",
+                "choices": [
+                    "y-int: -6; x-ints: x = -3, 1", 
+                    "y-int: 6; x-ints: x = 3, -1",
+                    "y-int: -6; x-ints: x = 2, -3",
+                    "y-int: 4; x-ints: x = -2, 3"
+                ],
+                "solution": 0,
+                "rationale": "y-int: y(0) = -6. x-ints: 2x²+4x-6=0 ⇒ x²+2x-3=0 ⇒ (x+3)(x-1)=0.",
+            },
+        ],
+        "hard": [
+            {
+                "stem": "Find the x-intercepts of y = 3x^2 - 12x + 12.",
+                "choices": [
+                    "x = 2 only",
+                    "x = -2 and x = 2",
+                    "x = 3 and x = 4", 
+                    "No real x-intercepts"
+                ],
+                "solution": 0,
+                "rationale": "3x² - 12x + 12 = 0 ⇒ x² - 4x + 4 = 0 ⇒ (x-2)² = 0 ⇒ x = 2 (repeated).",
+            },
+            {
+                "stem": "For y = -x^2 + 2x + k, what value of k makes the y-intercept equal to 5?",
+                "choices": ["5", "-5", "2", "3"],
+                "solution": 0,
+                "rationale": "y-intercept occurs at x = 0: y = -0² + 2(0) + k = k. So k = 5.",
+            },
+        ],
+        "applied": [
+            {
+                "stem": "A projectile's height is h(t) = -16t^2 + 48t. When does it hit the ground?",
+                "choices": [
+                    "t = 0 and t = 3",
+                    "t = 3 only",
+                    "t = 48 only", 
+                    "t = 16 only"
+                ],
+                "solution": 0,
+                "rationale": "Ground level: h = 0. So -16t² + 48t = 0 ⇒ t(-16t + 48) = 0 ⇒ t = 0, 3.",
+            },
+        ],
+    },
 }
 
 VALID_DIFFICULTIES = {"easy", "medium", "hard", "applied"}
