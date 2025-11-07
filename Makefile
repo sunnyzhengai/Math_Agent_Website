@@ -110,3 +110,30 @@ docker-down:
 	@echo "🛑 Stopping docker-compose stack..."
 	docker-compose down
 	@echo "✅ Stack down!"
+
+# Evaluation Infrastructure
+.PHONY: eval-all eval-coverage eval-freshness eval-latency eval-telemetry eval-validity
+
+eval-all: ## Run all evaluation checks
+	@echo "🔍 Running all evaluations..."
+	@python3 -m evals.run_coverage_eval && \
+	 python3 -m evals.run_dataset_freshness_eval && \
+	 python3 -m evals.run_latency_eval && \
+	 python3 -m evals.run_telemetry_eval && \
+	 python3 -m evals.run_validity_eval && \
+	 echo "✅ All evaluations passed!"
+
+eval-coverage: ## Check skill/difficulty coverage
+	python3 -m evals.run_coverage_eval
+
+eval-freshness: ## Check dataset freshness
+	python3 -m evals.run_dataset_freshness_eval
+
+eval-latency: ## Check API latency metrics
+	python3 -m evals.run_latency_eval
+
+eval-telemetry: ## Check telemetry completeness
+	python3 -m evals.run_telemetry_eval
+
+eval-validity: ## Check generated item validity
+	python3 -m evals.run_validity_eval
