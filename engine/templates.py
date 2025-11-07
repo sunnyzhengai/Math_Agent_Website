@@ -41,6 +41,18 @@ SKILL_TEMPLATES = {
                 "solution": 0,
                 "rationale": "Complete the square: y = 2(x - 2)^2 - 3.",
             },
+            {
+                "stem": "Find the vertex of y = -0.5(x + 3)^2 - 4.",
+                "choices": ["(-3, -4)", "(3, -4)", "(-3, 4)", "(0.5, -4)"],
+                "solution": 0,
+                "rationale": "From vertex form y = a(x - h)^2 + k, vertex is (h, k) = (-3, -4).",
+            },
+            {
+                "stem": "What is the vertex of y = 3(x - 0.5)^2 + 2.25?",
+                "choices": ["(0.5, 2.25)", "(-0.5, 2.25)", "(3, 2.25)", "(0.5, -2.25)"],
+                "solution": 0,
+                "rationale": "Vertex form gives h = 0.5, k = 2.25, so vertex is (0.5, 2.25).",
+            },
         ],
         "applied": [
             {
@@ -48,6 +60,18 @@ SKILL_TEMPLATES = {
                 "choices": ["t = 2", "t = 4", "t = 0", "t = 8"],
                 "solution": 0,
                 "rationale": "The vertex occurs at t = 2, the maximum height.",
+            },
+            {
+                "stem": "A rocket's height is y = -5(x - 4)^2 + 80. What is the vertex?",
+                "choices": ["(4, 80)", "(-4, 80)", "(5, 80)", "(4, -80)"],
+                "solution": 0,
+                "rationale": "From vertex form, the vertex is (4, 80).",
+            },
+            {
+                "stem": "Profit is P(x) = -2(x - 15)^2 + 450. What x gives max profit?",
+                "choices": ["x = 15", "x = -15", "x = 2", "x = 450"],
+                "solution": 0,
+                "rationale": "Maximum occurs at the vertex x = 15.",
             },
         ],
     },
@@ -92,6 +116,18 @@ SKILL_TEMPLATES = {
                 "choices": ["(-1, 2)", "(-1, -2)", "(1, 2)", "(-2, 1)"],
                 "solution": 0,
                 "rationale": "a=5, b=10 ⇒ h = -10/(2·5) = -1; k = 5·1 + 10·(-1) + 7 = 2.",
+            },
+            {
+                "stem": "Find the vertex of y = 0.5x^2 - 3x + 5.",
+                "choices": ["(3, 0.5)", "(3, -4.5)", "(-3, 0.5)", "(1.5, 2.75)"],
+                "solution": 1,
+                "rationale": "a=0.5, b=-3 ⇒ h = -(-3)/(2·0.5) = 3; k = 0.5·9 - 3·3 + 5 = -4.5.",
+            },
+            {
+                "stem": "Find the vertex of y = -2x^2 + 8x - 3.",
+                "choices": ["(2, 5)", "(-2, 5)", "(2, -5)", "(4, -3)"],
+                "solution": 0,
+                "rationale": "a=-2, b=8 ⇒ h = -8/(2·-2) = 2; k = -2·4 + 8·2 - 3 = 5.",
             },
         ],
         "applied": [
@@ -170,6 +206,28 @@ SKILL_TEMPLATES = {
                 "solution": 0,
                 "rationale": "(x−4)^2 gives a repeated root at x=4; (x+1) ⇒ x=−1. Distinct roots: 4 and −1.",
             },
+            {
+                "stem": "Find the roots of y = 0.25(x + 2)(x - 8).",
+                "choices": [
+                    "x = -2 and x = 8",
+                    "x = 2 and x = -8",
+                    "x = -0.25 and x = 8",
+                    "x = -2 and x = -8"
+                ],
+                "solution": 0,
+                "rationale": "Leading coefficient 0.25 doesn't affect roots: x+2=0 ⇒ x=−2; x−8=0 ⇒ x=8.",
+            },
+            {
+                "stem": "Find the distinct real roots of y = (x + 3)^3 (x - 1).",
+                "choices": [
+                    "x = -3 and x = 1",
+                    "x = 3 and x = -1", 
+                    "x = -3 only",
+                    "x = 1 only"
+                ],
+                "solution": 0,
+                "rationale": "(x+3)^3 gives repeated root at x=−3; (x−1) ⇒ x=1. Distinct roots: −3 and 1.",
+            },
         ],
         "applied": [
             {
@@ -246,6 +304,28 @@ SKILL_TEMPLATES = {
                 "solution": 0,
                 "rationale": "4x^2 − 12x + 9 = (2x − 3)^2=0 ⇒ x=3/2 (double root).",
             },
+            {
+                "stem": "Solve by factoring: 6x^2 + 13x + 6 = 0.",
+                "choices": [
+                    "x = -\tfrac{2}{3} and x = -\tfrac{3}{2}",
+                    "x = \tfrac{2}{3} and x = \tfrac{3}{2}",
+                    "x = -2 and x = -3",
+                    "x = 2 and x = 3"
+                ],
+                "solution": 0,
+                "rationale": "6x^2 + 13x + 6 = (3x + 2)(2x + 3)=0 ⇒ x=−2/3, −3/2.",
+            },
+            {
+                "stem": "Solve by factoring: 9x^2 - 6x + 1 = 0.",
+                "choices": [
+                    "x = \tfrac{1}{3}",
+                    "x = -\tfrac{1}{3}",
+                    "x = 1 and x = -1",
+                    "x = 3 and x = -3"
+                ],
+                "solution": 0,
+                "rationale": "9x^2 − 6x + 1 = (3x − 1)^2=0 ⇒ x=1/3 (double root).",
+            },
         ],
         "applied": [
             {
@@ -321,6 +401,28 @@ SKILL_TEMPLATES = {
                 ],
                 "solution": 0,
                 "rationale": "a=3,b=−4,c=7 ⇒ Δ=b^2−4ac=16−84=−68<0 ⇒ no real roots.",
+            },
+            {
+                "stem": "Solve using the quadratic formula: 2x^2 - 6x + 3 = 0.",
+                "choices": [
+                    "x = \\tfrac{3 + \\sqrt{3}}{2} and x = \\tfrac{3 - \\sqrt{3}}{2}",
+                    "x = 3 + \\sqrt{3} and x = 3 - \\sqrt{3}",
+                    "x = \\tfrac{6 + \\sqrt{12}}{4} and x = \\tfrac{6 - \\sqrt{12}}{4}",
+                    "x = 1 and x = \\tfrac{3}{2}"
+                ],
+                "solution": 0,
+                "rationale": "a=2,b=−6,c=3 ⇒ Δ=36−24=12 ⇒ x=(6±√12)/4=(6±2√3)/4=(3±√3)/2.",
+            },
+            {
+                "stem": "Solve using the quadratic formula: x^2 + 2x - 8 = 0.",
+                "choices": [
+                    "x = 2 and x = -4",
+                    "x = -2 and x = 4",
+                    "x = 1 + \\sqrt{9} and x = 1 - \\sqrt{9}",
+                    "x = -1 + 3 and x = -1 - 3"
+                ],
+                "solution": 0,
+                "rationale": "a=1,b=2,c=−8 ⇒ Δ=4+32=36 ⇒ x=(−2±6)/2 ⇒ 2, −4.",
             },
         ],
         "applied": [
