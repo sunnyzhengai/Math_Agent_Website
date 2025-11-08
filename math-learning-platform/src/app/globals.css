@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Educational platform styling */
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply text-gray-900 bg-gradient-to-br from-blue-50 via-white to-purple-50;
+  }
+}
+
+@layer components {
+  /* Learning interface components */
+  .question-card {
+    @apply bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow;
+  }
+  
+  .choice-button {
+    @apply w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 bg-white hover:bg-blue-50;
+  }
+  
+  .choice-button.selected {
+    @apply border-blue-500 bg-blue-50 ring-2 ring-blue-200;
+  }
+  
+  .choice-button.correct {
+    @apply border-green-500 bg-green-50 ring-2 ring-green-200;
+  }
+  
+  .choice-button.incorrect {
+    @apply border-red-500 bg-red-50 ring-2 ring-red-200;
+  }
+  
+  /* Progress indicators */
+  .progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-3 overflow-hidden;
+  }
+  
+  .progress-fill {
+    @apply h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out;
+  }
+  
+  /* Mastery level badges */
+  .mastery-beginner {
+    @apply bg-gray-100 text-gray-700 border-gray-300;
+  }
+  
+  .mastery-developing {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-300;
+  }
+  
+  .mastery-proficient {
+    @apply bg-blue-100 text-blue-800 border-blue-300;
+  }
+  
+  .mastery-advanced {
+    @apply bg-green-100 text-green-800 border-green-300;
+  }
+  
+  .mastery-expert {
+    @apply bg-purple-100 text-purple-800 border-purple-300;
+  }
+  
+  /* Math content styling */
+  .math-problem {
+    @apply text-lg leading-relaxed font-medium text-gray-800 bg-blue-50 p-4 rounded-lg border border-blue-200;
+  }
+  
+  .math-choice {
+    @apply font-mono text-base text-gray-700;
+  }
+  
+  /* Success animations */
+  .success-animation {
+    @apply animate-bounce-in;
+  }
+  
+  .celebration {
+    @apply animate-celebration;
+  }
+  
+  /* Skill cards */
+  .skill-card {
+    @apply bg-white rounded-xl p-6 border border-gray-200 shadow-md hover:shadow-lg transition-all duration-200;
+  }
+
+  .skill-card:hover {
+    @apply border-blue-300 transform -translate-y-1;
+  }
+  
+  .skill-card.locked {
+    @apply opacity-60 cursor-not-allowed hover:transform-none hover:border-gray-200;
+  }
+  
+  /* Dashboard cards */
+  .stat-card {
+    @apply bg-white rounded-xl p-8 border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200;
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-gray-700 px-6 py-3 rounded-lg font-semibold border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200;
+  }
+  
+  .btn-success {
+    @apply bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .border-gradient {
+    border-image: linear-gradient(45deg, #3b82f6, #8b5cf6) 1;
+  }
+  
+  /* Force proper icon sizing */
+  .icon-xs {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  
+  .icon-sm {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  .icon-md {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .icon-lg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}

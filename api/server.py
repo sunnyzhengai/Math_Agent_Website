@@ -13,6 +13,7 @@ import asyncio
 import contextlib
 import tempfile
 from pathlib import Path
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -153,6 +154,12 @@ class LRUSeenBags:
             self._bags[key] = set()
             self._touch(key)
 
+    async def get_seen_stems(self, key: PoolKey) -> set:
+        """Get the set of seen stems for this pool."""
+        async with self._lock:
+            self._touch(key)
+            return self._bags.get(key, set()).copy()
+
     def _touch(self, key: PoolKey) -> None:
         """Update LRU timestamp for this key."""
         now = time.time()
@@ -286,6 +293,7 @@ class GenerateItemRequest(BaseModel):
     seed: Optional[int] = None
     mode: Literal["random", "cycle"] = "random"
     session_id: Optional[str] = None
+    use_parameterized: bool = False  # Enable infinite question variations
 
 
 class ChoiceSchema(BaseModel):
@@ -304,6 +312,8 @@ class GenerateItemResponse(BaseModel):
     solution_choice_id: str
     solution_text: str
     tags: List[str]
+    pool_exhausted: Optional[bool] = False  # True when all templates have been seen
+    templates_remaining: Optional[int] = None  # How many templates left in pool
 
 
 class GradeRequest(BaseModel):
@@ -325,6 +335,42 @@ class GradeResponse(BaseModel):
 class ErrorResponse(BaseModel):
     """Error response schema"""
     error: str
+    message: str
+
+
+class TelemetryEvent(BaseModel):
+    """Telemetry event for student interactions"""
+    event_type: Literal["question_presented", "question_answered", "session_summary"]
+    timestamp: str
+    session_id: str
+    user_id: Optional[str] = None
+    question_id: Optional[str] = None
+    skill_id: Optional[str] = None
+    difficulty: Optional[str] = None
+    generation_method: Optional[str] = None
+    parameters: Optional[Dict[str, Any]] = None
+    question_stem: Optional[str] = None
+    correct_answer: Optional[str] = None
+    choices: Optional[List[str]] = None
+    distractor_types: Optional[List[Optional[str]]] = None
+    student_answer: Optional[str] = None
+    is_correct: Optional[bool] = None
+    distractor_type_chosen: Optional[str] = None
+    time_to_answer_ms: Optional[int] = None
+    attempt_number: Optional[int] = None
+    # Session summary fields
+    total_questions: Optional[int] = None
+    correct_count: Optional[int] = None
+    accuracy: Optional[float] = None
+    total_time_ms: Optional[int] = None
+    avg_time_per_question_ms: Optional[float] = None
+    skills_practiced: Optional[List[str]] = None
+    difficulty_distribution: Optional[Dict[str, int]] = None
+
+
+class TelemetryResponse(BaseModel):
+    """Response for telemetry logging"""
+    success: bool
     message: str
 
 
@@ -367,6 +413,7 @@ async def generate_item_endpoint(request: GenerateItemRequest):
                 skill_id=request.skill_id,
                 difficulty=request.difficulty,
                 seed=request.seed,
+                use_parameterized=request.use_parameterized,
             )
             latency_ms = float((time.time() - t0) * 1000.0)
             
@@ -454,66 +501,29 @@ async def generate_item_endpoint(request: GenerateItemRequest):
         except Exception:
             pass  # fail-open
     
-    # Try to find an unseen template
-    max_attempts = min(8, pool_size * 2)
-    last_item = None
-    
-    for attempt in range(max_attempts):
-        item = generate_item(
-            skill_id=request.skill_id,
-            difficulty=difficulty,
-            seed=None,  # randomness within cycle mode
-        )
-        stem = item.get("stem", "")
-        
-        if not await cycle_bags.has_seen(pool_key, stem):
-            # Found an unseen stem
-            await cycle_bags.mark_seen(pool_key, stem)
-            latency_ms = float((time.time() - t0) * 1000.0)
-            
-            # Log telemetry
-            try:
-                await log_event(
-                    "generate",
-                    session_id=request.session_id,
-                    mode="cycle",
-                    skill_id=item["skill_id"],
-                    difficulty=item["difficulty"],
-                    item_id=item["item_id"],
-                    stem=item["stem"],
-                    choice_ids=[c["id"] for c in item["choices"]],
-                    latency_ms=latency_ms,
-                )
-            except Exception:
-                pass  # fail-open
-            
-            return GenerateItemResponse(**item)
-        
-        last_item = item
-    
-    # Fallback: couldn't find unseen after max attempts (tiny pool or bad luck)
-    # Clear bag and emit cycle_reset
-    await cycle_bags.clear(pool_key)
-    try:
-        await log_event(
-            "cycle_reset",
-            session_id=request.session_id,
-            skill_id=request.skill_id,
-            difficulty=difficulty,
-        )
-    except Exception:
-        pass  # fail-open
-    
+    # Get seen stems and pass to generate_item for efficient filtering
+    seen_stems = await cycle_bags.get_seen_stems(pool_key)
+
+    # Generate item with excluded stems (efficient - filters before selection)
     item = generate_item(
         skill_id=request.skill_id,
         difficulty=difficulty,
-        seed=None,
+        seed=None,  # randomness within cycle mode
+        excluded_stems=seen_stems if seen_stems else None,
+        use_parameterized=request.use_parameterized,
     )
     stem = item.get("stem", "")
+
+    # Mark this stem as seen
     await cycle_bags.mark_seen(pool_key, stem)
     latency_ms = float((time.time() - t0) * 1000.0)
-    
-    # Log telemetry (fallback case)
+
+    # Check if pool will be exhausted after this question
+    new_seen_size = await cycle_bags.size(pool_key)
+    templates_remaining = pool_size - new_seen_size
+    pool_exhausted = (new_seen_size >= pool_size)
+
+    # Log telemetry
     try:
         await log_event(
             "generate",
@@ -525,11 +535,17 @@ async def generate_item_endpoint(request: GenerateItemRequest):
             stem=item["stem"],
             choice_ids=[c["id"] for c in item["choices"]],
             latency_ms=latency_ms,
+            pool_exhausted=pool_exhausted,
+            templates_remaining=templates_remaining,
         )
     except Exception:
         pass  # fail-open
-    
-    return GenerateItemResponse(**item)
+
+    return GenerateItemResponse(
+        **item,
+        pool_exhausted=pool_exhausted,
+        templates_remaining=templates_remaining
+    )
 
 
 # ============================================================================
@@ -796,6 +812,167 @@ async def get_all_progress(session_id: Optional[str] = None) -> Dict[str, Any]:
         return {"sessions": {session_id: subset}}
     
     return snap
+
+
+# ============================================================================
+# Telemetry Endpoints (Data Collection)
+# ============================================================================
+
+# Telemetry log file path
+TELEMETRY_DIR = Path(__file__).parent.parent / "logs"
+TELEMETRY_DIR.mkdir(exist_ok=True)
+
+
+def get_telemetry_file() -> Path:
+    """Get current telemetry file (rotates daily)"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    return TELEMETRY_DIR / f"telemetry_{today}.jsonl"
+
+
+@app.post("/telemetry/log", response_model=TelemetryResponse)
+async def log_telemetry(event: TelemetryEvent):
+    """
+    Log a student interaction event for analysis and learning.
+
+    Events are stored in JSONL format (one JSON object per line) for easy streaming analysis.
+    Files rotate daily: logs/telemetry_YYYY-MM-DD.jsonl
+
+    Example events:
+    - question_presented: When a question is shown
+    - question_answered: When student submits an answer
+    - session_summary: When a practice session completes
+
+    Returns:
+      {"success": true, "message": "Event logged"}
+    """
+    try:
+        telemetry_file = get_telemetry_file()
+
+        # Append event as single JSON line
+        with open(telemetry_file, 'a') as f:
+            f.write(json.dumps(event.dict()) + '\n')
+
+        return TelemetryResponse(
+            success=True,
+            message=f"Event logged to {telemetry_file.name}"
+        )
+
+    except Exception as e:
+        # Log error but don't fail the request (fail-open for telemetry)
+        print(f"Telemetry logging error: {e}", file=sys.stderr)
+        return TelemetryResponse(
+            success=False,
+            message=f"Failed to log event: {str(e)}"
+        )
+
+
+@app.get("/telemetry/stats")
+async def get_telemetry_stats(days: int = 1):
+    """
+    Get aggregated statistics from telemetry data.
+
+    Query params:
+      days: Number of recent days to include (default: 1)
+
+    Returns aggregated metrics:
+    - Total events by type
+    - Accuracy by skill and difficulty
+    - Most chosen distractors
+    - Average time per question
+
+    Note: This is a simple aggregation. For complex analysis, use the analysis scripts.
+    """
+    try:
+        from collections import defaultdict
+        from datetime import timedelta
+
+        stats = {
+            "total_events": 0,
+            "events_by_type": defaultdict(int),
+            "questions_answered": 0,
+            "overall_accuracy": 0.0,
+            "by_skill": {},
+            "by_difficulty": {},
+        }
+
+        # Read telemetry files for last N days
+        end_date = datetime.now()
+        dates_to_check = [
+            (end_date - timedelta(days=i)).strftime("%Y-%m-%d")
+            for i in range(days)
+        ]
+
+        total_correct = 0
+        total_answered = 0
+
+        for date_str in dates_to_check:
+            telemetry_file = TELEMETRY_DIR / f"telemetry_{date_str}.jsonl"
+
+            if not telemetry_file.exists():
+                continue
+
+            with open(telemetry_file, 'r') as f:
+                for line in f:
+                    try:
+                        event = json.loads(line)
+                        stats["total_events"] += 1
+                        stats["events_by_type"][event.get("event_type", "unknown")] += 1
+
+                        if event.get("event_type") == "question_answered":
+                            stats["questions_answered"] += 1
+                            total_answered += 1
+
+                            if event.get("is_correct"):
+                                total_correct += 1
+
+                            # Track by skill
+                            skill_id = event.get("skill_id")
+                            if skill_id:
+                                if skill_id not in stats["by_skill"]:
+                                    stats["by_skill"][skill_id] = {
+                                        "total": 0,
+                                        "correct": 0,
+                                        "accuracy": 0.0
+                                    }
+                                stats["by_skill"][skill_id]["total"] += 1
+                                if event.get("is_correct"):
+                                    stats["by_skill"][skill_id]["correct"] += 1
+
+                            # Track by difficulty
+                            difficulty = event.get("difficulty")
+                            if difficulty:
+                                if difficulty not in stats["by_difficulty"]:
+                                    stats["by_difficulty"][difficulty] = {
+                                        "total": 0,
+                                        "correct": 0,
+                                        "accuracy": 0.0
+                                    }
+                                stats["by_difficulty"][difficulty]["total"] += 1
+                                if event.get("is_correct"):
+                                    stats["by_difficulty"][difficulty]["correct"] += 1
+
+                    except json.JSONDecodeError:
+                        continue  # Skip malformed lines
+
+        # Calculate accuracies
+        if total_answered > 0:
+            stats["overall_accuracy"] = total_correct / total_answered
+
+        for skill_data in stats["by_skill"].values():
+            if skill_data["total"] > 0:
+                skill_data["accuracy"] = skill_data["correct"] / skill_data["total"]
+
+        for diff_data in stats["by_difficulty"].values():
+            if diff_data["total"] > 0:
+                diff_data["accuracy"] = diff_data["correct"] / diff_data["total"]
+
+        # Convert defaultdict to regular dict for JSON serialization
+        stats["events_by_type"] = dict(stats["events_by_type"])
+
+        return stats
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to compute stats: {str(e)}")
 
 
 # ============================================================================
