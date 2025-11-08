@@ -25,7 +25,6 @@ export default function StudentNavigation({
   onLogout
 }: StudentNavigationProps) {
   const navItems = [
-    { id: 'dashboard' as ViewMode, label: 'Dashboard', icon: HomeIcon },
     { id: 'skills' as ViewMode, label: 'Skills', icon: BookOpenIcon },
     { id: 'progress' as ViewMode, label: 'Progress', icon: ChartBarIcon },
   ]

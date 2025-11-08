@@ -56,11 +56,11 @@
   
   /* Math expression styling */
   .math-stem {
-    @apply font-mono text-lg leading-relaxed;
+    @apply text-lg leading-relaxed;
   }
-  
+
   .math-choice {
-    @apply font-mono text-base;
+    @apply text-base;
   }
   
   /* Performance metrics */

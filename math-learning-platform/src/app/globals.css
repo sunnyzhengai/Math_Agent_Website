@@ -72,7 +72,7 @@
   }
   
   .math-choice {
-    @apply font-mono text-base text-gray-700;
+    @apply text-base text-gray-700;
   }
   
   /* Success animations */
@@ -120,29 +120,39 @@
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
-  
+
   .border-gradient {
     border-image: linear-gradient(45deg, #3b82f6, #8b5cf6) 1;
   }
-  
+
   /* Force proper icon sizing */
   .icon-xs {
     width: 12px !important;
     height: 12px !important;
   }
-  
+
   .icon-sm {
     width: 16px !important;
     height: 16px !important;
   }
-  
+
   .icon-md {
     width: 20px !important;
     height: 20px !important;
   }
-  
+
   .icon-lg {
     width: 24px !important;
     height: 24px !important;
   }
+}
+
+/* Override KaTeX font to use our readable font */
+.katex {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: inherit !important;
+}
+
+.katex * {
+  font-family: inherit !important;
 }

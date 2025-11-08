@@ -19,6 +19,7 @@ import {
   logSessionSummary
 } from '@/lib/telemetry'
 import MathText from './MathText'
+import SmartMathText from './SmartMathText'
 
 interface QuizInterfaceProps {
   studentId: string
@@ -360,7 +361,7 @@ export default function QuizInterface({
 
           {/* Question stem */}
           <div className="math-problem mb-8 text-lg">
-            <MathText>{currentQuestion.stem}</MathText>
+            <SmartMathText>{currentQuestion.stem}</SmartMathText>
           </div>
 
           {/* Answer choices */}

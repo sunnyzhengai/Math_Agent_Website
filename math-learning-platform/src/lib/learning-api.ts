@@ -24,6 +24,8 @@ interface ProgressTracker {
 class LearningApiClient {
   private client: AxiosInstance
   private progressTrackers: Map<string, ProgressTracker> = new Map() // Track progress per skill
+  private studentProfiles: Map<string, StudentProfile> = new Map() // Store student profiles
+  private skillProgressData: Map<string, SkillProgress[]> = new Map() // Store skill progress per student
   private readonly MASTERY_THRESHOLD = 3 // Number of consecutive correct to advance
   private readonly DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard']
 
@@ -129,7 +131,7 @@ class LearningApiClient {
   // Progress tracking
   async getSkillProgress(studentId: string, skillId?: SkillId): Promise<SkillProgress[]> {
     // TODO: Implement endpoint
-    return this.mockSkillProgress()
+    return this.mockSkillProgress(studentId)
   }
 
   async updateProgress(
@@ -207,21 +209,44 @@ class LearningApiClient {
 
   // Mock implementations (replace with real endpoints)
   private mockStudentProfile(studentId: string): StudentProfile {
-    return {
-      id: studentId,
-      name: 'Julia Student',
-      grade_level: '9th Grade',
-      total_questions: 47,
-      total_correct: 32,
-      overall_accuracy: 68.1,
-      total_time_spent: 2340, // seconds
-      skills_mastered: 3,
-      current_streak: 4,
-      best_streak: 8,
-      badges_earned: ['first_correct', 'speed_demon', 'persistent_learner'],
-      last_login: new Date().toISOString(),
-      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    // Check if profile already exists
+    const existing = this.studentProfiles.get(studentId)
+    if (existing) {
+      // Update last login and return
+      existing.last_login = new Date().toISOString()
+      return existing
     }
+
+    // Create new profile for this student
+    // Extract name from studentId (format: "student_first_last" or "teacher_name")
+    let name = 'Student'
+    const parts = studentId.split('_')
+    if (parts.length > 1) {
+      // Convert "student_john_doe" to "John Doe"
+      name = parts.slice(1)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    }
+
+    const newProfile: StudentProfile = {
+      id: studentId,
+      name: name,
+      grade_level: '9th Grade',
+      total_questions: 0,
+      total_correct: 0,
+      overall_accuracy: 0,
+      total_time_spent: 0,
+      skills_mastered: 0,
+      current_streak: 0,
+      best_streak: 0,
+      badges_earned: [],
+      last_login: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    }
+
+    // Store the new profile
+    this.studentProfiles.set(studentId, newProfile)
+    return newProfile
   }
 
   private mockQuestion(): Question {
@@ -251,26 +276,41 @@ class LearningApiClient {
     }
   }
 
-  private mockSkillProgress(): SkillProgress[] {
+  private mockSkillProgress(studentId: string): SkillProgress[] {
+    // Check if progress already exists for this student
+    const existing = this.skillProgressData.get(studentId)
+    if (existing) {
+      return existing
+    }
+
+    // Create fresh progress for new student - all skills start with no progress
     const skills: SkillId[] = [
       'quad.graph.vertex',
-      'quad.standard.vertex', 
+      'quad.standard.vertex',
       'quad.roots.factored',
       'quad.solve.by_factoring',
-      'quad.solve.by_formula'
+      'quad.solve.by_formula',
+      'quad.discriminant.analysis',
+      'quad.intercepts',
+      'quad.complete.square',
+      'quad.axis.symmetry'
     ]
 
-    return skills.map(skill => ({
+    const freshProgress: SkillProgress[] = skills.map(skill => ({
       skill_id: skill,
-      mastery_level: ['beginner', 'developing', 'proficient', 'advanced'][Math.floor(Math.random() * 4)] as any,
-      progress_percentage: Math.floor(Math.random() * 100),
-      questions_attempted: Math.floor(Math.random() * 20) + 5,
-      questions_correct: Math.floor(Math.random() * 15) + 2,
-      current_streak: Math.floor(Math.random() * 8),
-      best_streak: Math.floor(Math.random() * 12) + 3,
-      total_time_spent: Math.floor(Math.random() * 1800) + 300,
-      last_activity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+      mastery_level: 'beginner' as any,
+      progress_percentage: 0,
+      questions_attempted: 0,
+      questions_correct: 0,
+      current_streak: 0,
+      best_streak: 0,
+      total_time_spent: 0,
+      last_activity: new Date().toISOString()
     }))
+
+    // Store the new progress
+    this.skillProgressData.set(studentId, freshProgress)
+    return freshProgress
   }
 
   private mockAdaptiveRecommendation(): AdaptiveRecommendation {

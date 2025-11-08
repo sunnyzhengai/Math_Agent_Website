@@ -11,6 +11,23 @@
 export function convertToLatex(text: string): string {
   let latex = text
 
+  // Preserve spaces by using \text{} for regular text parts
+  // Split into text and math components
+  const parts: string[] = []
+  let currentText = ''
+  let inMath = false
+
+  // First, protect spaces around words and punctuation
+  latex = latex.replace(/([a-zA-Z]+)\s+([a-zA-Z]+)/g, (match, word1, word2) => {
+    return `${word1}\\text{ }${word2}`
+  })
+
+  // Protect colon spacing
+  latex = latex.replace(/:\s+/g, ':\\text{ }')
+
+  // Protect spacing around equals signs in text context
+  latex = latex.replace(/([a-zA-Z])\s*=\s*/g, '$1 = ')
+
   // Convert fractions: 3/2 → \frac{3}{2}
   // Handle various fraction formats including negative numbers and decimals
   latex = latex.replace(/(-?\d+\.?\d*)\/(-?\d+\.?\d*)/g, '\\frac{$1}{$2}')

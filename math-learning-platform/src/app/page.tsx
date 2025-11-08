@@ -28,7 +28,7 @@ export default function HomePage() {
     userName: '',
     role: 'student'
   })
-  const [currentView, setCurrentView] = useState<ViewMode>('dashboard')
+  const [currentView, setCurrentView] = useState<ViewMode>('skills')
   const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null)
   const [skillProgress, setSkillProgress] = useState<SkillProgress[]>([])
   const [selectedSkill, setSelectedSkill] = useState<SkillId | null>(null)
@@ -73,7 +73,9 @@ export default function HomePage() {
   const handleLogout = () => {
     localStorage.removeItem('quadratic_mastery_auth')
     setAuth({ isAuthenticated: false, userId: '', userName: '', role: 'student' })
-    setCurrentView('dashboard')
+    setStudentProfile(null)
+    setSkillProgress([])
+    setCurrentView('skills')
   }
 
   const loadStudentData = async () => {
@@ -212,7 +214,7 @@ export default function HomePage() {
   const handleQuizComplete = () => {
     // Refresh data after quiz completion
     loadStudentData()
-    setCurrentView('dashboard')
+    setCurrentView('skills')
   }
 
   // Show login page if not authenticated
@@ -299,7 +301,7 @@ export default function HomePage() {
             studentId={auth.userId}
             selectedSkill={selectedSkill}
             onComplete={handleQuizComplete}
-            onExit={() => setCurrentView('dashboard')}
+            onExit={() => setCurrentView('skills')}
           />
         )}
 

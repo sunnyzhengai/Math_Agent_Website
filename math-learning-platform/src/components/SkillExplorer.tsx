@@ -135,7 +135,22 @@ export default function SkillExplorer({ skillProgress, onStartQuiz }: SkillExplo
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Quadratic Skills</h1>
-        <p className="text-lg text-gray-600">Master these skills to become a quadratic expert</p>
+        <p className="text-lg text-gray-600 mb-6">Master these skills to become a quadratic expert</p>
+
+        {/* Adaptive Quiz Button */}
+        <button
+          onClick={() => onStartQuiz(undefined as any)}
+          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        >
+          <PlayIcon className="icon-md" />
+          <span>Start Adaptive Quiz</span>
+        </button>
+        <p className="text-sm text-gray-500 mt-2">Practice across all unlocked skills with adaptive difficulty</p>
+      </div>
+
+      <div className="mt-12 mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">Practice Individual Skills</h2>
+        <p className="text-gray-600">Or focus on specific skills below</p>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

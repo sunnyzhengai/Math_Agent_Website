@@ -18,6 +18,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
     setIsLoading(true)
 
+    // Clear any existing session first
+    localStorage.removeItem('quadratic_mastery_auth')
+
     // Simulate a brief loading state for better UX
     setTimeout(() => {
       // Generate ID from name (in production, this would be handled by backend)
@@ -74,10 +77,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            {loginMode === 'student' ? 'Welcome back!' : 'Teacher Login'}
+            {loginMode === 'student' ? 'Welcome!' : 'Teacher Login'}
           </h2>
           <p className="text-gray-600 mb-6">
-            {loginMode === 'student' ? 'Enter your name to continue learning' : 'Access your teacher dashboard'}
+            {loginMode === 'student' ? 'Enter your name to start learning (new users automatically created)' : 'Access your teacher dashboard'}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
