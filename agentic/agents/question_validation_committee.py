@@ -12,6 +12,7 @@ from .oracle import OracleAgent
 from .clarity_agent import ClarityAgent
 from .difficulty_agent import DifficultyAgent
 from .distractor_agent import DistractorAgent
+from .educational_constitutional_validator import EducationalConstitutionalValidator
 
 
 class ValidationResult(NamedTuple):
@@ -36,17 +37,19 @@ class QuestionValidationCommittee:
     - Ensures high-quality questions reach students
     """
 
-    def __init__(self, use_reflection: bool = True):
+    def __init__(self, use_reflection: bool = True, use_constitutional: bool = True):
         """
         Initialize the validation committee.
 
         Args:
             use_reflection: Whether to enable reflection in Oracle Agent
+            use_constitutional: Whether to enable constitutional validation (Anthropic's principles)
         """
         self.oracle_agent = OracleAgent(use_reflection=use_reflection)
         self.clarity_agent = ClarityAgent()
         self.difficulty_agent = DifficultyAgent()
         self.distractor_agent = DistractorAgent()
+        self.constitutional_validator = EducationalConstitutionalValidator(strict_mode=True) if use_constitutional else None
 
         self.validation_history = []
 
@@ -180,13 +183,68 @@ class QuestionValidationCommittee:
             self._track_validation(question, result)
             return result
 
+        # AGENT 5: Constitutional Validator - Educational principles check
+        if self.constitutional_validator:
+            constitutional_result = self.constitutional_validator.validate(question)
+
+            agent_results["constitutional"] = constitutional_result.passes_constitution
+            details["constitutional"] = {
+                "passes": constitutional_result.passes_constitution,
+                "score": constitutional_result.overall_score,
+                "violations": [
+                    {
+                        "principle": v.principle_name,
+                        "severity": v.severity,
+                        "description": v.violation_description,
+                        "fix": v.suggested_fix
+                    }
+                    for v in constitutional_result.violations
+                ],
+                "principles_checked": constitutional_result.principles_checked,
+                "principles_passed": constitutional_result.principles_passed
+            }
+
+            if not constitutional_result.passes_constitution:
+                # Format violation messages
+                violation_msgs = [
+                    f"{v.principle_name} ({v.severity}): {v.violation_description}"
+                    for v in constitutional_result.violations
+                ]
+                fix_msgs = [v.suggested_fix for v in constitutional_result.violations]
+
+                result = ValidationResult(
+                    approved=False,
+                    consensus_score=constitutional_result.overall_score,
+                    failed_agent="constitutional",
+                    reason=f"Constitutional violations: {'; '.join(violation_msgs[:2])}...",
+                    fix_suggestion="; ".join(fix_msgs[:2]) if fix_msgs else "Review educational principles",
+                    validating_agents=["oracle", "clarity", "difficulty", "distractors", "constitutional"],
+                    details=details
+                )
+                self._track_validation(question, result)
+                return result
+
         # ALL AGENTS APPROVED - Calculate consensus score
-        consensus_score = (
-            1.0 +  # Oracle (binary: pass/fail)
-            clarity_score +
-            (1.0 - abs(estimated_difficulty - target_score)) +  # Difficulty accuracy
-            distractor_quality.quality_score
-        ) / 4.0
+        if self.constitutional_validator:
+            # Include constitutional score
+            constitutional_score = details.get("constitutional", {}).get("score", 1.0)
+            consensus_score = (
+                1.0 +  # Oracle (binary: pass/fail)
+                clarity_score +
+                (1.0 - abs(estimated_difficulty - target_score)) +  # Difficulty accuracy
+                distractor_quality.quality_score +
+                constitutional_score
+            ) / 5.0
+            validating_agents = ["oracle", "clarity", "difficulty", "distractors", "constitutional"]
+        else:
+            # Original 4-agent consensus
+            consensus_score = (
+                1.0 +  # Oracle (binary: pass/fail)
+                clarity_score +
+                (1.0 - abs(estimated_difficulty - target_score)) +  # Difficulty accuracy
+                distractor_quality.quality_score
+            ) / 4.0
+            validating_agents = ["oracle", "clarity", "difficulty", "distractors"]
 
         result = ValidationResult(
             approved=True,
@@ -194,7 +252,7 @@ class QuestionValidationCommittee:
             failed_agent=None,
             reason="All validation agents approved",
             fix_suggestion="Question meets quality standards",
-            validating_agents=["oracle", "clarity", "difficulty", "distractors"],
+            validating_agents=validating_agents,
             details=details
         )
 
