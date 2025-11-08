@@ -3,7 +3,7 @@ services:
   - type: web
     name: math-agent-api
     env: python
-    plan: free
+    plan: starter
     branch: phase1-data-flywheel
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn -k uvicorn.workers.UvicornWorker api.server:app --bind 0.0.0.0:$PORT --timeout 90
@@ -28,12 +28,16 @@ services:
         value: data/progress.json
       - key: CORS_ORIGINS
         value: "*"
+    disk:
+      name: persistent-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
 
   # Frontend Service
   - type: web
     name: quadratic-mastery
     env: node
-    plan: free
+    plan: starter
     branch: phase1-data-flywheel
     rootDir: math-learning-platform
     buildCommand: npm install && npm run build
