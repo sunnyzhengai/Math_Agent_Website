@@ -1,0 +1,8 @@
+name: difficulty_calibration
+description: Verify difficulty labels match empirical accuracy (is "hard" actually hard?)
+thresholds:
+  easy_target_accuracy: 0.75    # Easy questions should be 70-80% correct
+  medium_target_accuracy: 0.55  # Medium questions should be 50-60% correct
+  hard_target_accuracy: 0.35    # Hard questions should be 30-40% correct
+  calibration_tolerance: 0.15   # Allow 15% deviation from target
+note: Requires empirical student data or agent performance data

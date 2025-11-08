@@ -1,0 +1,36 @@
+name: distractor_quality
+description: |
+  Evaluates the quality of distractor (wrong answer) choices.
+  Ensures that:
+  - Distractors are plausible (not obviously wrong)
+  - Distractors represent common student errors
+  - Rules agent achieves reasonable accuracy (not too easy/hard)
+  - Good variety in distractor types
+
+  This eval ensures questions are educational and appropriately challenging.
+
+thresholds:
+  min_rules_accuracy: 0.60      # Rules agent should get 60%+ correct
+  max_rules_accuracy: 0.85      # But not more than 85% (too easy)
+  min_unique_distractors: 3     # At least 3 unique wrong answers
+
+test_config:
+  n_samples: 50                 # Test 50 questions per skill/difficulty
+  seed_range: [0, 49]          # Use first 50 seeds
+
+skills:
+  - quad.graph.vertex
+  - quad.standard.vertex
+  - quad.roots.factored
+  - quad.solve.by_factoring
+  - quad.solve.by_formula
+  - quad.discriminant.analysis
+  - quad.intercepts
+  - quad.complete.square
+  - quad.axis.symmetry
+
+difficulties:
+  - easy
+  - medium
+  - hard
+  - applied

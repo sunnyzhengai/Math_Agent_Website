@@ -7,29 +7,65 @@ import StudentDashboard from '@/components/StudentDashboard'
 import SkillExplorer from '@/components/SkillExplorer'
 import QuizInterface from '@/components/QuizInterface'
 import StudentNavigation from '@/components/StudentNavigation'
+import LoginPage from '@/components/LoginPage'
+import ProgressDashboard from '@/components/ProgressDashboard'
 
 type ViewMode = 'dashboard' | 'skills' | 'quiz' | 'progress'
 
+interface AuthState {
+  isAuthenticated: boolean
+  studentId: string
+  studentName: string
+}
+
 export default function HomePage() {
+  const [auth, setAuth] = useState<AuthState>({ isAuthenticated: false, studentId: '', studentName: '' })
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard')
   const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null)
   const [skillProgress, setSkillProgress] = useState<SkillProgress[]>([])
   const [selectedSkill, setSelectedSkill] = useState<SkillId | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Mock student ID - in real app would come from auth
-  const studentId = 'student_001'
-
+  // Check for saved session on mount
   useEffect(() => {
-    loadStudentData()
+    const savedAuth = localStorage.getItem('quadratic_mastery_auth')
+    if (savedAuth) {
+      try {
+        const authData = JSON.parse(savedAuth)
+        setAuth({ ...authData, isAuthenticated: true })
+      } catch (error) {
+        console.error('Error parsing saved auth:', error)
+        localStorage.removeItem('quadratic_mastery_auth')
+      }
+    }
+    setLoading(false)
   }, [])
+
+  // Load student data when authenticated
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      loadStudentData()
+    }
+  }, [auth.isAuthenticated])
+
+  const handleLogin = (studentId: string, studentName: string) => {
+    const authData = { studentId, studentName }
+    localStorage.setItem('quadratic_mastery_auth', JSON.stringify(authData))
+    setAuth({ ...authData, isAuthenticated: true })
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('quadratic_mastery_auth')
+    setAuth({ isAuthenticated: false, studentId: '', studentName: '' })
+    setCurrentView('dashboard')
+  }
 
   const loadStudentData = async () => {
     try {
       setLoading(true)
       const [profile, progress] = await Promise.all([
-        learningApi.getStudentProfile(studentId),
-        learningApi.getSkillProgress(studentId)
+        learningApi.getStudentProfile(auth.studentId),
+        learningApi.getSkillProgress(auth.studentId)
       ])
       setStudentProfile(profile)
       setSkillProgress(progress)
@@ -49,6 +85,11 @@ export default function HomePage() {
     // Refresh data after quiz completion
     loadStudentData()
     setCurrentView('dashboard')
+  }
+
+  // Show login page if not authenticated
+  if (!auth.isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />
   }
 
   if (loading) {
@@ -78,30 +119,28 @@ export default function HomePage() {
             onStartQuiz={handleStartQuiz}
           />
         )}
-        
+
         {currentView === 'skills' && (
           <SkillExplorer
             skillProgress={skillProgress}
             onStartQuiz={handleStartQuiz}
           />
         )}
-        
+
         {currentView === 'quiz' && (
           <QuizInterface
-            studentId={studentId}
+            studentId={auth.studentId}
             selectedSkill={selectedSkill}
             onComplete={handleQuizComplete}
             onExit={() => setCurrentView('dashboard')}
           />
         )}
-        
+
         {currentView === 'progress' && (
-          <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Progress</h1>
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <p className="text-gray-600">Detailed progress analytics coming soon...</p>
-            </div>
-          </div>
+          <ProgressDashboard
+            studentProfile={studentProfile}
+            skillProgress={skillProgress}
+          />
         )}
       </main>
     </div>

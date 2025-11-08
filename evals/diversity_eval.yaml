@@ -1,0 +1,6 @@
+name: question_diversity
+description: Measure diversity and uniqueness of generated questions to prevent repetition
+thresholds:
+  min_unique_stems: 10  # Minimum unique question stems in 20 generations
+  max_repetition_rate: 0.3  # Maximum 30% repetition allowed
+  min_template_utilization: 0.5  # At least 50% of templates should be used

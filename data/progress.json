@@ -1,1 +1,1 @@
-{"sessions": {}}
+{"sessions": {"student_001": {"quad.graph.vertex": {"p": 0.58, "attempts": 1, "streak": 1, "last_ts": 1762482683.16161}}, "student_student_001": {"quad.graph.vertex": {"p": 1.0, "attempts": 35, "streak": 35, "last_ts": 1762519390.6617239}, "quad.standard.vertex": {"p": 1.0, "attempts": 21, "streak": 9, "last_ts": 1762550252.459702}, "quad.solve.by_factoring": {"p": 1.0, "attempts": 19, "streak": 3, "last_ts": 1762568064.720063}, "quad.roots.factored": {"p": 1.0, "attempts": 75, "streak": 59, "last_ts": 1762570263.4218209}}}}

@@ -1,0 +1,7 @@
+name: parameter_variation
+description: Measure parameter diversity in generated questions (for parameterized templates)
+thresholds:
+  min_unique_parameter_sets: 15  # In 20 generations, at least 15 unique parameter combinations
+  max_parameter_reuse_rate: 0.3  # No more than 30% should reuse exact parameters
+  min_parameter_range_usage: 0.7  # Use at least 70% of allowed parameter range
+note: This eval is for future use when parameterized templates are implemented

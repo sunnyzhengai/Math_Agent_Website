@@ -1,7 +1,6 @@
-name: coverage
-description: Percent of (skill,difficulty) pools present with size ≥ 1.
-inputs:
-  - type: http
-    route: /skills/manifest
+name: template_coverage
+description: Verify all question templates get used over time
 thresholds:
-  min_pct: 0.95
+  min_coverage_50_questions: 0.8  # 80% of templates should appear in 50 questions
+  min_coverage_100_questions: 0.95  # 95% of templates should appear in 100 questions
+  max_questions_to_full_coverage: 50  # Should see all templates within 50 questions

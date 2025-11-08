@@ -1,4 +1,4 @@
-.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down eval eval-test eval-ci eval-agent eval-matrix
+.PHONY: help ci test lint format clean install update-goldens serve telemetry analyze-telemetry build-docker run-docker docker-up docker-down eval eval-test eval-ci eval-agent eval-matrix eval-diversity eval-uniqueness eval-coverage eval-variation eval-calibration eval-all-quality audit-templates
 
 agent ?= rules
 cases ?=
@@ -19,6 +19,22 @@ help:
 	@echo "  make eval-ci         Run eval tests + harness"
 	@echo "  make eval-agent      Run eval with specific agent (e.g. make eval-agent agent=random)"
 	@echo "  make eval-matrix     Compare all agents (oracle, random, always_a, rules)"
+	@echo ""
+	@echo "Quality Evals (Phase 0):"
+	@echo "  make eval-diversity      Check question diversity (no repetition)"
+	@echo "  make eval-uniqueness     Check for consecutive duplicates"
+	@echo "  make eval-coverage       Verify all templates get used"
+	@echo "  make eval-variation      Check parameter variation (Phase 2)"
+	@echo "  make eval-calibration    Test difficulty calibration"
+	@echo "  make eval-all-quality    Run all quality evals"
+	@echo "  make audit-templates     Generate template inventory report"
+	@echo ""
+	@echo "Phase 2 Evals (Parameterized Generation):"
+	@echo "  make eval-parameter-diversity   Check parameter uniqueness & coverage"
+	@echo "  make eval-correctness           Verify 100% oracle accuracy"
+	@echo "  make eval-distractor-quality    Check distractor plausibility"
+	@echo "  make eval-phase2                Run all Phase 2 evals"
+	@echo ""
 	@echo "  make build-docker    Build Docker image"
 	@echo "  make run-docker      Run Docker container (port 8080)"
 	@echo "  make docker-up       Start docker-compose stack (port 80)"
@@ -137,3 +153,47 @@ eval-telemetry: ## Check telemetry completeness
 
 eval-validity: ## Check generated item validity
 	python3 -m evals.run_validity_eval
+
+# Quality Evaluation Targets (Phase 0)
+eval-diversity:
+	@echo "📊 Running diversity eval..."
+	python3 evals/run_diversity_eval.py
+
+eval-uniqueness:
+	@echo "🔄 Running uniqueness eval..."
+	python3 evals/run_uniqueness_eval.py
+
+eval-coverage:
+	@echo "📈 Running coverage eval..."
+	python3 evals/run_coverage_eval.py
+
+eval-variation:
+	@echo "🎲 Running variation eval..."
+	python3 evals/run_variation_eval.py
+
+eval-calibration:
+	@echo "🎯 Running calibration eval..."
+	python3 evals/run_calibration_eval.py
+
+eval-all-quality: eval-diversity eval-uniqueness eval-coverage eval-variation eval-calibration
+	@echo "✅ All quality evals complete!"
+
+# Phase 2 Evaluation Targets (Parameterized Generation)
+eval-parameter-diversity:
+	@echo "🎲 Running parameter diversity eval..."
+	python3 evals/run_parameter_diversity_eval.py
+
+eval-correctness:
+	@echo "✅ Running correctness eval..."
+	python3 evals/run_correctness_eval.py
+
+eval-distractor-quality:
+	@echo "🎯 Running distractor quality eval..."
+	python3 evals/run_distractor_quality_eval.py
+
+eval-phase2: eval-parameter-diversity eval-correctness eval-distractor-quality
+	@echo "✅ All Phase 2 evals complete!"
+
+audit-templates:
+	@echo "📚 Auditing template inventory..."
+	python3 tools/audit_templates.py

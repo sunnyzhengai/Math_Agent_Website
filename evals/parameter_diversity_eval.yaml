@@ -1,0 +1,35 @@
+name: parameter_diversity
+description: |
+  Evaluates parameter diversity in generated questions.
+  For parameterized templates, ensures that:
+  - Parameter sets are unique across generations
+  - Parameter ranges are fully utilized
+  - No degenerate cases occur
+
+  This eval will be critical for Phase 2 parameterized generation.
+
+thresholds:
+  min_unique_ratio: 0.95      # 95%+ unique parameter sets
+  min_coverage: 0.70          # Use 70%+ of parameter space
+  max_degenerate_rate: 0.0    # No degenerate cases allowed
+
+test_config:
+  n_samples: 100              # Generate 100 questions per skill/difficulty
+  seed_range: [0, 9999]       # Seed range for deterministic testing
+
+skills:
+  - quad.graph.vertex
+  - quad.standard.vertex
+  - quad.roots.factored
+  - quad.solve.by_factoring
+  - quad.solve.by_formula
+  - quad.discriminant.analysis
+  - quad.intercepts
+  - quad.complete.square
+  - quad.axis.symmetry
+
+difficulties:
+  - easy
+  - medium
+  - hard
+  - applied

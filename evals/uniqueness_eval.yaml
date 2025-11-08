@@ -1,0 +1,6 @@
+name: question_uniqueness
+description: Ensure no consecutive duplicate questions (back-to-back repeats)
+thresholds:
+  max_consecutive_duplicates: 0  # Zero tolerance for immediate repeats
+  max_near_duplicates_in_5: 1   # At most 1 repeat within 5 questions
+  min_distance_between_repeats: 3  # If same question appears, minimum 3 questions apart

@@ -1,0 +1,36 @@
+name: correctness
+description: |
+  Evaluates mathematical correctness of generated questions.
+  Ensures that:
+  - Solutions are mathematically correct
+  - Distractors don't accidentally match the solution
+  - No mathematical impossibilities are generated
+  - Oracle agent achieves 100% accuracy
+
+  This is a CRITICAL eval - must pass 100% for production use.
+
+thresholds:
+  min_oracle_accuracy: 1.0      # 100% required (no exceptions)
+  max_duplicate_choices: 0      # No duplicate answer choices allowed
+  max_solution_collisions: 0    # Solution can't match any distractor
+
+test_config:
+  n_samples: 50                 # Test 50 questions per skill/difficulty
+  seed_range: [0, 49]          # Use first 50 seeds
+
+skills:
+  - quad.graph.vertex
+  - quad.standard.vertex
+  - quad.roots.factored
+  - quad.solve.by_factoring
+  - quad.solve.by_formula
+  - quad.discriminant.analysis
+  - quad.intercepts
+  - quad.complete.square
+  - quad.axis.symmetry
+
+difficulties:
+  - easy
+  - medium
+  - hard
+  - applied
