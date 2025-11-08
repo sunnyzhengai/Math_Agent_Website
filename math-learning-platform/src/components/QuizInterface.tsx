@@ -172,6 +172,87 @@ export default function QuizInterface({
     return `${seconds}s`
   }
 
+  const renderExplanation = (explanation: string, isCorrect: boolean) => {
+    // Parse and render markdown-style explanation
+    const lines = explanation.split('\n')
+    const elements: JSX.Element[] = []
+
+    let currentSection: string[] = []
+    let inCodeBlock = false
+
+    const flushSection = () => {
+      if (currentSection.length > 0) {
+        const text = currentSection.join('\n')
+        elements.push(
+          <div key={elements.length} className="mb-2">
+            {parseInlineFormatting(text, isCorrect)}
+          </div>
+        )
+        currentSection = []
+      }
+    }
+
+    lines.forEach((line, index) => {
+      // Check for bold headers (lines starting with **)
+      if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+        flushSection()
+        const headerText = line.replace(/\*\*/g, '').trim()
+        const isMainHeader = headerText.includes('Step') || headerText.includes('solution') || headerText.includes('mistake')
+        elements.push(
+          <div key={elements.length} className={`font-semibold mt-3 mb-1 ${isMainHeader ? 'text-base' : 'text-sm'}`}>
+            {headerText}
+          </div>
+        )
+      }
+      // Check for bullet points
+      else if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+        flushSection()
+        const bulletText = line.replace(/^[•-]\s*/, '')
+        elements.push(
+          <div key={elements.length} className="ml-4 mb-1 flex items-start">
+            <span className="mr-2">•</span>
+            <span>{parseInlineFormatting(bulletText, isCorrect)}</span>
+          </div>
+        )
+      }
+      // Check for checkmarks and X marks
+      else if (line.trim().startsWith('✓') || line.trim().startsWith('✗')) {
+        flushSection()
+        const isCheck = line.trim().startsWith('✓')
+        elements.push(
+          <div key={elements.length} className={`flex items-start mt-2 p-2 rounded ${isCheck ? 'bg-green-100' : 'bg-red-100'}`}>
+            <span className="mr-2">{isCheck ? '✓' : '✗'}</span>
+            <span className="font-medium">{parseInlineFormatting(line.substring(2), isCorrect)}</span>
+          </div>
+        )
+      }
+      // Regular text
+      else if (line.trim()) {
+        currentSection.push(line)
+      }
+      // Empty line - flush current section
+      else {
+        flushSection()
+      }
+    })
+
+    flushSection()
+
+    return <div>{elements}</div>
+  }
+
+  const parseInlineFormatting = (text: string, isCorrect: boolean) => {
+    // Parse **bold** text
+    const parts = text.split(/(\*\*[^*]+\*\*)/)
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const boldText = part.replace(/\*\*/g, '')
+        return <strong key={index} className="font-semibold">{boldText}</strong>
+      }
+      return <span key={index}>{part}</span>
+    })
+  }
+
   if (state === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -324,13 +405,13 @@ export default function QuizInterface({
                   <XCircleIcon className="icon-md text-red-600 flex-shrink-0 mt-1" />
                 )}
                 <div className="flex-1">
-                  <h3 className={`font-semibold mb-2 ${questionResult.correct ? 'text-green-800' : 'text-red-800'}`}>
-                    {questionResult.correct ? 'Excellent work!' : 'Not quite right'}
+                  <h3 className={`font-semibold mb-3 text-lg ${questionResult.correct ? 'text-green-800' : 'text-red-800'}`}>
+                    {questionResult.correct ? 'Excellent work!' : 'Let\'s work through this together'}
                   </h3>
-                  <p className={`text-sm ${questionResult.correct ? 'text-green-700' : 'text-red-700'}`}>
-                    {questionResult.explanation}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-2">
+                  <div className={`prose prose-sm max-w-none ${questionResult.correct ? 'text-green-900' : 'text-red-900'}`}>
+                    {renderExplanation(questionResult.explanation, questionResult.correct)}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-3 pt-3 border-t border-gray-200">
                     Time taken: {formatTime(questionResult.time_taken)}
                   </p>
                 </div>
