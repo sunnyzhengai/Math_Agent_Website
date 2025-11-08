@@ -28,10 +28,6 @@ services:
         value: data/progress.json
       - key: CORS_ORIGINS
         value: "*"
-    disk:
-      name: persistent-data
-      mountPath: /opt/render/project/src/data
-      sizeGB: 1
 
   # Frontend Service
   - type: web
