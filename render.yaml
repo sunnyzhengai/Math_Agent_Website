@@ -1,8 +1,10 @@
 services:
+  # Backend API Service
   - type: web
     name: math-agent-api
     env: python
     plan: free
+    branch: phase1-data-flywheel
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn -k uvicorn.workers.UvicornWorker api.server:app --bind 0.0.0.0:$PORT --timeout 90
     envVars:
@@ -25,8 +27,26 @@ services:
       - key: PROGRESS_PATH
         value: data/progress.json
       - key: CORS_ORIGINS
-        value: "https://themathagent.com https://www.themathagent.com"
+        value: "*"
     disk:
       name: persistent-data
       mountPath: /opt/render/project/src/data
       sizeGB: 1
+
+  # Frontend Service
+  - type: web
+    name: quadratic-mastery
+    env: node
+    plan: free
+    branch: phase1-data-flywheel
+    rootDir: math-learning-platform
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: math-agent-api
+          envVarKey: RENDER_EXTERNAL_URL
