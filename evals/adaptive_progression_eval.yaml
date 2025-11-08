@@ -1,0 +1,74 @@
+name: adaptive_progression
+description: |
+  Evaluates the adaptive difficulty progression algorithm.
+  Ensures that students advance through difficulty levels appropriately
+  based on performance.
+
+  Tests that:
+  - Students start at 'easy' difficulty
+  - After 3 consecutive correct answers, difficulty advances (easy→medium→hard)
+  - Wrong answers reset the streak but keep current difficulty
+  - After mastering all difficulties (3 correct at each level), skill is marked as mastered
+  - Mastered skills trigger rotation to different skills
+  - Edge cases are handled correctly (e.g., alternating correct/wrong)
+
+  This eval validates the core adaptive learning algorithm.
+
+thresholds:
+  min_advancement_rate: 0.95      # 95% of streaks should advance difficulty
+  min_reset_rate: 0.95            # 95% of wrong answers should reset streak
+  min_mastery_detection: 1.0      # 100% must detect mastery correctly
+  max_advancement_errors: 0       # No false advancements allowed
+
+test_config:
+  mastery_threshold: 3            # Number of consecutive correct to advance
+  difficulties: ["easy", "medium", "hard"]
+  n_simulation_runs: 10           # Number of simulation runs per scenario
+
+test_scenarios:
+  - name: perfect_progression
+    description: Student answers all questions correctly
+    pattern: [1, 1, 1, 1, 1, 1, 1, 1, 1]  # 9 correct (3 per difficulty)
+    expected_difficulty_sequence: ["easy", "easy", "easy", "medium", "medium", "medium", "hard", "hard", "hard"]
+    expected_final_difficulty: "mastered"  # After 3 correct at hard, skill is mastered
+    expected_mastered: true
+
+  - name: streak_reset
+    description: Student gets 2 correct then 1 wrong (should reset streak, then advance)
+    pattern: [1, 1, 0, 1, 1, 1]  # correct, correct, wrong, correct, correct, correct
+    expected_difficulty_sequence: ["easy", "easy", "easy", "easy", "easy", "easy"]
+    expected_final_difficulty: "medium"  # After reset, 3 more correct advances to medium
+    expected_mastered: false
+
+  - name: partial_mastery
+    description: Student masters easy and medium but not hard
+    pattern: [1, 1, 1, 1, 1, 1, 0, 0, 0]  # 3 correct easy, 3 correct medium, 3 wrong hard
+    expected_difficulty_sequence: ["easy", "easy", "easy", "medium", "medium", "medium", "hard", "hard", "hard"]
+    expected_final_difficulty: "hard"
+    expected_mastered: false
+
+  - name: alternating_performance
+    description: Student alternates correct and wrong
+    pattern: [1, 0, 1, 0, 1, 0, 1, 0]
+    expected_difficulty_sequence: ["easy", "easy", "easy", "easy", "easy", "easy", "easy", "easy"]
+    expected_final_difficulty: "easy"
+    expected_mastered: false
+
+  - name: recovery_after_failure
+    description: Student fails, then succeeds
+    pattern: [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    expected_difficulty_sequence: ["easy", "easy", "easy", "easy", "easy", "medium", "medium", "medium", "hard", "hard", "hard"]
+    expected_final_difficulty: "mastered"  # After completing all difficulties
+    expected_mastered: true
+
+  - name: edge_case_exact_threshold
+    description: Exactly 3 correct at each level
+    pattern: [1, 1, 1, 1, 1, 1, 1, 1, 1]
+    expected_difficulty_sequence: ["easy", "easy", "easy", "medium", "medium", "medium", "hard", "hard", "hard"]
+    expected_final_difficulty: "mastered"  # After 3 correct at hard
+    expected_mastered: true
+
+skills:
+  - quad.graph.vertex
+  - quad.standard.vertex
+  - quad.solve.by_factoring
