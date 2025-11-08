@@ -206,10 +206,56 @@ def _explain_vertex_form(item: Dict[str, Any], selected_id: str, correct_id: str
 
 def _explain_factored_roots(item: Dict[str, Any], selected_id: str, correct_id: str) -> str:
     """Generate explanation for finding roots from factored form."""
+    stem = item["stem"]
+
+    # Parse factored form: y = a(x - r1)(x - r2) or similar variations
+    # Examples: y = (x + 3)(x - 5), y = 2(x - 1)(x + 4), etc.
+    match = re.search(r'\(x\s*([+-])\s*(\d+\.?\d*)\)\s*\(x\s*([+-])\s*(\d+\.?\d*)\)', stem)
+
     correct_answer = next((c['text'] for c in item['choices'] if c['id'] == correct_id), "unknown")
     student_answer = next((c['text'] for c in item['choices'] if c['id'] == selected_id), "unknown")
 
-    explanation = f"""**Step-by-step solution:**
+    if match:
+        sign1 = match.group(1)
+        val1 = match.group(2)
+        sign2 = match.group(3)
+        val2 = match.group(4)
+
+        # Convert to roots: (x - r) means root is +r, (x + r) means root is -r
+        r1 = f"-{val1}" if sign1 == '+' else val1
+        r2 = f"-{val2}" if sign2 == '+' else val2
+
+        explanation = f"""**Step-by-step solution:**
+
+**Key concept:** When y = 0, each factor must equal zero.
+
+**Given factored form:** Contains (x {sign1} {val1})(x {sign2} {val2})
+
+**Step 1: Set each factor equal to zero**
+
+   First factor: (x {sign1} {val1}) = 0
+   Second factor: (x {sign2} {val2}) = 0
+
+**Step 2: Solve for x in each equation**
+
+   From (x {sign1} {val1}) = 0:
+      x = {r1}
+
+   From (x {sign2} {val2}) = 0:
+      x = {r2}
+
+**The roots are: x = {r1} and x = {r2}**
+
+✓ **Correct answer:** {correct_answer}
+✗ **You selected:** {student_answer}
+
+**Common mistake:** Watch the signs carefully!
+   • (x - 3) = 0 means x = +3 (not -3)
+   • (x + 3) = 0 means x = -3 (not +3)
+"""
+    else:
+        # Generic fallback
+        explanation = f"""**Step-by-step solution:**
 
 **Key concept:** If y = a(x - r₁)(x - r₂), the roots are r₁ and r₂
 
@@ -231,12 +277,88 @@ def _explain_factored_roots(item: Dict[str, Any], selected_id: str, correct_id: 
 
 def _explain_solve_factoring(item: Dict[str, Any], selected_id: str, correct_id: str) -> str:
     """Generate explanation for solving by factoring."""
+    stem = item["stem"]
+
+    # Parse equation: x^2 + bx + c = 0 or ax^2 + bx + c = 0
+    match = re.search(r'([+-]?\s*\d*\.?\d*)\s*x\^?2?\s*([+-]\s*\d+\.?\d*)\s*x\s*([+-]\s*\d+\.?\d*)\s*=\s*0', stem)
+
+    if not match:
+        # Fallback to generic
+        correct_answer = next((c['text'] for c in item['choices'] if c['id'] == correct_id), "unknown")
+        student_answer = next((c['text'] for c in item['choices'] if c['id'] == selected_id), "unknown")
+        return f"""**Correct answer:** {correct_answer}
+**You selected:** {student_answer}
+
+**Tip:** Factor the equation, set each factor = 0, and solve for x."""
+
+    a_str = match.group(1).replace(' ', '') or '1'
+    if a_str == '+' or a_str == '': a_str = '1'
+    if a_str == '-': a_str = '-1'
+
+    b_str = match.group(2).replace(' ', '')
+    c_str = match.group(3).replace(' ', '')
+
+    try:
+        a = int(float(a_str))
+        b = int(float(b_str))
+        c = int(float(c_str))
+    except:
+        # Fallback
+        correct_answer = next((c['text'] for c in item['choices'] if c['id'] == correct_id), "unknown")
+        student_answer = next((c['text'] for c in item['choices'] if c['id'] == selected_id), "unknown")
+        return f"""**Correct answer:** {correct_answer}
+**You selected:** {student_answer}"""
+
     correct_answer = next((c['text'] for c in item['choices'] if c['id'] == correct_id), "unknown")
     student_answer = next((c['text'] for c in item['choices'] if c['id'] == selected_id), "unknown")
 
-    explanation = f"""**Step-by-step solution:**
+    # Extract the actual roots from the correct answer
+    # Format is usually "x = r1 and x = r2"
+    roots_match = re.findall(r'x\s*=\s*([+-]?\d+)', correct_answer)
 
-**Step 1:** Factor the quadratic equation
+    if len(roots_match) == 2:
+        r1 = int(roots_match[0])
+        r2 = int(roots_match[1])
+
+        explanation = f"""**Step-by-step solution:**
+
+**Given equation:** {a if a != 1 else ''}x² {'+' if b >= 0 else ''} {b}x {'+' if c >= 0 else ''} {c} = 0
+
+**Step 1: Factor the quadratic**
+
+We need to find two numbers that:
+   • Multiply to {a * c} (a × c)
+   • Add to {b} (the coefficient of x)
+
+These numbers are {-r1 * a} and {-r2 * a}
+
+Factored form: (x {'+' if -r1 < 0 else '-'} {abs(r1)})(x {'+' if -r2 < 0 else '-'} {abs(r2)}) = 0
+
+**Step 2: Set each factor equal to zero**
+
+   x {'+' if -r1 < 0 else '-'} {abs(r1)} = 0  →  x = {r1}
+   x {'+' if -r2 < 0 else '-'} {abs(r2)} = 0  →  x = {r2}
+
+**Step 3: The solutions are x = {r1} and x = {r2}**
+
+**Verification:** Substitute back to check:
+   • If x = {r1}: ({r1})² {'+' if b >= 0 else ''}{b}({r1}) {'+' if c >= 0 else ''}{c} = {r1**2 + b*r1 + c} ✓
+   • If x = {r2}: ({r2})² {'+' if b >= 0 else ''}{b}({r2}) {'+' if c >= 0 else ''}{c} = {r2**2 + b*r2 + c} ✓
+
+✓ **Correct answer:** {correct_answer}
+✗ **You selected:** {student_answer}
+
+**Common mistake:** Don't forget to change the sign when moving from factored form to roots!
+   • (x - 3) = 0 means x = +3 (not -3)
+   • (x + 5) = 0 means x = -5 (not +5)
+"""
+    else:
+        # Generic version if we can't parse roots
+        explanation = f"""**Step-by-step solution:**
+
+**Given equation:** {a if a != 1 else ''}x² {'+' if b >= 0 else ''} {b}x {'+' if c >= 0 else ''} {c} = 0
+
+**Step 1:** Factor the quadratic (find two numbers that multiply to {c} and add to {b})
 
 **Step 2:** Set each factor equal to zero
 
@@ -253,10 +375,17 @@ def _explain_solve_factoring(item: Dict[str, Any], selected_id: str, correct_id:
 
 def _explain_quadratic_formula(item: Dict[str, Any], selected_id: str, correct_id: str) -> str:
     """Generate explanation for quadratic formula."""
+    stem = item["stem"]
+
+    # Parse equation: ax^2 + bx + c = 0
+    match = re.search(r'([+-]?\s*\d*\.?\d*)\s*x\^?2?\s*([+-]\s*\d+\.?\d*)\s*x\s*([+-]\s*\d+\.?\d*)\s*=\s*0', stem)
+
     correct_answer = next((c['text'] for c in item['choices'] if c['id'] == correct_id), "unknown")
     student_answer = next((c['text'] for c in item['choices'] if c['id'] == selected_id), "unknown")
 
-    explanation = f"""**Step-by-step solution:**
+    if not match:
+        # Generic fallback
+        return f"""**Step-by-step solution:**
 
 **Quadratic Formula:** x = (-b ± √(b² - 4ac)) / (2a)
 
@@ -272,6 +401,64 @@ def _explain_quadratic_formula(item: Dict[str, Any], selected_id: str, correct_i
 ✗ **You selected:** {student_answer}
 
 **Tip:** Be careful with signs, especially when b is negative!
+"""
+
+    a_str = match.group(1).replace(' ', '') or '1'
+    if a_str == '+' or a_str == '': a_str = '1'
+    if a_str == '-': a_str = '-1'
+
+    b_str = match.group(2).replace(' ', '')
+    c_str = match.group(3).replace(' ', '')
+
+    try:
+        a = Fraction(a_str)
+        b = Fraction(b_str)
+        c = Fraction(c_str)
+    except:
+        # Use generic fallback
+        return f"""**Correct answer:** {correct_answer}
+**You selected:** {student_answer}
+
+**Tip:** Use the quadratic formula: x = (-b ± √(b² - 4ac)) / (2a)"""
+
+    # Calculate discriminant
+    discriminant = b*b - 4*a*c
+
+    # Helper to format numbers
+    def fmt(val):
+        val = Fraction(val)
+        if val.denominator == 1:
+            return str(val.numerator)
+        return f"{val.numerator}/{val.denominator}"
+
+    explanation = f"""**Step-by-step solution:**
+
+**Quadratic Formula:** x = (-b ± √(b² - 4ac)) / (2a)
+
+**Given equation:** {a if a != 1 else ''}x² {'+' if b >= 0 else ''} {b}x {'+' if c >= 0 else ''} {c} = 0
+
+**Step 1: Identify coefficients**
+   • a = {a}
+   • b = {b}
+   • c = {c}
+
+**Step 2: Calculate the discriminant (b² - 4ac)**
+   Discriminant = ({b})² - 4({a})({c})
+   Discriminant = {b*b} - {4*a*c}
+   Discriminant = {discriminant}
+
+**Step 3: Substitute into the quadratic formula**
+   x = (-({b}) ± √{discriminant}) / (2({a}))
+   x = ({-b} ± √{discriminant}) / {2*a}
+
+**Step 4: Simplify to get two solutions**
+   x = ({-b} + √{discriminant}) / {2*a}  or  x = ({-b} - √{discriminant}) / {2*a}
+
+✓ **Correct answer:** {correct_answer}
+✗ **You selected:** {student_answer}
+
+**Tip:** Be careful with signs! When b is negative, -b becomes positive.
+   • The discriminant tells us: if positive = 2 real roots, if zero = 1 repeated root, if negative = complex roots
 """
 
     return explanation
