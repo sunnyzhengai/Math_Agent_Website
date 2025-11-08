@@ -14,9 +14,18 @@ import {
   AdaptiveRecommendation 
 } from '@/types/learning'
 
+interface ProgressTracker {
+  difficulty_index: number
+  consecutive_correct: number
+  total_attempts: number
+  mastered: boolean
+}
+
 class LearningApiClient {
   private client: AxiosInstance
-  private difficultyProgression: Map<string, number> = new Map() // Track progress per skill
+  private progressTrackers: Map<string, ProgressTracker> = new Map() // Track progress per skill
+  private readonly MASTERY_THRESHOLD = 3 // Number of consecutive correct to advance
+  private readonly DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard']
 
   constructor() {
     const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -47,14 +56,29 @@ class LearningApiClient {
       const targetSkill = skillId || await this.getAdaptiveRecommendation(studentId)
       const skill = typeof targetSkill === 'string' ? targetSkill : targetSkill.next_skill
 
-      // Get current difficulty for this skill (cycles through easy→medium→hard)
-      // Note: Removed 'applied' - using parameterized generation for infinite variations instead
-      const difficulties: Difficulty[] = ['easy', 'medium', 'hard']
       const sessionKey = `${studentId}_${skill}`
 
-      // Get the current difficulty index for this session (defaults to 0 = 'easy')
-      const currentDifficultyIndex = this.difficultyProgression.get(sessionKey) || 0
-      const currentDifficulty = difficulties[currentDifficultyIndex]
+      // Get or initialize progress tracker for this skill
+      let tracker = this.progressTrackers.get(sessionKey)
+      if (!tracker) {
+        tracker = {
+          difficulty_index: 0,
+          consecutive_correct: 0,
+          total_attempts: 0,
+          mastered: false
+        }
+        this.progressTrackers.set(sessionKey, tracker)
+      }
+
+      // Check if skill is fully mastered (all difficulties completed)
+      if (tracker.mastered) {
+        console.log(`[Quiz] Skill ${skill} fully mastered, recommending different skill`)
+        // Get a different skill recommendation
+        const recommendation = await this.getAdaptiveRecommendation(studentId)
+        return this.getNextQuestion(studentId, typeof recommendation === 'string' ? recommendation : recommendation.next_skill)
+      }
+
+      const currentDifficulty = this.DIFFICULTIES[tracker.difficulty_index]
 
       const response = await this.client.post('/items/generate', {
         skill_id: skill,
@@ -64,17 +88,7 @@ class LearningApiClient {
         use_parameterized: true  // Enable infinite question variations with difficulty-aware distractors
       })
 
-      const question = response.data
-
-      // Check if we've exhausted the current difficulty level
-      if (question.pool_exhausted) {
-        // Move to next difficulty level
-        const nextIndex = (currentDifficultyIndex + 1) % difficulties.length
-        this.difficultyProgression.set(sessionKey, nextIndex)
-        console.log(`[Quiz] Completed ${currentDifficulty}, moving to ${difficulties[nextIndex]}`)
-      }
-
-      return question
+      return response.data
     } catch (error) {
       console.error('Error getting next question:', error)
       return this.mockQuestion()
@@ -83,8 +97,8 @@ class LearningApiClient {
 
   // Question submission and grading
   async submitAnswer(
-    studentId: string, 
-    question: Question, 
+    studentId: string,
+    question: Question,
     response: StudentResponse
   ): Promise<QuestionResult> {
     try {
@@ -93,6 +107,9 @@ class LearningApiClient {
         choice_id: response.selected_choice,
         session_id: `student_${studentId}`
       })
+
+      // Update local progress tracker based on result
+      this.updateProgressTracker(studentId, question.skill_id, gradeResponse.data.correct)
 
       // Update student progress (this would be handled by backend)
       await this.updateProgress(studentId, question.skill_id, gradeResponse.data.correct, response.time_taken)
@@ -141,6 +158,51 @@ class LearningApiClient {
   async healthCheck(): Promise<{ status: string }> {
     const response = await this.client.get('/health')
     return response.data
+  }
+
+  // Private helper: Update progress tracker based on answer correctness
+  private updateProgressTracker(studentId: string, skillId: SkillId, correct: boolean): void {
+    const sessionKey = `${studentId}_${skillId}`
+    let tracker = this.progressTrackers.get(sessionKey)
+
+    if (!tracker) {
+      tracker = {
+        difficulty_index: 0,
+        consecutive_correct: 0,
+        total_attempts: 0,
+        mastered: false
+      }
+      this.progressTrackers.set(sessionKey, tracker)
+    }
+
+    tracker.total_attempts++
+
+    if (correct) {
+      tracker.consecutive_correct++
+
+      // Check if mastery threshold reached for current difficulty
+      if (tracker.consecutive_correct >= this.MASTERY_THRESHOLD) {
+        const currentDifficulty = this.DIFFICULTIES[tracker.difficulty_index]
+
+        // Advance to next difficulty
+        if (tracker.difficulty_index < this.DIFFICULTIES.length - 1) {
+          tracker.difficulty_index++
+          tracker.consecutive_correct = 0 // Reset streak for new difficulty
+          const nextDifficulty = this.DIFFICULTIES[tracker.difficulty_index]
+          console.log(`[Adaptive] ✓ Mastered ${currentDifficulty} for ${skillId}! Advancing to ${nextDifficulty}`)
+        } else {
+          // Completed all difficulties - mark as fully mastered
+          tracker.mastered = true
+          console.log(`[Adaptive] ⭐ Fully mastered ${skillId} at all difficulty levels!`)
+        }
+      }
+    } else {
+      // Wrong answer - reset consecutive streak but stay at current difficulty
+      if (tracker.consecutive_correct > 0) {
+        console.log(`[Adaptive] Streak broken for ${skillId}, resetting to 0 (was ${tracker.consecutive_correct})`)
+      }
+      tracker.consecutive_correct = 0
+    }
   }
 
   // Mock implementations (replace with real endpoints)
