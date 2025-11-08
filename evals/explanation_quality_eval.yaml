@@ -1,0 +1,93 @@
+name: explanation_quality
+description: |
+  Evaluates the pedagogical quality of solution explanations.
+  Uses Claude API to assess whether explanations are helpful, accurate,
+  and provide genuine educational value.
+
+  Ensures that:
+  - Explanations show actual step-by-step work (not just generic templates)
+  - Mathematical steps are accurate and complete
+  - Common mistakes are identified and explained
+  - Explanations use specific values from the question
+  - Language is clear and pedagogically sound
+
+  This eval helps maintain high-quality learning experiences.
+
+thresholds:
+  min_avg_score: 7.0          # Average score across all criteria (out of 10)
+  min_completeness: 7.0       # Shows actual work, not templates
+  min_accuracy: 9.0           # Mathematical correctness
+  min_clarity: 7.0            # Easy to understand
+  min_specificity: 8.0        # Uses actual values, not generic text
+
+test_config:
+  n_samples: 10               # Test 10 wrong answers per skill/difficulty
+  seed_range: [0, 9]          # Use first 10 seeds
+  use_claude_api: true        # Requires ANTHROPIC_API_KEY
+
+evaluation_criteria:
+  - name: completeness
+    weight: 1.0
+    description: |
+      Does the explanation show actual step-by-step work?
+      Score 1-10 where:
+      - 1-3: Just says "do X" without showing how
+      - 4-6: Shows some steps but missing key work
+      - 7-8: Shows most steps with actual computation
+      - 9-10: Complete step-by-step with all work shown
+
+  - name: accuracy
+    weight: 1.0
+    description: |
+      Are all mathematical steps correct?
+      Score 1-10 where:
+      - 1-3: Contains mathematical errors
+      - 4-6: Minor errors or confusing notation
+      - 7-8: Mathematically correct with minor presentation issues
+      - 9-10: Perfectly accurate mathematics
+
+  - name: clarity
+    weight: 1.0
+    description: |
+      Is the explanation easy to understand?
+      Score 1-10 where:
+      - 1-3: Confusing, hard to follow
+      - 4-6: Understandable but could be clearer
+      - 7-8: Clear and well-organized
+      - 9-10: Exceptionally clear and intuitive
+
+  - name: pedagogical_value
+    weight: 1.0
+    description: |
+      Does it explain WHY and identify common mistakes?
+      Score 1-10 where:
+      - 1-3: No explanation of reasoning or mistakes
+      - 4-6: Mentions mistakes but doesn't explain why
+      - 7-8: Explains reasoning and common errors
+      - 9-10: Deep insight into why mistakes happen
+
+  - name: specificity
+    weight: 1.0
+    description: |
+      Does it use actual values from the question or generic templates?
+      Score 1-10 where:
+      - 1-3: Generic templates like "factor the equation"
+      - 4-6: Mix of specific and generic
+      - 7-8: Uses actual values throughout
+      - 9-10: Every step shows actual computation
+
+skills:
+  - quad.graph.vertex
+  - quad.standard.vertex
+  - quad.roots.factored
+  - quad.solve.by_factoring
+  - quad.solve.by_formula
+  - quad.discriminant.analysis
+  - quad.intercepts
+  - quad.complete.square
+  - quad.axis.symmetry
+
+difficulties:
+  - easy
+  - medium
+  - hard
