@@ -15,12 +15,14 @@ interface StudentNavigationProps {
   currentView: ViewMode
   onViewChange: (view: ViewMode) => void
   studentProfile: StudentProfile | null
+  onLogout?: () => void
 }
 
-export default function StudentNavigation({ 
-  currentView, 
-  onViewChange, 
-  studentProfile 
+export default function StudentNavigation({
+  currentView,
+  onViewChange,
+  studentProfile,
+  onLogout
 }: StudentNavigationProps) {
   const navItems = [
     { id: 'dashboard' as ViewMode, label: 'Dashboard', icon: HomeIcon },
@@ -88,6 +90,16 @@ export default function StudentNavigation({
                   </span>
                 </div>
               </>
+            )}
+
+            {/* Logout button */}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              >
+                Logout
+              </button>
             )}
           </div>
         </div>

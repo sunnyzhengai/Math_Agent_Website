@@ -4,30 +4,35 @@ import { useState } from 'react'
 import { BookOpenIcon, ChartBarIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 
 interface LoginPageProps {
-  onLogin: (studentId: string, studentName: string) => void
+  onLogin: (userId: string, userName: string, role: 'student' | 'teacher') => void
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [studentName, setStudentName] = useState('')
+  const [userName, setUserName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [loginMode, setLoginMode] = useState<'student' | 'teacher'>('student')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!studentName.trim()) return
+    if (!userName.trim()) return
 
     setIsLoading(true)
 
     // Simulate a brief loading state for better UX
     setTimeout(() => {
-      // Generate student ID from name (in production, this would be handled by backend)
-      const studentId = `student_${studentName.toLowerCase().replace(/\s+/g, '_')}`
-      onLogin(studentId, studentName.trim())
+      // Generate ID from name (in production, this would be handled by backend)
+      const userId = `${loginMode}_${userName.toLowerCase().replace(/\s+/g, '_')}`
+      onLogin(userId, userName.trim(), loginMode)
       setIsLoading(false)
     }, 500)
   }
 
   const handleDemoLogin = () => {
-    onLogin('student_001', 'Julia Student')
+    if (loginMode === 'student') {
+      onLogin('student_001', 'Julia Student', 'student')
+    } else {
+      onLogin('teacher_001', 'Ms. Rodriguez', 'teacher')
+    }
   }
 
   return (
@@ -44,19 +49,47 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Welcome back!</h2>
-          <p className="text-gray-600 mb-6">Enter your name to continue learning</p>
+          {/* Role Selection */}
+          <div className="flex mb-6 bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setLoginMode('student')}
+              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                loginMode === 'student'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Student
+            </button>
+            <button
+              onClick={() => setLoginMode('teacher')}
+              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                loginMode === 'teacher'
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Teacher
+            </button>
+          </div>
+
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            {loginMode === 'student' ? 'Welcome back!' : 'Teacher Login'}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {loginMode === 'student' ? 'Enter your name to continue learning' : 'Access your teacher dashboard'}
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-2">
                 Your Name
               </label>
               <input
                 type="text"
-                id="studentName"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
+                id="userName"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
                 placeholder="Enter your name"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 autoFocus
@@ -65,10 +98,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             <button
               type="submit"
-              disabled={!studentName.trim() || isLoading}
+              disabled={!userName.trim() || isLoading}
               className={`w-full py-3 rounded-lg font-semibold transition-all ${
-                studentName.trim() && !isLoading
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+                userName.trim() && !isLoading
+                  ? `bg-gradient-to-r ${
+                      loginMode === 'student'
+                        ? 'from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
+                        : 'from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
+                    } text-white shadow-lg hover:shadow-xl`
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
@@ -78,7 +115,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   <span>Logging in...</span>
                 </div>
               ) : (
-                'Start Learning'
+                loginMode === 'student' ? 'Start Learning' : 'Access Dashboard'
               )}
             </button>
           </form>
