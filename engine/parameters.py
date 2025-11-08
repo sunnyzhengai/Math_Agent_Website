@@ -11,6 +11,7 @@ Architecture:
 """
 
 import random
+from fractions import Fraction
 from typing import Dict, List, Any, Optional, Callable, Set, Tuple
 from dataclasses import dataclass
 
@@ -525,16 +526,21 @@ def standard_vertex_easy_solver(params: Dict[str, Any]) -> str:
     """
     Find vertex from standard form.
 
-    Vertex: h = -b/(2a), k = c - b^2/(4a)
+    Vertex: h = -b/(2a), k = f(h) = a*h^2 + b*h + c
     """
     a = params['a']
     b = params['b']
     c = params['c']
 
-    h = -b // (2 * a)  # Use integer division for clean answers
-    k = c - (b * b) // (4 * a)
+    # Use Fraction for exact arithmetic
+    h = Fraction(-b, 2 * a)
+    k = a * h * h + b * h + c
 
-    return f"({h}, {k})"
+    # Format as clean string (simplify fractions)
+    h_str = str(h) if h.denominator != 1 else str(h.numerator)
+    k_str = str(k) if k.denominator != 1 else str(k.numerator)
+
+    return f"({h_str}, {k_str})"
 
 
 def standard_vertex_easy_distractors(params: Dict[str, Any], solution: str, difficulty: str) -> List[str]:
@@ -543,30 +549,36 @@ def standard_vertex_easy_distractors(params: Dict[str, Any], solution: str, diff
     b = params['b']
     c = params['c']
 
-    h = -b // (2 * a)
-    k = c - (b * b) // (4 * a)
+    # Use correct calculation with Fraction for exact arithmetic
+    h = Fraction(-b, 2 * a)
+    k = a * h * h + b * h + c
+
+    # Helper to format fraction as string
+    def fmt(val):
+        val = Fraction(val)
+        return str(val) if val.denominator != 1 else str(val.numerator)
 
     distractors = []
 
     if difficulty == "easy":
-        distractors.append(f"({h}, {h})")  # Used h for both
-        distractors.append(f"({-h}, {k})")  # Sign error on h
-        distractors.append(f"({h}, {c})")  # Used c as k
+        distractors.append(f"({fmt(h)}, {fmt(h)})")  # Used h for both
+        distractors.append(f"({fmt(-h)}, {fmt(k)})")  # Sign error on h
+        distractors.append(f"({fmt(h)}, {c})")  # Used c as k
 
     elif difficulty == "medium":
-        distractors.append(f"({h}, {h})")  # Used h for both
-        distractors.append(f"({-h}, {k})")  # Sign error on h
-        distractors.append(f"({h + 1}, {k})")  # Off-by-one on h
+        distractors.append(f"({fmt(h)}, {fmt(h)})")  # Used h for both
+        distractors.append(f"({fmt(-h)}, {fmt(k)})")  # Sign error on h
+        distractors.append(f"({fmt(h + 1)}, {fmt(k)})")  # Off-by-one on h
 
     elif difficulty == "hard":
-        distractors.append(f"({-h}, {k})")  # Sign error on h
-        distractors.append(f"({h}, {c})")  # Used c as k
-        distractors.append(f"({h}, {k + a})")  # Added a to k
+        distractors.append(f"({fmt(-h)}, {fmt(k)})")  # Sign error on h
+        distractors.append(f"({fmt(h)}, {c})")  # Used c as k
+        distractors.append(f"({fmt(h)}, {fmt(k + a)})")  # Added a to k
 
     else:  # applied
-        distractors.append(f"({h}, {h})")
-        distractors.append(f"({-h}, {k})")
-        distractors.append(f"({h}, {c})")
+        distractors.append(f"({fmt(h)}, {fmt(h)})")
+        distractors.append(f"({fmt(-h)}, {fmt(k)})")
+        distractors.append(f"({fmt(h)}, {c})")
 
     return distractors
 
