@@ -194,7 +194,7 @@ export default function HomePage() {
       // Generate mock skill progress for each student
       const mockClassProgress: Record<string, SkillProgress[]> = {}
       mockStudents.forEach(student => {
-        mockClassProgress[student.id] = learningApi['mockSkillProgress']()
+        mockClassProgress[student.id] = learningApi['mockSkillProgress'](student.id)
       })
 
       setStudents(mockStudents)
