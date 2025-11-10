@@ -120,8 +120,8 @@ export default function QuizInterface({
       setState('feedback')
 
       // Log telemetry: question answered
-      const selectedChoiceText = currentQuestion.choices.find(c => c.choice_id === selectedChoice)?.text || ''
-      const correctAnswerText = currentQuestion.choices.find(c => c.choice_id === currentQuestion.solution_choice_id)?.text || ''
+      const selectedChoiceText = currentQuestion.choices.find(c => c.id === selectedChoice)?.text || ''
+      const correctAnswerText = currentQuestion.choices.find(c => c.id === currentQuestion.solution_choice_id)?.text || ''
 
       logQuestionAnswered({
         sessionId,
