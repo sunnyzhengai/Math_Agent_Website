@@ -32,7 +32,8 @@ export default function SmartMathText({ children, className = '' }: SmartMathTex
 
       // Pattern to detect math expressions
       // Matches: equations (y = ..., x = ...), expressions with ^, fractions with /, etc.
-      const mathPattern = /([xy]\s*=\s*[^.,;!?]+|=\s*[0-9-][^.,;!?]*|[\w()]+\^[\d.]+|[\d.]+\/[\d.]+|\([^)]*\^[^)]*\))/g
+      // Stop at " and " to keep it as regular text between math expressions
+      const mathPattern = /([xy]\s*=\s*(?:(?! and )[^.,;!?])+|=\s*[0-9-][^.,;!?]*|[\w()]+\^[\d.]+|[\d.]+\/[\d.]+|\([^)]*\^[^)]*\))/g
 
       let lastIndex = 0
       let match: RegExpExecArray | null
