@@ -84,7 +84,7 @@ export default function QuizInterface({
         difficulty: question.difficulty,
         generationMethod: 'parameterized', // Using infinite variations with difficulty-aware distractors
         questionStem: question.stem,
-        correctAnswer: question.choices.find(c => c.choice_id === question.solution_choice_id)?.text || '',
+        correctAnswer: question.choices.find(c => c.id === question.solution_choice_id)?.text || '',
         choices: question.choices.map(c => c.text),
         userId: studentId,
       })
