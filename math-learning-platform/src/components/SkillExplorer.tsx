@@ -212,30 +212,88 @@ export default function SkillExplorer({ skillProgress, onStartQuiz }: SkillExplo
     'quad.form.conversions'           // Needs: complete.square + solve.by_factoring
   ]
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Quadratic Skills</h1>
-        <p className="text-lg text-gray-600 mb-6">Master these skills to become a quadratic expert</p>
+  // Organize skills into clear categories
+  const skillCategories = {
+    juliasCurrent: {
+      title: "Julia's Current Homework Skills",
+      description: "Practice what you're learning in class right now",
+      color: "purple",
+      skills: [
+        'quad.factoring.review',
+        'quad.solve.square_root_property',
+        'quad.solve.factoring',
+        'quad.solutions.graphical',
+        'quad.complete.square.solve'
+      ] as SkillId[]
+    },
+    graphing: {
+      title: "Graphing & Visualization",
+      description: "Understanding parabolas and their properties",
+      color: "blue",
+      skills: [
+        'quad.graph.vertex',
+        'quad.intercepts',
+        'quad.axis.symmetry',
+        'quad.transformations',
+        'quad.domain.range'
+      ] as SkillId[]
+    },
+    solving: {
+      title: "Solving Equations",
+      description: "Different methods to find solutions",
+      color: "green",
+      skills: [
+        'quad.roots.factored',
+        'quad.solve.by_factoring',
+        'quad.complete.square',
+        'quad.solve.by_formula'
+      ] as SkillId[]
+    },
+    analysis: {
+      title: "Analysis & Properties",
+      description: "Deeper understanding of quadratic behavior",
+      color: "orange",
+      skills: [
+        'quad.standard.vertex',
+        'quad.discriminant.analysis',
+        'quad.solutions.count',
+        'quad.form.conversions'
+      ] as SkillId[]
+    },
+    advanced: {
+      title: "Advanced Topics",
+      description: "Applications and complex problems",
+      color: "red",
+      skills: [
+        'quad.solve.inequalities',
+        'quad.applications.maxmin'
+      ] as SkillId[]
+    }
+  }
 
-        {/* Adaptive Quiz Button */}
-        <button
-          onClick={() => onStartQuiz(undefined as any)}
-          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-        >
-          <PlayIcon className="icon-md" />
-          <span>Start Adaptive Quiz</span>
-        </button>
-        <p className="text-sm text-gray-500 mt-2">Practice across all unlocked skills with adaptive difficulty</p>
-      </div>
+  const getCategoryColor = (color: string) => {
+    const colors = {
+      purple: 'border-purple-200 bg-purple-50',
+      blue: 'border-blue-200 bg-blue-50',
+      green: 'border-green-200 bg-green-50',
+      orange: 'border-orange-200 bg-orange-50',
+      red: 'border-red-200 bg-red-50'
+    }
+    return colors[color as keyof typeof colors] || colors.blue
+  }
 
-      <div className="mt-12 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Practice Individual Skills</h2>
-        <p className="text-gray-600">Or focus on specific skills below</p>
-      </div>
+  const getCategoryTitleColor = (color: string) => {
+    const colors = {
+      purple: 'text-purple-900',
+      blue: 'text-blue-900',
+      green: 'text-green-900',
+      orange: 'text-orange-900',
+      red: 'text-red-900'
+    }
+    return colors[color as keyof typeof colors] || colors.blue
+  }
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {skillOrder.map(skillId => {
+  const renderSkillCard = (skillId: SkillId) => {
           const definition = skillDefinitions[skillId]
           const progress = skillProgress.find(p => p.skill_id === skillId)
           const isUnlocked = isSkillUnlocked(skillId)
@@ -378,28 +436,79 @@ export default function SkillExplorer({ skillProgress, onStartQuiz }: SkillExplo
               </button>
             </div>
           )
-        })}
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Quadratic Skills Practice</h1>
+        <p className="text-lg text-gray-600 mb-6">Choose a category to practice specific skills</p>
+
+        {/* Adaptive Quiz Button */}
+        <button
+          onClick={() => onStartQuiz(undefined as any)}
+          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        >
+          <PlayIcon className="icon-md" />
+          <span>Start Adaptive Quiz</span>
+        </button>
+        <p className="text-sm text-gray-500 mt-2">Mix of all skills with adaptive difficulty</p>
       </div>
 
-      {/* Learning path info */}
-      <div className="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-blue-900 mb-2">
-          🗺️ Your Learning Path
+      {/* Skill Categories */}
+      <div className="space-y-12">
+        {Object.entries(skillCategories).map(([key, category]) => (
+          <div key={key}>
+            {/* Category Header */}
+            <div className={`border-2 rounded-xl p-6 mb-6 ${getCategoryColor(category.color)}`}>
+              <h2 className={`text-2xl font-bold mb-2 ${getCategoryTitleColor(category.color)}`}>
+                {category.title}
+              </h2>
+              <p className="text-gray-700">{category.description}</p>
+              <div className="mt-3 text-sm text-gray-600">
+                {category.skills.length} skill{category.skills.length !== 1 ? 's' : ''} available
+              </div>
+            </div>
+
+            {/* Skills Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {category.skills.map(skillId => renderSkillCard(skillId))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Learning Tips */}
+      <div className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          📚 How to Use This Practice Platform
         </h2>
-        <p className="text-blue-800 text-sm mb-4">
-          Skills build on each other! Complete earlier skills to unlock advanced topics. 
-          Your adaptive quiz will automatically choose the best questions based on your progress.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <span className="px-3 py-1 bg-white text-blue-700 rounded-full text-xs font-medium border">
-            Start with vertex and graphing
-          </span>
-          <span className="px-3 py-1 bg-white text-blue-700 rounded-full text-xs font-medium border">
-            Progress to solving techniques
-          </span>
-          <span className="px-3 py-1 bg-white text-blue-700 rounded-full text-xs font-medium border">
-            Master advanced analysis
-          </span>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Start with Julia's Current Skills</h3>
+            <p className="text-gray-700 text-sm">
+              Practice the skills you're learning in class right now for the best results on homework and tests.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Explore by Category</h3>
+            <p className="text-gray-700 text-sm">
+              Each category groups related skills together. Pick the topic you want to work on and practice those skills.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Check Prerequisites</h3>
+            <p className="text-gray-700 text-sm">
+              Some skills list prerequisites. While all skills are unlocked, mastering foundations helps with advanced topics.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Use Adaptive Quizzes</h3>
+            <p className="text-gray-700 text-sm">
+              The adaptive quiz mixes skills and adjusts difficulty automatically for comprehensive practice.
+            </p>
+          </div>
         </div>
       </div>
     </div>
