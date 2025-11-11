@@ -75,6 +75,37 @@ const skillDefinitions: Record<SkillId, SkillDefinition> = {
     description: 'Find the axis of symmetry of parabolas',
     prerequisites: ['quad.graph.vertex'],
     estimated_time: 15
+  },
+  // Julia's Current Curriculum (Immediate Priority)
+  'quad.complete.square.solve': {
+    name: 'Solving by Completing the Square',
+    description: 'Solve quadratic equations by completing the square method',
+    prerequisites: ['quad.complete.square'],
+    estimated_time: 30
+  },
+  'quad.solve.square_root_property': {
+    name: 'Square Root Property',
+    description: 'Solve equations like (x-h)² = k using square roots',
+    prerequisites: [],
+    estimated_time: 20
+  },
+  'quad.factoring.review': {
+    name: 'Factoring Quadratics',
+    description: 'Factor trinomials, difference of squares, and GCF',
+    prerequisites: [],
+    estimated_time: 25
+  },
+  'quad.solve.factoring': {
+    name: 'Solving by Factoring',
+    description: 'Solve equations by factoring and zero product property',
+    prerequisites: ['quad.factoring.review'],
+    estimated_time: 25
+  },
+  'quad.solutions.graphical': {
+    name: 'Number of Solutions from Graph',
+    description: 'Determine 0, 1, or 2 real solutions from parabola graphs',
+    prerequisites: [],
+    estimated_time: 15
   }
 }
 
@@ -120,14 +151,30 @@ export default function SkillExplorer({ skillProgress, onStartQuiz }: SkillExplo
 
   // Sort skills by prerequisite order (topological sort)
   const skillOrder: SkillId[] = [
+    // Julia's Current Curriculum - Foundational
+    'quad.factoring.review',         // JULIA: Foundational factoring (no prereqs)
+    'quad.solve.square_root_property', // JULIA: Square root method (no prereqs)
+    'quad.solutions.graphical',       // JULIA: Count solutions from graph (no prereqs)
+
+    // Original foundational skills
     'quad.graph.vertex',      // Foundational: graphing
     'quad.roots.factored',     // Foundational: roots
     'quad.standard.vertex',    // Level 1: builds on graphing
     'quad.intercepts',         // Level 1: builds on graphing
     'quad.axis.symmetry',      // Level 1: builds on graphing
     'quad.solve.by_factoring', // Level 1: builds on roots
+
+    // Julia's Current Curriculum - Intermediate
+    'quad.solve.factoring',         // JULIA: Solving by factoring (needs factoring review)
+
+    // Original intermediate skills
     'quad.discriminant.analysis', // Level 2: builds on standard form
     'quad.complete.square',    // Level 2: builds on standard form
+
+    // Julia's Current Curriculum - Advanced
+    'quad.complete.square.solve',   // JULIA: Solving by completing square (needs complete square)
+
+    // Original advanced skills
     'quad.solve.by_formula'    // Level 3: builds on discriminant
   ]
 

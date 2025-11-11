@@ -12,7 +12,13 @@ export type SkillId =
   | 'quad.intercepts'
   | 'quad.complete.square'
   | 'quad.axis.symmetry'
-  // New Algebra 1 Skills (Phase 1)
+  // Julia's Current Curriculum (Immediate Priority)
+  | 'quad.complete.square.solve'
+  | 'quad.solve.square_root_property'
+  | 'quad.solve.factoring'
+  | 'quad.factoring.review'
+  | 'quad.solutions.graphical'
+  // New Algebra 1 Skills (Phase 1 - PAUSED)
   | 'quad.transformations'
   | 'quad.form.conversions'
   | 'quad.solve.inequalities'
