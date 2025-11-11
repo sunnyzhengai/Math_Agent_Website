@@ -171,13 +171,8 @@ export default function SkillExplorer({ skillProgress, onStartQuiz }: SkillExplo
   }
 
   const isSkillUnlocked = (skillId: SkillId) => {
-    const skillDef = skillDefinitions[skillId]
-    if (!skillDef.prerequisites.length) return true
-    
-    return skillDef.prerequisites.every(prereq => {
-      const prereqProgress = skillProgress.find(p => p.skill_id === prereq)
-      return prereqProgress && ['proficient', 'advanced', 'expert'].includes(prereqProgress.mastery_level)
-    })
+    // All skills unlocked - students can practice any skill at any time
+    return true
   }
 
   const formatTime = (seconds: number) => {
@@ -186,41 +181,35 @@ export default function SkillExplorer({ skillProgress, onStartQuiz }: SkillExplo
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
   }
 
-  // Sort skills by prerequisite order (topological sort)
+  // Skills ordered from prerequisites → requirements (topological sort)
   const skillOrder: SkillId[] = [
-    // Julia's Current Curriculum - Foundational
-    'quad.factoring.review',         // JULIA: Foundational factoring (no prereqs)
-    'quad.solve.square_root_property', // JULIA: Square root method (no prereqs)
-    'quad.solutions.graphical',       // JULIA: Count solutions from graph (no prereqs)
+    // ===== LEVEL 0: Foundational skills (no prerequisites) =====
+    'quad.graph.vertex',              // Graphing basics
+    'quad.roots.factored',            // Understanding roots
+    'quad.factoring.review',          // Factoring basics
+    'quad.solve.square_root_property', // Square root method
+    'quad.solutions.graphical',       // Graphical analysis
 
-    // Original foundational skills
-    'quad.graph.vertex',      // Foundational: graphing
-    'quad.roots.factored',     // Foundational: roots
-    'quad.standard.vertex',    // Level 1: builds on graphing
-    'quad.intercepts',         // Level 1: builds on graphing
-    'quad.axis.symmetry',      // Level 1: builds on graphing
-    'quad.solve.by_factoring', // Level 1: builds on roots
+    // ===== LEVEL 1: Build on one foundational skill =====
+    'quad.standard.vertex',           // Needs: graph.vertex
+    'quad.intercepts',                // Needs: graph.vertex
+    'quad.axis.symmetry',             // Needs: graph.vertex
+    'quad.transformations',           // Needs: graph.vertex
+    'quad.domain.range',              // Needs: graph.vertex
+    'quad.solve.by_factoring',        // Needs: roots.factored
+    'quad.solve.factoring',           // Needs: factoring.review
 
-    // Julia's Current Curriculum - Intermediate
-    'quad.solve.factoring',         // JULIA: Solving by factoring (needs factoring review)
+    // ===== LEVEL 2: Build on Level 1 skills =====
+    'quad.discriminant.analysis',     // Needs: standard.vertex
+    'quad.complete.square',           // Needs: standard.vertex
+    'quad.applications.maxmin',       // Needs: graph.vertex + standard.vertex
+    'quad.solve.inequalities',        // Needs: solve.by_factoring + roots.factored
 
-    // Original intermediate skills
-    'quad.discriminant.analysis', // Level 2: builds on standard form
-    'quad.complete.square',    // Level 2: builds on standard form
-
-    // Julia's Current Curriculum - Advanced
-    'quad.complete.square.solve',   // JULIA: Solving by completing square (needs complete square)
-
-    // Original advanced skills
-    'quad.solve.by_formula',    // Level 3: builds on discriminant
-
-    // Phase 1: New Algebra 1 Skills (PAUSED - will show as locked until backend templates added)
-    'quad.transformations',        // Transformations: shifts, stretches, reflections
-    'quad.domain.range',           // Domain and range analysis
-    'quad.solutions.count',        // Number of solutions (discriminant)
-    'quad.form.conversions',       // Converting between forms
-    'quad.solve.inequalities',     // Quadratic inequalities
-    'quad.applications.maxmin'     // Real-world optimization
+    // ===== LEVEL 3: Build on Level 2 skills =====
+    'quad.solve.by_formula',          // Needs: discriminant.analysis
+    'quad.complete.square.solve',     // Needs: complete.square
+    'quad.solutions.count',           // Needs: discriminant.analysis
+    'quad.form.conversions'           // Needs: complete.square + solve.by_factoring
   ]
 
   return (
