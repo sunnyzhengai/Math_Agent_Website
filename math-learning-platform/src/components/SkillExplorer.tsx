@@ -106,6 +106,43 @@ const skillDefinitions: Record<SkillId, SkillDefinition> = {
     description: 'Determine 0, 1, or 2 real solutions from parabola graphs',
     prerequisites: [],
     estimated_time: 15
+  },
+  // Phase 1: New Algebra 1 Skills (PAUSED - not yet implemented in backend)
+  'quad.transformations': {
+    name: 'Quadratic Transformations',
+    description: 'Identify shifts, stretches, and reflections of parabolas',
+    prerequisites: ['quad.graph.vertex'],
+    estimated_time: 25
+  },
+  'quad.form.conversions': {
+    name: 'Converting Quadratic Forms',
+    description: 'Convert between standard, vertex, and factored forms',
+    prerequisites: ['quad.complete.square', 'quad.solve.by_factoring'],
+    estimated_time: 30
+  },
+  'quad.solve.inequalities': {
+    name: 'Quadratic Inequalities',
+    description: 'Solve inequalities and express solutions in interval notation',
+    prerequisites: ['quad.solve.by_factoring', 'quad.roots.factored'],
+    estimated_time: 28
+  },
+  'quad.applications.maxmin': {
+    name: 'Optimization with Quadratics',
+    description: 'Solve real-world max/min problems using quadratic functions',
+    prerequisites: ['quad.graph.vertex', 'quad.standard.vertex'],
+    estimated_time: 30
+  },
+  'quad.domain.range': {
+    name: 'Domain and Range',
+    description: 'Determine domain and range of quadratic functions',
+    prerequisites: ['quad.graph.vertex'],
+    estimated_time: 20
+  },
+  'quad.solutions.count': {
+    name: 'Counting Solutions/Roots',
+    description: 'Determine number of real solutions using discriminant',
+    prerequisites: ['quad.discriminant.analysis'],
+    estimated_time: 22
   }
 }
 
@@ -175,7 +212,15 @@ export default function SkillExplorer({ skillProgress, onStartQuiz }: SkillExplo
     'quad.complete.square.solve',   // JULIA: Solving by completing square (needs complete square)
 
     // Original advanced skills
-    'quad.solve.by_formula'    // Level 3: builds on discriminant
+    'quad.solve.by_formula',    // Level 3: builds on discriminant
+
+    // Phase 1: New Algebra 1 Skills (PAUSED - will show as locked until backend templates added)
+    'quad.transformations',        // Transformations: shifts, stretches, reflections
+    'quad.domain.range',           // Domain and range analysis
+    'quad.solutions.count',        // Number of solutions (discriminant)
+    'quad.form.conversions',       // Converting between forms
+    'quad.solve.inequalities',     // Quadratic inequalities
+    'quad.applications.maxmin'     // Real-world optimization
   ]
 
   return (

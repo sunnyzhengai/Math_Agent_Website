@@ -60,7 +60,20 @@ export default function TeacherDashboard({ students, classProgress }: TeacherDas
     'quad.discriminant.analysis': 'Discriminant Analysis',
     'quad.intercepts': 'Finding Intercepts',
     'quad.complete.square': 'Complete the Square',
-    'quad.axis.symmetry': 'Axis of Symmetry'
+    'quad.axis.symmetry': 'Axis of Symmetry',
+    // Julia's Current Curriculum
+    'quad.complete.square.solve': 'Solving by Completing the Square',
+    'quad.solve.square_root_property': 'Square Root Property',
+    'quad.solve.factoring': 'Solving by Factoring',
+    'quad.factoring.review': 'Factoring Quadratics',
+    'quad.solutions.graphical': 'Number of Solutions from Graph',
+    // Phase 1: New Algebra 1 Skills
+    'quad.transformations': 'Quadratic Transformations',
+    'quad.form.conversions': 'Converting Quadratic Forms',
+    'quad.solve.inequalities': 'Quadratic Inequalities',
+    'quad.applications.maxmin': 'Optimization with Quadratics',
+    'quad.domain.range': 'Domain and Range',
+    'quad.solutions.count': 'Counting Solutions/Roots'
   }
 
   return (
