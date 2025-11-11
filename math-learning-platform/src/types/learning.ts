@@ -2,7 +2,7 @@
  * TypeScript definitions for the Student Learning Platform
  */
 
-export type SkillId = 
+export type SkillId =
   | 'quad.graph.vertex'
   | 'quad.standard.vertex'
   | 'quad.roots.factored'
@@ -12,6 +12,13 @@ export type SkillId =
   | 'quad.intercepts'
   | 'quad.complete.square'
   | 'quad.axis.symmetry'
+  // New Algebra 1 Skills (Phase 1)
+  | 'quad.transformations'
+  | 'quad.form.conversions'
+  | 'quad.solve.inequalities'
+  | 'quad.applications.maxmin'
+  | 'quad.domain.range'
+  | 'quad.solutions.count'
 
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'applied'
 
