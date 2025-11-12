@@ -1,238 +1,252 @@
-# Math Agent (Web Rebuild)
+# Agent Math Learning Platform
 
-Clean, test-driven rebuild of the Math Agent website.
+**AI-native adaptive math learning system focused on building permanent neural pathways**
 
-## Development
+---
 
-### One-command pipeline
+## 🚀 Project Status: Dual-Track Development
+
+This repository contains **two parallel implementations** as we transition from template-based to neural pathway formation approach:
+
+### ✅ V1: Template-Based System (Production - Stable)
+- **Branch:** `phase1-data-flywheel` (production), `v1-template-based` (archive)
+- **Status:** Production, maintenance mode
+- **URL:** https://themathagent.com
+- **Approach:** Hand-crafted templates, deterministic progression
+- **Users:** Julia (daily homework support)
+
+### 🔬 V2: Neural Pathway Formation Engine (Development - Experimental)
+- **Branch:** `v2-neural-engine`
+- **Status:** Active development
+- **Approach:** First-principles learning science, AI-native question generation
+- **Goal:** Build mathematical neural pathways optimally, not just deliver questions
+
+---
+
+## 📚 Documentation
+
+### V2 Design (Read This First!)
+- **[First Principles Analysis](docs/v2-design/FIRST_PRINCIPLES_ANALYSIS.md)** - Why we're rebuilding from scratch
+- **[V2 Architecture](docs/v2-design/ARCHITECTURE_V2.md)** - Technical design
+- **[Transition Plan](docs/v2-design/TRANSITION_PLAN.md)** - Development roadmap
+
+### V1 Documentation
+- See existing docs for v1 system
+
+---
+
+## 🌿 Branch Strategy
+
+```
+Repository: Agent_Math
+
+Branches:
+├── main
+│   └── Stable baseline
+│
+├── phase1-data-flywheel (V1 Production)
+│   └── Current production system
+│   └── Maintenance only (bug fixes, keep stable for Julia)
+│
+├── v1-template-based (V1 Archive)
+│   └── Frozen snapshot of v1 before v2 development
+│   └── Reference only, no active development
+│
+└── v2-neural-engine (V2 Development) ⭐
+    └── New architecture based on first principles
+    └── Active development
+```
+
+---
+
+## 🏃 Quick Start
+
+### Run V1 (Current Production)
 
 ```bash
-make ci        # Run all tests and linting
-make test      # Run tests only
-make serve     # Run FastAPI server (localhost:8000)
+# Backend (FastAPI)
+cd /Users/sunnyzheng/Agent_Math
+make serve  # Runs on http://localhost:8000
+
+# Frontend (Next.js)
+cd math-learning-platform
+npm run dev -- -p 3001  # Runs on http://localhost:3001
 ```
 
-## Project Status
-
-### Phase 1: Item Generation & Validation ✅ **COMPLETE**
-
-- ✅ `engine.templates.generate_item()` — Deterministic math question generation
-- ✅ `engine.validators.validate_item()` — Structural validation with Unicode normalization
-- ✅ Golden snapshot test (`seed=42`)
-
-**Test Results:**
-```
-8 generator tests ✅
-7 validator tests ✅
-1 snapshot test ✅
-Total: 16/16 passing
-```
-
-### Phase 2a: Grader ✅ **COMPLETE**
-
-- ✅ `engine.grader.grade_response()` — Deterministic grading with pedagogical feedback
-- ✅ Type guards on input (rejects non-string choice_id, None, int, etc.)
-- ✅ Error code propagation for debugging
-- ✅ Purity verified (no mutation of input)
-
-**Test Results:**
-```
-10 grader tests ✅ (ChatGPT 6-scenario coverage)
-- Happy path: correct/incorrect answers
-- Invalid choice IDs: out-of-range, lowercase, edge cases
-- Malformed items: broken choices, missing fields
-- Determinism & purity: identical outputs, input unchanged
-- Validator consistency: generated items pass grading
-
-Total Phase 1+2a: 26/26 passing
-```
-
-### Phase 2b: API Contracts ✅ **COMPLETE**
-
-- ✅ `api/CONTRACTS.md` — JSON request/response schemas
-  - `POST /items/generate` (skill_id, difficulty?, seed?) → full item
-  - `POST /grade` (item, choice_id) → correct, solution_choice_id, explanation
-- ✅ Error codes defined (invalid_skill, invalid_difficulty, invalid_seed, invalid_choice_id, invalid_item, missing_field)
-- ✅ Determinism & JSON serialization rules locked
-
-### Phase 2c: FastAPI Implementation ✅ **COMPLETE**
-
-- ✅ `api/server.py` — Fully functional FastAPI endpoints
-  - `/items/generate` — Generates items with proper error handling
-  - `/grade` — Grades responses with validation
-  - `/health` — Health check endpoint
-- ✅ Error mapping from engine to HTTP 400 responses
-- ✅ Error code propagation for debugging logs
-- ✅ 14 endpoint tests + 6 schema tests = 20/20 ✅
-
-**Test Results:**
-```
-14 endpoint tests ✅ (6 generate + 5 grade + 3 round-trip)
-- Happy path: success, defaults, correct/incorrect grading
-- Error handling: validation, malformed items, missing fields
-- Determinism: identical responses with same seed
-- Round-trip: end-to-end workflow testing
-
-6 schema tests ✅ (engine signature validation)
-
-Total Phase 2c: 20/20 passing
-```
-
-**TOTAL: 46/46 tests passing** ✅
-
-### Phase 2f: Web UI ✅ **COMPLETE**
-
-- ✅ `web/index.html` — Semantic HTML (stem, choices A-D, feedback, tally, next button)
-- ✅ `web/styles.css` — Minimal accessible styling (2x2 grid, responsive, state classes)
-- ✅ `web/app.js` — Pure JavaScript state machine (load → answer → next)
-- ✅ `api/server.py` — Static file mounting at `/`
-
-**Features:**
-```
-✅ Load page → question appears with 4 choices
-✅ Click choice → grade, show result, update tally
-✅ Click "Next question" → fetch new question
-✅ Session tally: "Correct X of Y"
-✅ Error handling: user-friendly messages, retry enabled
-✅ Accessibility: aria-live, keyboard focus, high contrast
-✅ Responsive: 2x2 on desktop, 1x4 on mobile
-```
-
-**Test Results:**
-```
-46 total tests ✅ (all phases)
-No console errors, network errors handled gracefully
-```
-
-### Phase 2d: Telemetry ✅ **COMPLETE**
-
-- ✅ `api/telemetry.py` — Async-safe JSONL logger with privacy, rotation, sampling
-- ✅ Three event types: `generate`, `grade`, `cycle_reset`
-- ✅ Privacy by default: plaintext stems → `stem_hash` (SHA1)
-- ✅ Allowlist-based redaction per event type
-- ✅ Size-based log rotation with automatic archival
-- ✅ Random sampling with configurable rate (default 1.0 = all events)
-- ✅ Fail-open: errors logged to stderr but don't crash API
-- ✅ `tools/analyze_telemetry.py` — JSONL analyzer (coverage, accuracy, latency)
-- ✅ `make telemetry` — tail logs, `make analyze-telemetry` — analyze events
-
-**Configuration (.env):**
-```
-TELEMETRY_ENABLED=true
-TELEMETRY_PATH=logs/telemetry.jsonl
-TELEMETRY_MAX_BYTES=5242880
-TELEMETRY_SAMPLE_RATE=1.0
-SERVER_ID=local-dev
-APP_VERSION=0.1.0
-```
-
-**Test Results:**
-```
-4 telemetry integration tests ✅
-- Event shape (generate, grade, cycle_reset)
-- Privacy verification (no plaintext stems)
-- Cycle reset on exhaustion
-- Rotation on size threshold
-
-56 tests passing + 1 skipped (sampling) = 57 total
-```
-
-### Phase 2e: Content Expansion ✅ **COMPLETE**
-
-- ✅ `quad.graph.vertex` (5 items) — Vertex from vertex form
-- ✅ `quad.standard.vertex` (8 items) — Vertex from standard form using -b/2a
-- ✅ `quad.roots.factored` (6 items) — Zeros from factored form
-- ✅ `quad.solve.by_factoring` (6 items) — Solve by factoring (ac-method)
-- ✅ `quad.solve.by_formula` (6 items) — Quadratic formula with complex roots
-
-**Pool Summary:**
-```
-5 quadratic skills
-31 total unique items across all difficulties
-~31 questions per session in cycle mode before pool exhaustion
-Coverage by difficulty: easy (2-3), medium (1-2), hard (1), applied (1-2)
-```
-
-**Telemetry Integration:**
-- Coverage tracking: which skills have low item counts
-- Accuracy by skill: identify too-easy/hard items
-- Reset frequency: pool size tuning signal
-
-**Test Results:**
-```
-All 31 new items validated
-59 tests passing + 1 skipped = 60 total
-Zero regressions
-```
-
-## Contracts & Docs
-
-- `engine/CONTRACTS.md` — Core engine API (generate, validate, grade)
-- `api/CONTRACTS.md` — HTTP API (endpoints, request/response schemas)
-- `CONTRIBUTING.md` — Development workflow, testing discipline, golden snapshot policy
-
-## API Usage
-
-### Generate a question
+### Run V2 (When Ready)
 
 ```bash
-curl -X POST http://localhost:8000/items/generate \
-  -H "Content-Type: application/json" \
-  -d '{"skill_id": "quad.graph.vertex", "difficulty": "easy", "seed": 42}'
+cd /Users/sunnyzheng/Agent_Math/v2
+# Instructions will be added as v2 is built
 ```
 
-### Grade a response
+---
 
+## 🎯 Why V2? (The First Principles Rethink)
+
+### The Problem with V1
+- ✅ Works well for first exposure
+- ❌ Questions become repetitive (limited template pool)
+- ❌ Doesn't adapt to individual learning patterns
+- ❌ Doesn't understand student's mental model
+- ❌ Generic feedback, not diagnostic
+
+### The V2 Vision
+- ✅ Infinite question variations (never repetitive)
+- ✅ Tracks student's mental model (not just metrics)
+- ✅ Instant feedback (< 500ms, triggers dopamine)
+- ✅ Diagnostic misconception identification
+- ✅ Adapts to individual neural pathway formation
+- ✅ Natural language intent understanding
+- ✅ Matches teacher's style when needed
+
+**Read the full analysis:** [First Principles](docs/v2-design/FIRST_PRINCIPLES_ANALYSIS.md)
+
+---
+
+## 📊 Current Stats
+
+### V1 System
+- **Skills:** 20 quadratic skills
+- **Templates:** 190 hand-crafted questions
+- **Students:** 1 (Julia)
+- **Status:** Production-ready, deployed
+
+### V2 System
+- **Status:** Design phase (Week 1)
+- **Timeline:** 4-6 weeks to MVP
+- **Testing:** Weekend experiments with Julia
+
+---
+
+## 🏗️ Project Structure (Current)
+
+```
+/Agent_Math
+├── api/                    # V1 FastAPI backend
+├── engine/                 # V1 question templates & grading
+├── math-learning-platform/ # V1 Next.js frontend
+├── agentic/               # Existing agent infrastructure
+│
+├── docs/
+│   ├── v2-design/         # V2 design documents ⭐
+│   └── ...                # V1 documentation
+│
+├── data/                  # Student progress data
+├── logs/                  # Telemetry
+└── tests/                 # Test suites
+```
+
+**Future structure (after v2 starts):**
+```
+/Agent_Math
+├── v1/                    # Current system (moved here)
+├── v2/                    # New architecture
+├── shared/                # Code used by both
+└── docs/                  # All documentation
+```
+
+---
+
+## 🔬 Development Workflow
+
+### For V1 (Maintenance)
 ```bash
-curl -X POST http://localhost:8000/grade \
-  -H "Content-Type: application/json" \
-  -d '{"item": {...}, "choice_id": "A"}'
+git checkout phase1-data-flywheel
+# Make bug fixes only
+# Keep Julia's experience stable
+git push origin phase1-data-flywheel
+# Auto-deploys to themathagent.com
 ```
 
-### Health check
-
+### For V2 (Active Development)
 ```bash
-curl http://localhost:8000/health
+git checkout v2-neural-engine
+# Build new architecture
+# Test with Julia on weekends
+git push origin v2-neural-engine
+# Will deploy to v2-preview.themathagent.com (when ready)
 ```
 
-## Testing the Web UI
+---
 
-```bash
-# Start the server
-make serve
+## 📈 Success Metrics
 
-# Visit in browser: http://localhost:8000
+### V1 Baseline (To Beat)
+- Time to mastery: ~2 weeks per skill
+- Questions needed: Fixed 20 per skill
+- Julia's feedback: "Questions feel repetitive"
 
-# Expected behavior:
-# 1. Question appears with 4 choices (A, B, C, D)
-# 2. Click a choice → see ✓/✗ with explanation
-# 3. Click "Next question" → new question appears
-# 4. Tally updates: "Correct X of Y"
-# 5. No console errors
-```
+### V2 Goals
+- Time to mastery: < 1 week per skill (50% reduction)
+- Questions needed: Adaptive (until automaticity achieved)
+- Julia's feedback: "Feels personalized and fresh"
+- Measurable: Speed of response (automatic = < 60s per question)
 
-## Phase-based Plan
+---
 
-Guardrails → **1) Domain Data** ✅ → **2) Item Engine** ✅ → **3) API** ✅ → 4) Mastery & Planner → 5) State & Neo4j → 6) Web API → 7) Frontend → 8) Obs/Safety → 9) Deploy → 10) E2E
+## 🤝 Contributing
 
-## Development Environment
+### Philosophy
+This project is built on **first principles thinking**:
+1. Question conventional education approaches
+2. Start from brain science (how learning actually works)
+3. Optimize for neural pathway formation, not test scores
+4. Use AI where it adds value (generation, adaptation)
+5. Keep deterministic what should be deterministic (grading, validation)
 
-- **Python 3.11.x** (pytest, pylint, mypy, black, fastapi, uvicorn, pydantic)
-- **Node 20.x** (planned for frontend)
-- All dependencies pinned in `requirements.txt`
+### Before Contributing
+- Read [First Principles Analysis](docs/v2-design/FIRST_PRINCIPLES_ANALYSIS.md)
+- Understand the "why" before the "how"
+- V1: Maintenance only (bug fixes)
+- V2: Open to design discussion
 
-## Determinism
+---
 
-- ✅ Seed-based RNG (local `random.Random(seed)`, no global state)
-- ✅ Deterministic choice shuffling
-- ✅ Injectable time (planned for Phase 3)
-- ✅ Pure functions (no side effects, input unchanged)
-- ✅ Error code propagation (for debugging and testing)
+## 📞 Contact
 
-## Testing Discipline
+**User:** Julia (10th grade, Honors Compacted Algebra 2)
+**Developer:** Sunny Zheng
+**Status:** Private project, not yet open source
 
-- **TDD first:** Tests → stubs → implementation
-- **Single truth:** `make ci` must be green locally before pushing
-- **Fix one failing test:** No fix-forward from red states
-- **Golden snapshots:** Locked against accidental drift; only update on explicit request
-- **46/46 tests:** Phase 1 + 2a generator + grader + Phase 2c API implementation
+---
+
+## 🗺️ Roadmap
+
+### Phase 0: Housekeeping ✅ (Week 1, Days 1-2)
+- ✅ Document first principles
+- ✅ Create branch structure
+- ✅ Update README (this document)
+
+### Phase 1: Foundation (Week 1, Days 3-7)
+- [ ] Mental model specification
+- [ ] Skill graph schema
+- [ ] Question generation protocol
+- [ ] API specification
+
+### Phase 2-3: Core + API (Weeks 2-3)
+- [ ] Implement core components
+- [ ] Build API layer
+- [ ] Performance optimization (< 500ms)
+
+### Phase 4: Minimal UI (Week 4-5)
+- [ ] Natural language landing page
+- [ ] Instant feedback quiz interface
+- [ ] Deploy to v2-preview
+
+### Phase 5-6: Testing + Expansion (Weeks 5-6+)
+- [ ] Julia tests v2 vs v1
+- [ ] Measure and iterate
+- [ ] Add more skills
+- [ ] Prepare for migration
+
+---
+
+## 📝 License
+
+Private project - All rights reserved
+
+---
+
+**Last Updated:** November 12, 2025
+**Current Focus:** V2 Design Phase
