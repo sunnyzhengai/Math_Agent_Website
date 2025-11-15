@@ -99,7 +99,15 @@ web_dir = Path(__file__).parent.parent / "web"
 if web_dir.exists():
     app.mount("/static", StaticFiles(directory=str(web_dir)), name="static")
 
-# Session storage: {session_id: {"skill_id": "...", "remaining": [...], "correct": 0, "total": 0}}
+# Session storage: {
+#   session_id: {
+#     "skill_id": "...",
+#     "remaining": [...],
+#     "correct": 0,
+#     "total": 0,
+#     "seen_questions": set()  # Track actual questions to prevent duplicates
+#   }
+# }
 sessions = {}
 
 
@@ -184,7 +192,8 @@ async def get_question(skill_id: str = "quad.completing_square", session_id: str
             "skill_id": skill_id,
             "remaining": list(range(1, template_count + 1)),
             "correct": 0,
-            "total": 0
+            "total": 0,
+            "seen_questions": set()  # Track questions to avoid repeats
         }
         random.shuffle(sessions[session_id]["remaining"])
 
@@ -203,8 +212,30 @@ async def get_question(skill_id: str = "quad.completing_square", session_id: str
     module = skill["module"]
     template_func = getattr(module, f'template_{template_num}')
 
-    # Generate question
-    equation, correct_letter, choices = template_func()
+    # Generate question, retry up to 10 times if we get a duplicate
+    max_attempts = 10
+    equation = None
+    seen_questions = session.get("seen_questions", set())
+
+    for attempt in range(max_attempts):
+        equation, correct_letter, choices = template_func()
+
+        # Check if this exact question was seen before
+        if equation not in seen_questions:
+            # New question! Track it and use it
+            seen_questions.add(equation)
+            break
+
+        # Duplicate detected, try again (unless it's the last attempt)
+        if attempt < max_attempts - 1:
+            continue
+        else:
+            # Give up after max attempts and use whatever we got
+            # This can happen if the template has limited variation
+            break
+
+    # Update session's seen questions
+    session["seen_questions"] = seen_questions
 
     # Calculate progress
     questions_answered = template_count - len(remaining)
