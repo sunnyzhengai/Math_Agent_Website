@@ -190,13 +190,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>Quadratic Equations Practice</h1>
-        <p class="subtitle">Solving by Completing the Square</p>
-        <div id="progress" class="progress">Question 1 of 24</div>
-        <div id="score" class="score">Score: 0 / 0</div>
+        <h1>Math Practice Platform</h1>
+        <p class="subtitle">Select a skill to practice</p>
 
-        <div id="question-container">
-            <div class="loading">Loading question...</div>
+        <div id="skill-selector" style="margin-bottom: 30px;">
+            <div class="loading">Loading skills...</div>
+        </div>
+
+        <div id="practice-area" style="display: none;">
+            <div id="skill-title" class="subtitle" style="font-size: 18px; font-weight: 600; margin-bottom: 10px;"></div>
+            <div id="progress" class="progress">Question 1 of 24</div>
+            <div id="score" class="score">Score: 0 / 0</div>
+
+            <div id="question-container">
+                <div class="loading">Loading question...</div>
+            </div>
         </div>
     </div>
 
@@ -204,10 +212,65 @@
         let currentQuestion = null;
         let answered = false;
         let sessionId = null;
+        let currentSkillId = null;
+
+        async function loadSkills() {
+            try {
+                const response = await fetch('/api/skills');
+                const categories = await response.json();
+                renderSkillSelector(categories);
+            } catch (error) {
+                document.getElementById('skill-selector').innerHTML = '<div class="error">Failed to load skills</div>';
+            }
+        }
+
+        function renderSkillSelector(categories) {
+            const selector = document.getElementById('skill-selector');
+            let html = '';
+
+            for (const [category, skills] of Object.entries(categories)) {
+                html += `<h3 style="margin-top: 20px; margin-bottom: 10px; color: #667eea;">${category}</h3>`;
+                html += '<div style="display: grid; grid-template-columns: 1fr; gap: 10px;">';
+
+                for (const skill of skills) {
+                    html += `
+                        <button onclick="selectSkill('${skill.skill_id}', '${skill.name}')"
+                                style="padding: 15px; border: 2px solid #e2e8f0; border-radius: 10px;
+                                       background: white; cursor: pointer; text-align: left;
+                                       transition: all 0.2s;">
+                            <strong>${skill.name}</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                ${skill.template_count} questions
+                            </div>
+                        </button>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            selector.innerHTML = html;
+        }
+
+        function selectSkill(skillId, skillName) {
+            currentSkillId = skillId;
+            sessionId = null; // Reset session when changing skills
+
+            // Hide skill selector, show practice area
+            document.getElementById('skill-selector').style.display = 'none';
+            document.getElementById('practice-area').style.display = 'block';
+            document.getElementById('skill-title').textContent = skillName;
+
+            // Load first question
+            loadQuestion();
+        }
 
         async function loadQuestion() {
+            if (!currentSkillId) return;
+
             try {
-                const url = sessionId ? `/api/question?session_id=${sessionId}` : '/api/question';
+                const url = sessionId
+                    ? `/api/question?skill_id=${currentSkillId}&session_id=${sessionId}`
+                    : `/api/question?skill_id=${currentSkillId}`;
                 const response = await fetch(url);
                 const data = await response.json();
                 currentQuestion = data;
@@ -314,8 +377,8 @@
             `;
         }
 
-        // Load first question on page load
-        loadQuestion();
+        // Load skills on page load
+        loadSkills();
     </script>
 </body>
 </html>

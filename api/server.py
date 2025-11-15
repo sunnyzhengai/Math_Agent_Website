@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Minimal FastAPI server for Quadratic Equations Practice
+Math Practice Platform - Multi-Skill API Server
 
 Endpoints:
 - GET / - Serves the web UI
+- GET /api/skills - Returns list of available skills
 - GET /api/question - Returns a random question with multiple choice answers
+- POST /api/submit - Records answer result
 - POST /api/reset - Resets the template pool
 """
 
@@ -12,7 +14,7 @@ import sys
 import os
 import random
 from pathlib import Path
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -20,17 +22,51 @@ from uuid import uuid4
 
 # Add code directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "code"))
-import quadratic_equations_by_completing_the_square as qe
 
-app = FastAPI(title="Quadratic Equations Practice")
+# Import all available skill modules
+import quadratic_equations_by_completing_the_square as qe_completing_square
+import solving_with_square_roots as solving_radicals
+import exponents_refresher as exponents
+
+# Skill registry: maps skill_id to (module, template_count, display_name)
+SKILLS = {
+    "quad.completing_square": {
+        "module": qe_completing_square,
+        "template_count": 24,
+        "name": "Completing the Square",
+        "category": "Quadratics"
+    },
+    "radicals.solving": {
+        "module": solving_radicals,
+        "template_count": 8,
+        "name": "Solving with Square Roots",
+        "category": "Radicals"
+    },
+    "radicals.exponents": {
+        "module": exponents,
+        "template_count": 5,
+        "name": "Exponents Refresher",
+        "category": "Radicals"
+    }
+}
+
+app = FastAPI(title="Math Practice Platform")
 
 # Mount static files (web directory)
 web_dir = Path(__file__).parent.parent / "web"
 if web_dir.exists():
     app.mount("/static", StaticFiles(directory=str(web_dir)), name="static")
 
-# Session storage: {session_id: {"remaining": [...], "correct": 0, "total": 0}}
+# Session storage: {session_id: {"skill_id": "...", "remaining": [...], "correct": 0, "total": 0}}
 sessions = {}
+
+
+class SkillInfo(BaseModel):
+    """Information about a skill"""
+    skill_id: str
+    name: str
+    category: str
+    template_count: int
 
 
 class QuestionResponse(BaseModel):
@@ -65,21 +101,46 @@ async def root():
     index_path = web_dir / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
-    return {"message": "Quadratic Equations Practice API", "docs": "/docs"}
+    return {"message": "Math Practice Platform API", "docs": "/docs"}
+
+
+@app.get("/api/skills")
+async def get_skills():
+    """Get list of available skills grouped by category"""
+    # Group skills by category
+    categories = {}
+    for skill_id, skill_data in SKILLS.items():
+        category = skill_data["category"]
+        if category not in categories:
+            categories[category] = []
+        categories[category].append({
+            "skill_id": skill_id,
+            "name": skill_data["name"],
+            "template_count": skill_data["template_count"]
+        })
+    return categories
 
 
 @app.get("/api/question", response_model=QuestionResponse)
-async def get_question(session_id: str = None):
-    """Generate a random quadratic equation question
+async def get_question(skill_id: str = "quad.completing_square", session_id: str = None):
+    """Generate a random question for the specified skill
 
-    Tracks templates to ensure all 24 are seen before repeating.
+    Tracks templates to ensure all are seen before repeating.
     Pass session_id to maintain progress across requests.
     """
+    # Validate skill_id
+    if skill_id not in SKILLS:
+        raise HTTPException(status_code=400, detail=f"Invalid skill_id: {skill_id}")
+
+    skill = SKILLS[skill_id]
+    template_count = skill["template_count"]
+
     # Initialize or get session
     if not session_id or session_id not in sessions:
         session_id = str(uuid4())
         sessions[session_id] = {
-            "remaining": list(range(1, 25)),
+            "skill_id": skill_id,
+            "remaining": list(range(1, template_count + 1)),
             "correct": 0,
             "total": 0
         }
@@ -91,19 +152,20 @@ async def get_question(session_id: str = None):
 
     # If pool exhausted, refill and shuffle
     if not remaining:
-        session["remaining"] = list(range(1, 25))
+        session["remaining"] = list(range(1, template_count + 1))
         random.shuffle(session["remaining"])
         remaining = session["remaining"]
 
     # Pick next template from pool
     template_num = remaining.pop(0)
-    template_func = getattr(qe, f'template_{template_num}')
+    module = skill["module"]
+    template_func = getattr(module, f'template_{template_num}')
 
     # Generate question
     equation, correct_letter, choices = template_func()
 
     # Calculate progress
-    questions_answered = 24 - len(remaining)
+    questions_answered = template_count - len(remaining)
 
     return QuestionResponse(
         equation=equation,
@@ -111,7 +173,7 @@ async def get_question(session_id: str = None):
         correct_answer=correct_letter,
         progress={
             "current": questions_answered,
-            "total": 24,
+            "total": template_count,
             "correct": session["correct"],
             "answered": session["total"],
             "session_id": session_id
