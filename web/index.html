@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadratic Equations Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .progress {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .score {
+            color: #48bb78;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .equation {
+            font-size: 24px;
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .choice {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            font-size: 16px;
+        }
+
+        .choice:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .choice.correct {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .choice.incorrect {
+            border-color: #f56565;
+            background: #fff5f5;
+        }
+
+        .choice.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .feedback {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 16px;
+        }
+
+        .feedback.correct {
+            background: #f0fff4;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #fff5f5;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+            display: block;
+        }
+
+        .next-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none;
+        }
+
+        .next-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .next-btn.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+
+        .error {
+            background: #fff5f5;
+            color: #742a2a;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #f56565;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .choices {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .equation {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quadratic Equations Practice</h1>
+        <p class="subtitle">Solving by Completing the Square</p>
+        <div id="progress" class="progress">Question 1 of 24</div>
+        <div id="score" class="score">Score: 0 / 0</div>
+
+        <div id="question-container">
+            <div class="loading">Loading question...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = null;
+        let answered = false;
+        let sessionId = null;
+
+        async function loadQuestion() {
+            try {
+                const url = sessionId ? `/api/question?session_id=${sessionId}` : '/api/question';
+                const response = await fetch(url);
+                const data = await response.json();
+                currentQuestion = data;
+                sessionId = data.progress.session_id;
+                answered = false;
+                renderQuestion();
+                updateProgress();
+            } catch (error) {
+                showError('Failed to load question. Please try again.');
+            }
+        }
+
+        function updateProgress() {
+            const progressEl = document.getElementById('progress');
+            const scoreEl = document.getElementById('score');
+            const { current, total, correct, answered } = currentQuestion.progress;
+
+            progressEl.textContent = `Question ${current} of ${total}`;
+
+            // Add celebration when completing a full round
+            if (current === total) {
+                progressEl.textContent += ' - Complete! 🎉';
+            }
+
+            // Update score
+            scoreEl.textContent = `Score: ${correct} / ${answered}`;
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('question-container');
+            const letters = ['A', 'B', 'C', 'D'];
+
+            container.innerHTML = `
+                <div class="equation">${currentQuestion.equation}</div>
+                <div class="choices">
+                    ${currentQuestion.choices.map((choice, i) => `
+                        <div class="choice" onclick="selectAnswer('${letters[i]}')" id="choice-${letters[i]}">
+                            <strong>${letters[i]})</strong> ${choice}
+                        </div>
+                    `).join('')}
+                </div>
+                <div id="feedback" class="feedback"></div>
+                <button class="next-btn" onclick="loadQuestion()" id="next-btn">Next Question</button>
+            `;
+        }
+
+        async function selectAnswer(letter) {
+            if (answered) return;
+
+            answered = true;
+            const isCorrect = letter === currentQuestion.correct_answer;
+            const feedback = document.getElementById('feedback');
+            const selectedChoice = document.getElementById(`choice-${letter}`);
+            const correctChoice = document.getElementById(`choice-${currentQuestion.correct_answer}`);
+
+            // Disable all choices
+            document.querySelectorAll('.choice').forEach(el => el.classList.add('disabled'));
+
+            // Mark selected choice
+            selectedChoice.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+            // Always highlight the correct answer
+            if (!isCorrect) {
+                correctChoice.classList.add('correct');
+            }
+
+            // Show feedback
+            if (isCorrect) {
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✓ Correct! Great job!';
+            } else {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = `✗ Incorrect. The correct answer is ${currentQuestion.correct_answer}.`;
+            }
+
+            // Submit answer to server
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        is_correct: isCorrect
+                    })
+                });
+                const data = await response.json();
+
+                // Update score display immediately
+                const scoreEl = document.getElementById('score');
+                scoreEl.textContent = `Score: ${data.correct} / ${data.total}`;
+            } catch (error) {
+                console.error('Failed to submit answer:', error);
+            }
+
+            // Show next button
+            document.getElementById('next-btn').classList.add('show');
+        }
+
+        function showError(message) {
+            const container = document.getElementById('question-container');
+            container.innerHTML = `
+                <div class="error">${message}</div>
+                <button class="next-btn show" onclick="loadQuestion()">Try Again</button>
+            `;
+        }
+
+        // Load first question on page load
+        loadQuestion();
+    </script>
+</body>
+</html>
