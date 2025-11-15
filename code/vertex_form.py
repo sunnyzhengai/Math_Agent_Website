@@ -9,6 +9,14 @@ Following patterns from Phase 1 with lessons from SPEC_ERRORS_TO_AVOID.md applie
 import random
 
 
+def format_k_value(k):
+    """Format k value to avoid '+ -k' formatting issues"""
+    if k >= 0:
+        return f"+ {k}"
+    else:
+        return f"- {abs(k)}"
+
+
 def generate_choices_simple(correct_answer, wrong_answers):
     """
     Generate 4 multiple choice options (1 correct + 3 wrong).
@@ -139,13 +147,15 @@ def template_5():
     k = c - (half_b ** 2)  # k = c - (b/2)²
 
     question = f"Rewrite in vertex form: y = x² + {b}x + {c}"
-    correct_answer = f"y = (x + {h})² + {k}"
+    correct_answer = f"y = (x + {h})² {format_k_value(k)}"
 
     # Wrong answers
+    k_wrong1 = c
+    k_wrong3 = c - (half_b ** 2)
     wrong_answers = [
-        f"y = (x + {h})² + {c}",  # Didn't subtract (b/2)²
-        f"y = (x - {h})² + {k}",  # Wrong sign on h
-        f"y = (x + {b})² + {k}",  # Used b instead of b/2
+        f"y = (x + {h})² {format_k_value(k_wrong1)}",  # Didn't subtract (b/2)²
+        f"y = (x - {h})² {format_k_value(k)}",  # Wrong sign on h
+        f"y = (x + {b})² {format_k_value(k_wrong3)}",  # Used b instead of b/2
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
@@ -163,13 +173,15 @@ def template_6():
     k = c - (half_b ** 2)
 
     question = f"Rewrite in vertex form: y = x² - {b}x + {c}"
-    correct_answer = f"y = (x - {h})² + {k}"
+    correct_answer = f"y = (x - {h})² {format_k_value(k)}"
 
     # Wrong answers
+    k_wrong1 = c
+    k_wrong3 = k
     wrong_answers = [
-        f"y = (x - {h})² + {c}",
-        f"y = (x + {h})² + {k}",  # Wrong sign
-        f"y = (x - {b})² + {k}",
+        f"y = (x - {h})² {format_k_value(k_wrong1)}",
+        f"y = (x + {h})² {format_k_value(k)}",  # Wrong sign
+        f"y = (x - {b})² {format_k_value(k_wrong3)}",
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
@@ -187,13 +199,15 @@ def template_7():
     k = -c - (half_b ** 2)  # k = -c - (b/2)²
 
     question = f"Rewrite in vertex form: y = x² + {b}x - {c}"
-    correct_answer = f"y = (x + {h})² + {k}"
+    correct_answer = f"y = (x + {h})² {format_k_value(k)}"
 
     # Wrong answers
+    k_wrong1 = -c
+    k_wrong3 = -c
     wrong_answers = [
-        f"y = (x + {h})² - {c}",
-        f"y = (x - {h})² + {k}",
-        f"y = (x + {h})² + {-c}",  # Forgot to subtract (b/2)²
+        f"y = (x + {h})² {format_k_value(k_wrong1)}",
+        f"y = (x - {h})² {format_k_value(k)}",
+        f"y = (x + {h})² {format_k_value(k_wrong3)}",  # Forgot to subtract (b/2)²
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
@@ -211,13 +225,15 @@ def template_8():
     k = -c - (half_b ** 2)
 
     question = f"Rewrite in vertex form: y = x² - {b}x - {c}"
-    correct_answer = f"y = (x - {h})² + {k}"
+    correct_answer = f"y = (x - {h})² {format_k_value(k)}"
 
     # Wrong answers
+    k_wrong1 = -c
+    k_wrong3 = k
     wrong_answers = [
-        f"y = (x - {h})² - {c}",
-        f"y = (x + {h})² + {k}",
-        f"y = (x - {b})² + {k}",
+        f"y = (x - {h})² {format_k_value(k_wrong1)}",
+        f"y = (x + {h})² {format_k_value(k)}",
+        f"y = (x - {b})² {format_k_value(k_wrong3)}",
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)

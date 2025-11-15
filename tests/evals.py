@@ -211,11 +211,73 @@ def eval_sign_formatting():
     return results.failed == 0
 
 
-# EVAL 6: Discriminant Complexity
+# EVAL 6: No Plus-Minus Formatting
+# Detects awkward formatting like "+ -19" which should be "- 19"
+def eval_no_plus_minus_formatting():
+    """Verify no '+ -' or '- +' formatting artifacts"""
+    print("EVAL 6: No Plus-Minus Formatting")
+    results = EvalResults()
+
+    bad_patterns = [
+        r'\+\s*-',  # "+ -" pattern
+        r'-\s*\+',  # "- +" pattern
+    ]
+
+    # Import all skill modules
+    import vertex_form
+    import quadratic_formula
+    import graphing_and_application
+    import exponents_refresher
+    import understanding_radicals
+    import simplifying_radicals
+    import operations_with_radicals
+    import solving_with_square_roots as solving_radicals
+
+    all_modules = [
+        (qe, 24, "qe"),
+        (vertex_form, 8, "vertex_form"),
+        (quadratic_formula, 12, "quadratic_formula"),
+        (graphing_and_application, 10, "graphing"),
+        (exponents_refresher, 5, "exponents"),
+        (understanding_radicals, 4, "understanding_radicals"),
+        (simplifying_radicals, 4, "simplifying_radicals"),
+        (operations_with_radicals, 4, "operations_radicals"),
+        (solving_radicals, 8, "solving_radicals"),
+    ]
+
+    for module, template_count, module_name in all_modules:
+        for template_num in range(1, template_count + 1):
+            template_func = getattr(module, f'template_{template_num}')
+
+            for trial in range(3):
+                equation, correct_letter, choices = template_func()
+
+                # Check equation
+                for pattern in bad_patterns:
+                    if re.search(pattern, equation):
+                        results.add_fail(f"{module_name} template {template_num}: Found '+ -' or '- +' in equation: {equation}")
+                        break
+                else:
+                    results.add_pass()
+
+                # Check all choices
+                for i, choice in enumerate(choices):
+                    for pattern in bad_patterns:
+                        if re.search(pattern, choice):
+                            results.add_fail(f"{module_name} template {template_num} choice {chr(65+i)}: Found '+ -' or '- +' in: {choice}")
+                            break
+                    else:
+                        results.add_pass()
+
+    results.print_summary()
+    return results.failed == 0
+
+
+# EVAL 7: Discriminant Complexity
 # Error #9, #10, #11: Incomplete Discriminant Validation, Overly Broad Ranges
 def eval_discriminant_complexity():
     """Verify discriminants produce simple answers (≤20 for non-perfect squares)"""
-    print("EVAL 6: Discriminant Complexity")
+    print("EVAL 7: Discriminant Complexity")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -248,11 +310,11 @@ def eval_discriminant_complexity():
     return results.failed == 0
 
 
-# EVAL 7: Solution Ordering
+# EVAL 8: Solution Ordering
 # Error #3: Solution Ordering Issues
 def eval_solution_ordering():
     """Verify solutions are displayed in ascending order (x1 ≤ x2)"""
-    print("EVAL 7: Solution Ordering")
+    print("EVAL 8: Solution Ordering")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -283,11 +345,11 @@ def eval_solution_ordering():
     return results.failed == 0
 
 
-# EVAL 8: Integration Test (All Templates Work)
+# EVAL 9: Integration Test (All Templates Work)
 # Error #8: Incomplete Template Function Updates
 def eval_integration():
     """Verify all 24 templates run without errors"""
-    print("EVAL 8: Integration Test")
+    print("EVAL 9: Integration Test")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -308,11 +370,11 @@ def eval_integration():
     return results.failed == 0
 
 
-# EVAL 9: Type Contract Consistency
+# EVAL 10: Type Contract Consistency
 # Error #1: Data Structure Mismatch
 def eval_type_contracts():
     """Verify function return types are consistent"""
-    print("EVAL 9: Type Contract Consistency")
+    print("EVAL 10: Type Contract Consistency")
     results = EvalResults()
 
     # Test solve_by_completing_square returns dict
@@ -340,11 +402,11 @@ def eval_type_contracts():
     return results.failed == 0
 
 
-# EVAL 10: Coefficient Formatting
+# EVAL 11: Coefficient Formatting
 # Error #13: Coefficient of 1 displayed as '1x' instead of 'x'
 def eval_coefficient_formatting():
     """Verify coefficient of 1 is omitted (x not 1x, x² not 1x²)"""
-    print("EVAL 10: Coefficient Formatting")
+    print("EVAL 11: Coefficient Formatting")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -367,11 +429,11 @@ def eval_coefficient_formatting():
     return results.failed == 0
 
 
-# EVAL 11: Coefficient Ranges
+# EVAL 12: Coefficient Ranges
 # Error #10: Overly Broad Coefficient Ranges
 def eval_coefficient_ranges():
     """Verify coefficients are within specified ranges"""
-    print("EVAL 11: Coefficient Ranges")
+    print("EVAL 12: Coefficient Ranges")
     results = EvalResults()
 
     # Sample templates and parse equations to check coefficient ranges
@@ -436,6 +498,7 @@ def main():
     all_passed &= eval_choice_uniqueness()
     all_passed &= eval_no_equivalent_answers()
     all_passed &= eval_sign_formatting()
+    all_passed &= eval_no_plus_minus_formatting()
     all_passed &= eval_discriminant_complexity()
     all_passed &= eval_solution_ordering()
     all_passed &= eval_integration()

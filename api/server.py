@@ -42,11 +42,11 @@ SKILLS = {
         "name": "Completing the Square",
         "category": "Quadratics"
     },
-    "radicals.solving": {
+    "quad.solving": {
         "module": solving_radicals,
         "template_count": 8,
         "name": "Solving with Square Roots",
-        "category": "Radicals"
+        "category": "Quadratics"
     },
     "radicals.exponents": {
         "module": exponents,
