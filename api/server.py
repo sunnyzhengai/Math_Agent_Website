@@ -36,18 +36,6 @@ import graphing_and_application
 
 # Skill registry: maps skill_id to (module, template_count, display_name)
 SKILLS = {
-    "quad.completing_square": {
-        "module": qe_completing_square,
-        "template_count": 24,
-        "name": "Completing the Square",
-        "category": "Quadratics"
-    },
-    "quad.solving": {
-        "module": solving_radicals,
-        "template_count": 8,
-        "name": "Solving with Square Roots",
-        "category": "Quadratics"
-    },
     "radicals.exponents": {
         "module": exponents,
         "template_count": 5,
@@ -71,6 +59,18 @@ SKILLS = {
         "template_count": 4,
         "name": "Operations with Radicals",
         "category": "Radicals"
+    },
+    "quad.completing_square": {
+        "module": qe_completing_square,
+        "template_count": 24,
+        "name": "Completing the Square",
+        "category": "Quadratics"
+    },
+    "quad.solving": {
+        "module": solving_radicals,
+        "template_count": 8,
+        "name": "Solving with Square Roots",
+        "category": "Quadratics"
     },
     "quad.vertex_form": {
         "module": vertex_form,
