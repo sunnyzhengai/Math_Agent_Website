@@ -30,6 +30,9 @@ import exponents_refresher as exponents
 import understanding_radicals
 import simplifying_radicals
 import operations_with_radicals
+import vertex_form
+import quadratic_formula
+import graphing_and_application
 
 # Skill registry: maps skill_id to (module, template_count, display_name)
 SKILLS = {
@@ -68,6 +71,24 @@ SKILLS = {
         "template_count": 4,
         "name": "Operations with Radicals",
         "category": "Radicals"
+    },
+    "quad.vertex_form": {
+        "module": vertex_form,
+        "template_count": 8,
+        "name": "Vertex Form",
+        "category": "Quadratics"
+    },
+    "quad.formula": {
+        "module": quadratic_formula,
+        "template_count": 12,
+        "name": "Quadratic Formula",
+        "category": "Quadratics"
+    },
+    "quad.graphing": {
+        "module": graphing_and_application,
+        "template_count": 10,
+        "name": "Graphing and Application",
+        "category": "Quadratics"
     }
 }
 
