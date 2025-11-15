@@ -105,35 +105,144 @@ in code/ folder: create a python script quadratic_equations_by_completing_the_sq
 
   [Debug] Correct answer: A
 
-### Phase 2: add more skills
-Create __ question templates for "radicals"
+### Phase 2: Radical Foundations
+Create question templates for radical foundations (exponents, understanding, simplifying, operations)
+
 ## ME
-in tests/ folder, create a test script test_exponents_refresher.py. when we run python3 tests/test_exponents_refresher.py x, it should create a question based on the template number x:
-- template 1: evaluate 2^3×2^4
-- template 2: evaluate x^5/x^2
-- template 3: simplify x^−2
-- template 4: evaluate (x^3)^2
-- template 5: is it a perfect square: 25?
+in tests/ folder: create a test script test_exponents_refresher.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_exponents_refresher.py 1 should return a question with 4 multiple choices.
 
-in tests/ folder, create a test script test_understanding_radicals.py. when we run python3 tests/test_understanding_radicals.py x, it should
-create a question based on the template number x:
-- template 1: What is √16?
-- template 2: Solve 𝑥^2=9
-- template 3: rewrite 3^√x^2 (answer is x^2/3)
-- template 4: √30 is between what two integers?
+# Exponent Rules
+- create test template 1: Evaluate a^m × a^n (product rule)
+- create test template 2: Evaluate a^m / a^n (quotient rule)
+- create test template 3: Simplify a^(-n) (negative exponent)
+- create test template 4: Evaluate (a^m)^n (power rule)
+- create test template 5: Is n a perfect square? (true/false recognition)
 
-in tests/ folder, create a test script test_simplifying_radicals.py. when we run python3 tests/test_simplifying_radicals.py x, it should
-create a question based on the template number x:
-- template 1: v50
-- tempalte 2: 3^√54x^5
-- template 3: √3 x √12
-- template 4: √48/√3
+in code/ folder: create a python script exponents_refresher.py
+- create functions that will return the 5 templates as listed above
+- coefficients a, m, n should all be positive numbers
+- Answer Complexity Constraints:
+  * Bases a: between 2 and 5
+  * Exponents m, n: between 2 and 6
+  * Perfect squares: {4, 9, 16, 25, 36, 49, 64, 81, 100}
+  * Non-perfect squares for recognition: {6, 8, 10, 12, 15, 18, 20, 24}
+- Answer Format:
+  * Numeric answers: integers only (e.g., 128, 27)
+  * Algebraic answers: x^3, x^(-2), 1/x^2
+  * True/false: "Yes" or "No"
 
-in tests/ folder, create a test script test_operations_with_radicals.py.
-- template 1: 3√2 + 4√2
-- template 2: (√3 + 2)(√3 - 2)
-- template 3: 3/√5
-- template 4: 1/(2 + √3)
+in tests/ folder: create a test script test_understanding_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_understanding_radicals.py 1 should return a question with 4 multiple choices.
+
+# Basic Radical Understanding
+- create test template 1: What is √n? (n is perfect square)
+- create test template 2: Solve x² = n (n is perfect square)
+- create test template 3: Rewrite ⁿ√(x^m) as a power (convert to rational exponent)
+- create test template 4: √n is between what two integers? (n is non-perfect square)
+
+in code/ folder: create a python script understanding_radicals.py
+- create functions that will return the 4 templates as listed above
+- coefficients n, m should all be positive numbers
+- Answer Complexity Constraints:
+  * Perfect squares n: {4, 9, 16, 25, 36, 49, 64, 81, 100}
+  * Non-perfect squares n: between 2 and 50
+  * Root indices: 2, 3 (square root, cube root)
+  * Powers m: between 1 and 6
+- Answer Format:
+  * Numeric: integers (e.g., 4, 5)
+  * Solutions: x = ±4
+  * Rational exponents: x^(2/3)
+  * Between integers: "between 5 and 6"
+
+in tests/ folder: create a test script test_simplifying_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_simplifying_radicals.py 1 should return a question with 4 multiple choices.
+
+# Simplifying Radicals
+- create test template 1: Simplify √n (n has perfect square factor, e.g., √50 = 5√2)
+- create test template 2: Simplify ³√(n·x^m) (cube root with variables)
+- create test template 3: Multiply and simplify √a × √b
+- create test template 4: Divide and simplify √a / √b
+
+in code/ folder: create a python script simplifying_radicals.py
+- create functions that will return the 4 templates as listed above
+- coefficients a, b, n, m should all be positive numbers
+- Answer Complexity Constraints:
+  * For √n: n between 8 and 100, must have perfect square factor
+  * For cube roots: n·x^m where n ∈ {8, 27, 54, 128} and m ≤ 6
+  * For multiplication: a, b between 2 and 12
+  * For division: a/b results in perfect square or simple radical
+- Answer Format:
+  * Simplified radicals: 5√2, 2√3
+  * With variables: 2x√(3x)
+  * Simplified expressions: √6, 4
+
+in tests/ folder: create a test script test_operations_with_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_operations_with_radicals.py 1 should return a question with 4 multiple choices.
+
+# Operations with Radicals
+- create test template 1: Add like radicals: a√n + b√n
+- create test template 2: Multiply binomials with radicals: (a + √n)(a - √n) [difference of squares]
+- create test template 3: Rationalize denominator: a/√n
+- create test template 4: Rationalize denominator: a/(b + √n) [conjugate method]
+
+in code/ folder: create a python script operations_with_radicals.py
+- create functions that will return the 4 templates as listed above
+- coefficients a, b, n should all be positive numbers
+- Answer Complexity Constraints:
+  * Coefficients a, b: between 1 and 8
+  * Radicals n: between 2 and 20
+  * For difference of squares: use small values (a ≤ 5, n ≤ 10)
+  * For conjugates: b ≤ 5, n ≤ 10
+- Answer Format:
+  * Combined radicals: 7√2
+  * Difference of squares: a² - n (integer result)
+  * Rationalized: (a√n)/n or simplified form
+  * Conjugate result: (ab - a√n)/(b² - n) simplified
+
+## Claude
+Detailed Implementation Plan:
+
+For each of the 4 skills (17 templates total):
+
+1. **test_exponents_refresher.py** (5 templates)
+   - Imports from code/exponents_refresher.py
+   - Displays formatted question with 4 choices
+   - Shows correct answer for debugging
+
+2. **test_understanding_radicals.py** (4 templates)
+   - Imports from code/understanding_radicals.py
+   - Displays formatted question with 4 choices
+   - Shows correct answer for debugging
+
+3. **test_simplifying_radicals.py** (4 templates)
+   - Imports from code/simplifying_radicals.py
+   - Displays formatted question with 4 choices
+   - Shows correct answer for debugging
+
+4. **test_operations_with_radicals.py** (4 templates)
+   - Imports from code/operations_with_radicals.py
+   - Displays formatted question with 4 choices
+   - Shows correct answer for debugging
+
+Common mistake patterns for wrong answers:
+- Exponents: adding instead of multiplying, subtracting instead of dividing
+- Radicals: not simplifying completely, sign errors, forgetting ±
+- Simplification: leaving perfect square factors under radical
+- Rationalization: multiplying by wrong conjugate, not simplifying fully
+
+Example output:
+$ python3 tests/test_exponents_refresher.py 1
+
+============================================================
+Evaluate:
+
+  2³ × 2⁴
+
+Multiple Choice Options:
+  A) 2⁷
+  B) 2¹²
+  C) 128
+  D) 4⁷
+============================================================
+
+[Debug] Correct answer: C
 
 ### Phase 3: Stage 5 - Solving Equations Using Radicals
 ## ME
