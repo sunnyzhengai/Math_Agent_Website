@@ -44,42 +44,42 @@ def generate_choices_simple(correct_answer, wrong_answers):
     return correct_letter, all_choices
 
 
-# Template 1: x² + bx + ? = (x + ?)² (b even, b > 0)
+# Template 1: Complete the square for x² + bx (b even, b > 0)
 def template_1():
     """Complete the square for x² + bx"""
     b = random.choice([2, 4, 6, 8, 10])  # Even values
     half_b = b // 2
     c = half_b ** 2
 
-    question = f"x² + {b}x + ? = (x + ?)²"
-    correct_answer = f"c = {c}, (x + {half_b})²"
+    question = f"Complete the square: x² + {b}x + ___ = (x + ___)²"
+    correct_answer = f"{c}, {half_b}"
 
     # Wrong answers
     wrong_answers = [
-        f"c = {b}, (x + {b})²",  # Used b instead of (b/2)²
-        f"c = {c + 1}, (x + {half_b})²",  # Off by one
-        f"c = {c}, (x + {b})²",  # Wrong value in parentheses
+        f"{b}, {b}",  # Used b instead of (b/2)²
+        f"{c + 1}, {half_b}",  # Off by one on c
+        f"{c}, {b}",  # Wrong value for h
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
     return question, correct_letter, choices
 
 
-# Template 2: x² - bx + ? = (x - ?)² (b even, b > 0)
+# Template 2: Complete the square for x² - bx (b even, b > 0)
 def template_2():
     """Complete the square for x² - bx"""
     b = random.choice([2, 4, 6, 8, 10])
     half_b = b // 2
     c = half_b ** 2
 
-    question = f"x² - {b}x + ? = (x - ?)²"
-    correct_answer = f"c = {c}, (x - {half_b})²"
+    question = f"Complete the square: x² - {b}x + ___ = (x - ___)²"
+    correct_answer = f"{c}, {half_b}"
 
     # Wrong answers
     wrong_answers = [
-        f"c = {b}, (x - {b})²",
-        f"c = {c + 1}, (x - {half_b})²",
-        f"c = {c}, (x + {half_b})²",  # Wrong sign
+        f"{b}, {b}",
+        f"{c + 1}, {half_b}",
+        f"{c}, {-half_b}",  # Wrong sign - used -h instead of h
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
