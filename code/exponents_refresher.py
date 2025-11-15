@@ -86,7 +86,7 @@ def template_2():
     wrong_answers = [
         str(a ** (m + n)),  # Added instead of subtracting
         str((a ** m) // (a ** n)) if a ** n != 0 else "1",  # Division error
-        f"{a}^{m - n}",  # Left in exponential form
+        str(result + random.randint(1, 10)),  # Off by small amount
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
@@ -129,8 +129,8 @@ def template_4():
     # Wrong answers
     wrong_answers = [
         str(a ** (m + n)),  # Added exponents instead of multiplying
-        f"{a}^{m * n}",  # Left in exponential form
-        str((a ** m) ** n // 2),  # Arbitrary error
+        str(result // (a ** m)) if result > a ** m else str(result * 2),  # Divided instead of multiplied
+        str(result + random.randint(10, 100)),  # Off by amount
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
