@@ -61,7 +61,7 @@ def template_1():
     wrong_answers = [
         str(a ** (m * n)),  # Multiplied exponents instead of adding
         str(a ** m + a ** n),  # Added the results
-        f"{a}^{m + n}",  # Left in exponential form
+        str((a ** m) * (a ** n) // 2) if (a ** m) * (a ** n) > 2 else str(result + 10),  # Off by factor
     ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
