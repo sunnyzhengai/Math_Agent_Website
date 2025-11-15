@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quadratic Equations Practice</title>
+
+    <!-- MathJax for beautiful math rendering -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -337,17 +352,22 @@
             const letters = ['A', 'B', 'C', 'D'];
 
             container.innerHTML = `
-                <div class="equation">${currentQuestion.equation}</div>
+                <div class="equation">$${currentQuestion.equation}$</div>
                 <div class="choices">
                     ${currentQuestion.choices.map((choice, i) => `
                         <div class="choice" onclick="selectAnswer('${letters[i]}')" id="choice-${letters[i]}">
-                            <strong>${letters[i]})</strong> ${choice}
+                            <strong>${letters[i]})</strong> $${choice}$
                         </div>
                     `).join('')}
                 </div>
                 <div id="feedback" class="feedback"></div>
                 <button class="next-btn" onclick="loadQuestion()" id="next-btn">Next Question</button>
             `;
+
+            // Render math with MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise([container]).catch((err) => console.log('MathJax error:', err));
+            }
         }
 
         async function selectAnswer(letter) {
