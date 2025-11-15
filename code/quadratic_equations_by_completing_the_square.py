@@ -887,6 +887,7 @@ def template_20():
         b = random.randint(1, 6)
         c = random.randint(1, 6)
         d = random.randint(1, 6)
+        new_b = 2 * b  # Recalculate derived variable
         new_c = c - d
 
         disc = 4 * b**2 - 4 * a * new_c
