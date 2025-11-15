@@ -147,20 +147,28 @@ def template_5():
         # Perfect square
         perfect_squares = [4, 9, 16, 25, 36, 49, 64, 81, 100]
         n = random.choice(perfect_squares)
-        correct_answer = "Yes"
+        correct_answer = "\\text{Yes}"
     else:
         # Non-perfect square
         non_perfect = [6, 8, 10, 12, 15, 18, 20, 24]
         n = random.choice(non_perfect)
-        correct_answer = "No"
+        correct_answer = "\\text{No}"
 
     question = f"\\text{{Is }} {n} \\text{{ a perfect square?}}"
 
     # Only 2 possible answers, so we need filler choices
     if correct_answer == "Yes":
-        wrong_answers = ["No", f"Yes, {n} = {int(math.sqrt(n)) + 1}²", f"No, √{n} is not an integer"]
+        wrong_answers = [
+            "\\text{No}",
+            f"\\text{{Yes, }} {n} = {int(math.sqrt(n)) + 1}^2",
+            f"\\text{{No, }} \\sqrt{{{n}}} \\text{{ is not an integer}}"
+        ]
     else:
-        wrong_answers = ["Yes", f"Yes, {n} = {random.randint(2, 8)}²", f"No, but close to {(int(math.sqrt(n)))**2}"]
+        wrong_answers = [
+            "\\text{Yes}",
+            f"\\text{{Yes, }} {n} = {random.randint(2, 8)}^2",
+            f"\\text{{No, but close to }} {(int(math.sqrt(n)))**2}"
+        ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
     return question, correct_letter, choices
