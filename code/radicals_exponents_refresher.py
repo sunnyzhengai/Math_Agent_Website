@@ -99,8 +99,8 @@ def template_3():
     a = random.randint(2, 5)
     n = random.randint(2, 4)
 
-    question = f"{a}^(-{n})"
-    correct_answer = f"1/{a}^{n}"
+    question = f"{a}^{{-{n}}}"
+    correct_answer = f"\\frac{{1}}{{{a}^{n}}}"
 
     # Wrong answers
     wrong_answers = [
