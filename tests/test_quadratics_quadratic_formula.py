@@ -2,7 +2,7 @@
 """
 Test script for quadratic formula templates
 
-Usage: python3 tests/test_quadratic_formula.py <template_number>
+Usage: python3 tests/test_quadratics_quadratic_formula.py <template_number>
 """
 
 import sys
@@ -12,17 +12,17 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'code'))
 
 try:
-    import quadratic_formula as qf
+    import quadratics_quadratic_formula as qf
 except ImportError:
-    print("Error: Could not import quadratic_formula.py")
+    print("Error: Could not import quadratics_quadratics_quadratic_formula.py")
     print("Make sure the file exists in the code/ directory")
     sys.exit(1)
 
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 tests/test_quadratic_formula.py <template_number>")
-        print("Example: python3 tests/test_quadratic_formula.py 1")
+        print("Usage: python3 tests/test_quadratics_quadratic_formula.py <template_number>")
+        print("Example: python3 tests/test_quadratics_quadratic_formula.py 1")
         sys.exit(1)
 
     try:

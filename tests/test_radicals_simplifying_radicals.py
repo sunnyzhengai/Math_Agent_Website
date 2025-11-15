@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Test script for vertex form templates
+Test script for simplifying radicals templates
 
-Usage: python3 tests/test_vertex_form.py <template_number>
+Usage: python3 tests/test_radicals_simplifying_radicals.py <template_number>
 """
 
 import sys
@@ -12,37 +12,37 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'code'))
 
 try:
-    import vertex_form as vf
+    import radicals_simplifying_radicals as sr
 except ImportError:
-    print("Error: Could not import vertex_form.py")
+    print("Error: Could not import radicals_radicals_simplifying_radicals.py")
     print("Make sure the file exists in the code/ directory")
     sys.exit(1)
 
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 tests/test_vertex_form.py <template_number>")
-        print("Example: python3 tests/test_vertex_form.py 1")
+        print("Usage: python3 tests/test_radicals_simplifying_radicals.py <template_number>")
+        print("Example: python3 tests/test_radicals_simplifying_radicals.py 1")
         sys.exit(1)
 
     try:
         template_num = int(sys.argv[1])
-        if template_num < 1 or template_num > 8:
-            print("Error: Template number must be between 1 and 8")
+        if template_num < 1 or template_num > 4:
+            print("Error: Template number must be between 1 and 4")
             sys.exit(1)
     except ValueError:
         print("Error: Template number must be an integer")
         sys.exit(1)
 
     # Get the template function
-    template_func = getattr(vf, f'template_{template_num}')
+    template_func = getattr(sr, f'template_{template_num}')
 
     # Generate question
     question, correct_letter, choices = template_func()
 
     # Display formatted output
     print("=" * 60)
-    print("Question:")
+    print("Simplify:")
     print()
     print(f"  {question}")
     print()

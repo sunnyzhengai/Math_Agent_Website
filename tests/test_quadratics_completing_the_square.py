@@ -3,12 +3,12 @@
 Test script for generating quadratic equation practice problems.
 
 Usage:
-    python3 test_quadratic_equations_by_completing_the_square.py <template_number>
+    python3 test_quadratics_completing_the_square.py <template_number>
 
 Where template_number is between 1 and 24.
 
 Example:
-    python3 test_quadratic_equations_by_completing_the_square.py 9
+    python3 test_quadratics_completing_the_square.py 9
 """
 
 import sys
@@ -17,7 +17,7 @@ import os
 # Add the code directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'code'))
 
-import quadratic_equations_by_completing_the_square as qe
+import quadratics_completing_the_square as qe
 
 
 def display_question(equation, choices):
@@ -50,8 +50,8 @@ def main():
     """
     # Check if template number was provided
     if len(sys.argv) != 2:
-        print("Usage: python3 test_quadratic_equations_by_completing_the_square.py <template_number>")
-        print("Example: python3 test_quadratic_equations_by_completing_the_square.py 9")
+        print("Usage: python3 test_quadratics_completing_the_square.py <template_number>")
+        print("Example: python3 test_quadratics_completing_the_square.py 9")
         print()
         print("Template numbers range from 1 to 24")
         sys.exit(1)

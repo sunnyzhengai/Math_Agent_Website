@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Test script for understanding radicals templates
+Test script for graphing and application templates
 
-Usage: python3 tests/test_understanding_radicals.py <template_number>
+Usage: python3 tests/test_quadratics_graphing_and_application.py <template_number>
 """
 
 import sys
@@ -12,30 +12,30 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'code'))
 
 try:
-    import understanding_radicals as ur
+    import quadratics_graphing_and_application as ga
 except ImportError:
-    print("Error: Could not import understanding_radicals.py")
+    print("Error: Could not import quadratics_quadratics_graphing_and_application.py")
     print("Make sure the file exists in the code/ directory")
     sys.exit(1)
 
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 tests/test_understanding_radicals.py <template_number>")
-        print("Example: python3 tests/test_understanding_radicals.py 1")
+        print("Usage: python3 tests/test_quadratics_graphing_and_application.py <template_number>")
+        print("Example: python3 tests/test_quadratics_graphing_and_application.py 1")
         sys.exit(1)
 
     try:
         template_num = int(sys.argv[1])
-        if template_num < 1 or template_num > 4:
-            print("Error: Template number must be between 1 and 4")
+        if template_num < 1 or template_num > 10:
+            print("Error: Template number must be between 1 and 10")
             sys.exit(1)
     except ValueError:
         print("Error: Template number must be an integer")
         sys.exit(1)
 
     # Get the template function
-    template_func = getattr(ur, f'template_{template_num}')
+    template_func = getattr(ga, f'template_{template_num}')
 
     # Generate question
     question, correct_letter, choices = template_func()

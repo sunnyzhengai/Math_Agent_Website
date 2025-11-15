@@ -1,6 +1,6 @@
 ### Phase 1: Create 24 question templates for "quadratic equations by completing the square"
 ## ME
-in tests/ folder: create a test script test_quadratic_equations_by_completing_the_square.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_quadratic_equations-by_completing_the_square.py 9 should return a question that looks like ax^2 + bx + c = x^2 + d (b > 0, c > 0, d > 0) with its 4 multiple choices.
+in tests/ folder: create a test script test_quadratics_completing_the_square.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_quadratic_equations-by_completing_the_square.py 9 should return a question that looks like ax^2 + bx + c = x^2 + d (b > 0, c > 0, d > 0) with its 4 multiple choices.
 
 # Example 𝑥^2 − 6𝑥 + 4 = 0 
 - create test template 1: x^2 + bx + c = 0 (b > 0, c > 0)
@@ -32,7 +32,7 @@ in tests/ folder: create a test script test_quadratic_equations_by_completing_th
 - create test template 23: ax^2 - bx + c = d - bx (b > 0, c > 0, d > 0) 
 - create test template 24: ax^2 - bx - c = d - bx (b > 0, c > 0, d > 0) 
 
-in code/ folder: create a python script quadratic_equations_by_completing_the_square.py
+in code/ folder: create a python script quadratics_completing_the_square.py
 - create functions that will return the 24 templates as listed above. when called with a parameter, it should return an equation of that template.
 - coefficients a, b, c, d should all be positive numbers
 - Answer Complexity Constraints (to ensure student-friendly problems):
@@ -52,7 +52,7 @@ in code/ folder: create a python script quadratic_equations_by_completing_the_sq
  Detailed Implementation Plan:
 
   Files to create:
-  1. code/quadratic_equations_by_completing_the_square.py
+  1. code/quadratics_completing_the_square.py
     - 24 functions: template_1() through template_24()
     - Each returns: (equation_string, correct_letter, [choice_A, choice_B, choice_C, choice_D])
     - Helper functions:
@@ -70,8 +70,8 @@ in code/ folder: create a python script quadratic_equations_by_completing_the_sq
       * Fractions: x = -7/2 (simplified)
       * Radicals: x = 3 - √5 or x = (-2 + √7)/3 (simplified)
 
-  2. tests/test_quadratic_equations_by_completing_the_square.py
-    - Imports from code/quadratic_equations_by_completing_the_square.py
+  2. tests/test_quadratics_completing_the_square.py
+    - Imports from code/quadratics_completing_the_square.py
     - Accepts template number (1-24) as command line argument
     - Calls appropriate template function
     - Displays formatted question + 4 choices
@@ -89,7 +89,7 @@ in code/ folder: create a python script quadratic_equations_by_completing_the_sq
   - Arithmetic errors in calculation
 
   Example output:
-  $ python3 tests/test_quadratic_equations_by_completing_the_square.py 9
+  $ python3 tests/test_quadratics_completing_the_square.py 9
 
   ============================================================
   Solve by completing the square:
@@ -109,7 +109,7 @@ in code/ folder: create a python script quadratic_equations_by_completing_the_sq
 Create question templates for radical foundations (exponents, understanding, simplifying, operations)
 
 ## ME
-in tests/ folder: create a test script test_exponents_refresher.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_exponents_refresher.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_radicals_exponents_refresher.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_radicals_exponents_refresher.py 1 should return a question with 4 multiple choices.
 
 # Exponent Rules
 - create test template 1: Evaluate a^m × a^n (product rule)
@@ -118,7 +118,7 @@ in tests/ folder: create a test script test_exponents_refresher.py. when we run 
 - create test template 4: Evaluate (a^m)^n (power rule)
 - create test template 5: Is n a perfect square? (true/false recognition)
 
-in code/ folder: create a python script exponents_refresher.py
+in code/ folder: create a python script radicals_exponents_refresher.py
 - create functions that will return the 5 templates as listed above
 - coefficients a, m, n should all be positive numbers
 - Answer Complexity Constraints:
@@ -131,7 +131,7 @@ in code/ folder: create a python script exponents_refresher.py
   * Algebraic answers: x^3, x^(-2), 1/x^2
   * True/false: "Yes" or "No"
 
-in tests/ folder: create a test script test_understanding_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_understanding_radicals.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_radicals_understanding_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_radicals_understanding_radicals.py 1 should return a question with 4 multiple choices.
 
 # Basic Radical Understanding
 - create test template 1: What is √n? (n is perfect square)
@@ -139,7 +139,7 @@ in tests/ folder: create a test script test_understanding_radicals.py. when we r
 - create test template 3: Rewrite ⁿ√(x^m) as a power (convert to rational exponent)
 - create test template 4: √n is between what two integers? (n is non-perfect square)
 
-in code/ folder: create a python script understanding_radicals.py
+in code/ folder: create a python script radicals_understanding_radicals.py
 - create functions that will return the 4 templates as listed above
 - coefficients n, m should all be positive numbers
 - Answer Complexity Constraints:
@@ -153,7 +153,7 @@ in code/ folder: create a python script understanding_radicals.py
   * Rational exponents: x^(2/3)
   * Between integers: "between 5 and 6"
 
-in tests/ folder: create a test script test_simplifying_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_simplifying_radicals.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_radicals_simplifying_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_radicals_simplifying_radicals.py 1 should return a question with 4 multiple choices.
 
 # Simplifying Radicals
 - create test template 1: Simplify √n (n has perfect square factor, e.g., √50 = 5√2)
@@ -161,7 +161,7 @@ in tests/ folder: create a test script test_simplifying_radicals.py. when we run
 - create test template 3: Multiply and simplify √a × √b
 - create test template 4: Divide and simplify √a / √b
 
-in code/ folder: create a python script simplifying_radicals.py
+in code/ folder: create a python script radicals_simplifying_radicals.py
 - create functions that will return the 4 templates as listed above
 - coefficients a, b, n, m should all be positive numbers
 - Answer Complexity Constraints:
@@ -174,7 +174,7 @@ in code/ folder: create a python script simplifying_radicals.py
   * With variables: 2x√(3x)
   * Simplified expressions: √6, 4
 
-in tests/ folder: create a test script test_operations_with_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_operations_with_radicals.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_radicals_operations_with_radicals.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_radicals_operations_with_radicals.py 1 should return a question with 4 multiple choices.
 
 # Operations with Radicals
 - create test template 1: Add like radicals: a√n + b√n
@@ -182,7 +182,7 @@ in tests/ folder: create a test script test_operations_with_radicals.py. when we
 - create test template 3: Rationalize denominator: a/√n
 - create test template 4: Rationalize denominator: a/(b + √n) [conjugate method]
 
-in code/ folder: create a python script operations_with_radicals.py
+in code/ folder: create a python script radicals_operations_with_radicals.py
 - create functions that will return the 4 templates as listed above
 - coefficients a, b, n should all be positive numbers
 - Answer Complexity Constraints:
@@ -201,23 +201,23 @@ Detailed Implementation Plan:
 
 For each of the 4 skills (17 templates total):
 
-1. **test_exponents_refresher.py** (5 templates)
-   - Imports from code/exponents_refresher.py
+1. **test_radicals_exponents_refresher.py** (5 templates)
+   - Imports from code/radicals_exponents_refresher.py
    - Displays formatted question with 4 choices
    - Shows correct answer for debugging
 
-2. **test_understanding_radicals.py** (4 templates)
-   - Imports from code/understanding_radicals.py
+2. **test_radicals_understanding_radicals.py** (4 templates)
+   - Imports from code/radicals_understanding_radicals.py
    - Displays formatted question with 4 choices
    - Shows correct answer for debugging
 
-3. **test_simplifying_radicals.py** (4 templates)
-   - Imports from code/simplifying_radicals.py
+3. **test_radicals_simplifying_radicals.py** (4 templates)
+   - Imports from code/radicals_simplifying_radicals.py
    - Displays formatted question with 4 choices
    - Shows correct answer for debugging
 
-4. **test_operations_with_radicals.py** (4 templates)
-   - Imports from code/operations_with_radicals.py
+4. **test_radicals_operations_with_radicals.py** (4 templates)
+   - Imports from code/radicals_operations_with_radicals.py
    - Displays formatted question with 4 choices
    - Shows correct answer for debugging
 
@@ -228,7 +228,7 @@ Common mistake patterns for wrong answers:
 - Rationalization: multiplying by wrong conjugate, not simplifying fully
 
 Example output:
-$ python3 tests/test_exponents_refresher.py 1
+$ python3 tests/test_radicals_exponents_refresher.py 1
 
 ============================================================
 Evaluate:
@@ -246,7 +246,7 @@ Multiple Choice Options:
 
 ### Phase 3: Stage 5 - Solving Equations Using Radicals
 ## ME
-in tests/ folder: create a test script test_solving_with_square_roots.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_solving_with_square_roots.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_quadratics_solving_with_square_roots.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_quadratics_solving_with_square_roots.py 1 should return a question with 4 multiple choices.
 
 # Solve with square roots
 - create test template 1: x² = n (where n is a perfect square, e.g., 49, 64, 81)
@@ -262,7 +262,7 @@ in tests/ folder: create a test script test_solving_with_square_roots.py. when w
 - create test template 7: √(x + a) = x - b (where one solution is extraneous)
 - create test template 8: √(x - a) = x - b (where one solution is extraneous)
 
-in code/ folder: create a python script solving_with_square_roots.py
+in code/ folder: create a python script quadratics_solving_with_square_roots.py
 - create functions that will return the 8 templates as listed above
 - coefficients a, b, n should all be positive numbers
 - Answer Complexity Constraints:
@@ -278,7 +278,7 @@ in code/ folder: create a python script solving_with_square_roots.py
 
 ### Phase 4: Stage 6 - Completing the Square for Vertex Form
 ## ME
-in tests/ folder: create a test script test_vertex_form.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_vertex_form.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_quadratics_vertex_form.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_quadratics_vertex_form.py 1 should return a question with 4 multiple choices.
 
 # Create perfect square trinomials
 - create test template 1: x² + bx + ? = (x + ?)² (b even, b > 0)
@@ -292,7 +292,7 @@ in tests/ folder: create a test script test_vertex_form.py. when we run the test
 - create test template 7: y = x² + bx - c → y = (x + h)² + k (b even, b > 0, c > 0)
 - create test template 8: y = x² - bx - c → y = (x - h)² + k (b even, b > 0, c > 0)
 
-in code/ folder: create a python script vertex_form.py
+in code/ folder: create a python script quadratics_vertex_form.py
 - create functions that will return the 8 templates as listed above
 - coefficients b, c should all be positive numbers
 - Answer Complexity Constraints:
@@ -307,7 +307,7 @@ in code/ folder: create a python script vertex_form.py
 
 ### Phase 5: Stage 7 - Quadratic Formula and Discriminant
 ## ME
-in tests/ folder: create a test script test_quadratic_formula.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_quadratic_formula.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_quadratics_quadratic_formula.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_quadratics_quadratic_formula.py 1 should return a question with 4 multiple choices.
 
 # Apply quadratic formula
 - create test template 1: Solve ax² + bx + c = 0 using quadratic formula (discriminant is perfect square)
@@ -329,7 +329,7 @@ in tests/ folder: create a test script test_quadratic_formula.py. when we run th
 - create test template 11: Simplify x = (-b ± √discriminant)/(2a) where discriminant = 48
 - create test template 12: Simplify x = (-b ± √discriminant)/(2a) where discriminant = 50
 
-in code/ folder: create a python script quadratic_formula.py
+in code/ folder: create a python script quadratics_quadratic_formula.py
 - create functions that will return the 12 templates as listed above
 - coefficients a, b, c should all be positive numbers
 - Answer Complexity Constraints:
@@ -344,7 +344,7 @@ in code/ folder: create a python script quadratic_formula.py
 
 ### Phase 6: Stage 8 - Application and Graphing
 ## ME
-in tests/ folder: create a test script test_graphing_and_application.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_graphing_and_application.py 1 should return a question with 4 multiple choices.
+in tests/ folder: create a test script test_quadratics_graphing_and_application.py. when we run the test with a parameter number, it should generate a template with that number: e.g. python3 test_quadratics_graphing_and_application.py 1 should return a question with 4 multiple choices.
 
 # Find x-intercepts via radicals
 - create test template 1: Find x-intercepts of y = x² - n (n perfect square)
@@ -362,7 +362,7 @@ in tests/ folder: create a test script test_graphing_and_application.py. when we
 - create test template 9: If b² - 4ac < 0, how many x-intercepts does the graph have?
 - create test template 10: For y = ax² + bx + c, if discriminant = 49, how many x-intercepts?
 
-in code/ folder: create a python script graphing_and_application.py
+in code/ folder: create a python script quadratics_graphing_and_application.py
 - create functions that will return the 10 templates as listed above
 - coefficients a, b, c should all be positive numbers
 - Answer Complexity Constraints:

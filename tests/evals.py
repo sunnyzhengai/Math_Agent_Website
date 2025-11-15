@@ -11,7 +11,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'code'))
 
-import quadratic_equations_by_completing_the_square as qe
+import quadratics_completing_the_square as qe
 import re
 
 
@@ -224,25 +224,25 @@ def eval_no_plus_minus_formatting():
     ]
 
     # Import all skill modules
-    import vertex_form
-    import quadratic_formula
-    import graphing_and_application
-    import exponents_refresher
-    import understanding_radicals
-    import simplifying_radicals
-    import operations_with_radicals
-    import solving_with_square_roots as solving_radicals
+    import radicals_exponents_refresher
+    import radicals_understanding_radicals
+    import radicals_simplifying_radicals
+    import radicals_operations_with_radicals
+    import quadratics_vertex_form
+    import quadratics_quadratic_formula
+    import quadratics_graphing_and_application
+    import quadratics_solving_with_square_roots
 
     all_modules = [
-        (qe, 24, "qe"),
-        (vertex_form, 8, "vertex_form"),
-        (quadratic_formula, 12, "quadratic_formula"),
-        (graphing_and_application, 10, "graphing"),
-        (exponents_refresher, 5, "exponents"),
-        (understanding_radicals, 4, "understanding_radicals"),
-        (simplifying_radicals, 4, "simplifying_radicals"),
-        (operations_with_radicals, 4, "operations_radicals"),
-        (solving_radicals, 8, "solving_radicals"),
+        (qe, 24, "quadratics_completing_the_square"),
+        (radicals_exponents_refresher, 5, "radicals_exponents_refresher"),
+        (radicals_understanding_radicals, 4, "radicals_understanding_radicals"),
+        (radicals_simplifying_radicals, 4, "radicals_simplifying_radicals"),
+        (radicals_operations_with_radicals, 4, "radicals_operations_with_radicals"),
+        (quadratics_solving_with_square_roots, 8, "quadratics_solving_with_square_roots"),
+        (quadratics_vertex_form, 8, "quadratics_vertex_form"),
+        (quadratics_quadratic_formula, 12, "quadratics_quadratic_formula"),
+        (quadratics_graphing_and_application, 10, "quadratics_graphing_and_application"),
     ]
 
     for module, template_count, module_name in all_modules:

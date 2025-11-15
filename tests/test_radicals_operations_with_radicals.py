@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Test script for solving equations with square roots templates
+Test script for operations with radicals templates
 
-Usage: python3 tests/test_solving_with_square_roots.py <template_number>
+Usage: python3 tests/test_radicals_operations_with_radicals.py <template_number>
 """
 
 import sys
@@ -12,39 +12,39 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'code'))
 
 try:
-    import solving_with_square_roots as swr
+    import radicals_operations_with_radicals as opr
 except ImportError:
-    print("Error: Could not import solving_with_square_roots.py")
+    print("Error: Could not import radicals_radicals_operations_with_radicals.py")
     print("Make sure the file exists in the code/ directory")
     sys.exit(1)
 
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 tests/test_solving_with_square_roots.py <template_number>")
-        print("Example: python3 tests/test_solving_with_square_roots.py 1")
+        print("Usage: python3 tests/test_radicals_operations_with_radicals.py <template_number>")
+        print("Example: python3 tests/test_radicals_operations_with_radicals.py 1")
         sys.exit(1)
 
     try:
         template_num = int(sys.argv[1])
-        if template_num < 1 or template_num > 8:
-            print("Error: Template number must be between 1 and 8")
+        if template_num < 1 or template_num > 4:
+            print("Error: Template number must be between 1 and 4")
             sys.exit(1)
     except ValueError:
         print("Error: Template number must be an integer")
         sys.exit(1)
 
     # Get the template function
-    template_func = getattr(swr, f'template_{template_num}')
+    template_func = getattr(opr, f'template_{template_num}')
 
     # Generate question
-    equation, correct_letter, choices = template_func()
+    question, correct_letter, choices = template_func()
 
     # Display formatted output
     print("=" * 60)
-    print("Solve the equation:")
+    print("Simplify:")
     print()
-    print(f"  {equation}")
+    print(f"  {question}")
     print()
     print("Multiple Choice Options:")
     for i, choice in enumerate(choices):

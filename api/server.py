@@ -24,68 +24,68 @@ from uuid import uuid4
 sys.path.insert(0, str(Path(__file__).parent.parent / "code"))
 
 # Import all available skill modules
-import quadratic_equations_by_completing_the_square as qe_completing_square
-import solving_with_square_roots as solving_radicals
-import exponents_refresher as exponents
-import understanding_radicals
-import simplifying_radicals
-import operations_with_radicals
-import vertex_form
-import quadratic_formula
-import graphing_and_application
+import radicals_exponents_refresher
+import radicals_understanding_radicals
+import radicals_simplifying_radicals
+import radicals_operations_with_radicals
+import quadratics_completing_the_square
+import quadratics_solving_with_square_roots
+import quadratics_vertex_form
+import quadratics_quadratic_formula
+import quadratics_graphing_and_application
 
 # Skill registry: maps skill_id to (module, template_count, display_name)
 SKILLS = {
     "radicals.exponents": {
-        "module": exponents,
+        "module": radicals_exponents_refresher,
         "template_count": 5,
         "name": "Exponents Refresher",
         "category": "Radicals"
     },
     "radicals.understanding": {
-        "module": understanding_radicals,
+        "module": radicals_understanding_radicals,
         "template_count": 4,
         "name": "Understanding Radicals",
         "category": "Radicals"
     },
     "radicals.simplifying": {
-        "module": simplifying_radicals,
+        "module": radicals_simplifying_radicals,
         "template_count": 4,
         "name": "Simplifying Radicals",
         "category": "Radicals"
     },
     "radicals.operations": {
-        "module": operations_with_radicals,
+        "module": radicals_operations_with_radicals,
         "template_count": 4,
         "name": "Operations with Radicals",
         "category": "Radicals"
     },
     "quad.completing_square": {
-        "module": qe_completing_square,
+        "module": quadratics_completing_the_square,
         "template_count": 24,
         "name": "Completing the Square",
         "category": "Quadratics"
     },
     "quad.solving": {
-        "module": solving_radicals,
+        "module": quadratics_solving_with_square_roots,
         "template_count": 8,
         "name": "Solving with Square Roots",
         "category": "Quadratics"
     },
     "quad.vertex_form": {
-        "module": vertex_form,
+        "module": quadratics_vertex_form,
         "template_count": 8,
         "name": "Vertex Form",
         "category": "Quadratics"
     },
     "quad.formula": {
-        "module": quadratic_formula,
+        "module": quadratics_quadratic_formula,
         "template_count": 12,
         "name": "Quadratic Formula",
         "category": "Quadratics"
     },
     "quad.graphing": {
-        "module": graphing_and_application,
+        "module": quadratics_graphing_and_application,
         "template_count": 10,
         "name": "Graphing and Application",
         "category": "Quadratics"
