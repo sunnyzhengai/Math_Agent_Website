@@ -169,6 +169,25 @@
             margin-bottom: 20px;
         }
 
+        .back-btn {
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
         @media (max-width: 600px) {
             .choices {
                 grid-template-columns: 1fr;
@@ -198,6 +217,9 @@
         </div>
 
         <div id="practice-area" style="display: none;">
+            <button onclick="backToSkills()" class="back-btn">
+                ← Back to Skills
+            </button>
             <div id="skill-title" class="subtitle" style="font-size: 18px; font-weight: 600; margin-bottom: 10px;"></div>
             <div id="progress" class="progress">Question 1 of 24</div>
             <div id="score" class="score">Score: 0 / 0</div>
@@ -262,6 +284,17 @@
 
             // Load first question
             loadQuestion();
+        }
+
+        function backToSkills() {
+            // Hide practice area, show skill selector
+            document.getElementById('practice-area').style.display = 'none';
+            document.getElementById('skill-selector').style.display = 'block';
+
+            // Reset state
+            currentSkillId = null;
+            sessionId = null;
+            answered = false;
         }
 
         async function loadQuestion() {
