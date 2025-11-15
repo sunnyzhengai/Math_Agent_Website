@@ -120,11 +120,72 @@ def eval_choice_uniqueness():
     return results.failed == 0
 
 
-# EVAL 4: Sign Formatting
+# EVAL 4: No Mathematically Equivalent Answers
+# Checks for multiple correct answers in different forms (e.g., "5^7" and "78125")
+def eval_no_equivalent_answers():
+    """Verify no mathematically equivalent answers appear as different choices"""
+    print("EVAL 4: No Mathematically Equivalent Answers")
+    results = EvalResults()
+
+    for template_num in range(1, 25):
+        template_func = getattr(qe, f'template_{template_num}')
+
+        for trial in range(5):  # Test 5 times per template
+            equation, correct_letter, choices = template_func()
+            correct_idx = ord(correct_letter) - ord('A')
+            correct_answer = choices[correct_idx]
+
+            # Try to evaluate all choices to numeric values
+            evaluated_choices = []
+            for i, choice in enumerate(choices):
+                try:
+                    # Remove "x = " prefix if present
+                    value_str = choice.replace('x = ', '').replace(' or x = ', ',').split(',')[0].strip()
+
+                    # Try to evaluate simple expressions with ^
+                    if '^' in value_str:
+                        # Parse expressions like "5^7"
+                        parts = value_str.split('^')
+                        if len(parts) == 2 and parts[0].isdigit() and parts[1].lstrip('-').isdigit():
+                            numeric_value = int(parts[0]) ** int(parts[1])
+                            evaluated_choices.append((i, numeric_value, choice))
+                    elif value_str.lstrip('-').isdigit():
+                        # Simple integer
+                        evaluated_choices.append((i, int(value_str), choice))
+                except:
+                    # If we can't evaluate, skip this choice
+                    pass
+
+            # Check for duplicate numeric values
+            if len(evaluated_choices) > 0:
+                values = [val for _, val, _ in evaluated_choices]
+                if len(values) != len(set(values)):
+                    # Found duplicates
+                    value_counts = {}
+                    for idx, val, choice_text in evaluated_choices:
+                        if val not in value_counts:
+                            value_counts[val] = []
+                        value_counts[val].append((idx, choice_text))
+
+                    for val, occurrences in value_counts.items():
+                        if len(occurrences) > 1:
+                            choices_str = ', '.join([f"{chr(65+idx)}: {txt}" for idx, txt in occurrences])
+                            results.add_fail(f"Template {template_num} trial {trial+1}: Equivalent answers with value {val}: {choices_str}")
+                else:
+                    results.add_pass()
+            else:
+                # Couldn't evaluate any choices (likely complex expressions)
+                results.add_pass()
+
+    results.print_summary()
+    return results.failed == 0
+
+
+# EVAL 5: Sign Formatting
 # Error #5: Formatting Artifacts
 def eval_sign_formatting():
     """Verify no formatting artifacts like '+5', '-0'"""
-    print("EVAL 4: Sign Formatting")
+    print("EVAL 5: Sign Formatting")
     results = EvalResults()
 
     bad_patterns = [
@@ -150,11 +211,11 @@ def eval_sign_formatting():
     return results.failed == 0
 
 
-# EVAL 5: Discriminant Complexity
+# EVAL 6: Discriminant Complexity
 # Error #9, #10, #11: Incomplete Discriminant Validation, Overly Broad Ranges
 def eval_discriminant_complexity():
     """Verify discriminants produce simple answers (≤20 for non-perfect squares)"""
-    print("EVAL 5: Discriminant Complexity")
+    print("EVAL 6: Discriminant Complexity")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -187,11 +248,11 @@ def eval_discriminant_complexity():
     return results.failed == 0
 
 
-# EVAL 6: Solution Ordering
+# EVAL 7: Solution Ordering
 # Error #3: Solution Ordering Issues
 def eval_solution_ordering():
     """Verify solutions are displayed in ascending order (x1 ≤ x2)"""
-    print("EVAL 6: Solution Ordering")
+    print("EVAL 7: Solution Ordering")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -222,11 +283,11 @@ def eval_solution_ordering():
     return results.failed == 0
 
 
-# EVAL 7: Integration Test (All Templates Work)
+# EVAL 8: Integration Test (All Templates Work)
 # Error #8: Incomplete Template Function Updates
 def eval_integration():
     """Verify all 24 templates run without errors"""
-    print("EVAL 7: Integration Test")
+    print("EVAL 8: Integration Test")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -247,11 +308,11 @@ def eval_integration():
     return results.failed == 0
 
 
-# EVAL 8: Type Contract Consistency
+# EVAL 9: Type Contract Consistency
 # Error #1: Data Structure Mismatch
 def eval_type_contracts():
     """Verify function return types are consistent"""
-    print("EVAL 8: Type Contract Consistency")
+    print("EVAL 9: Type Contract Consistency")
     results = EvalResults()
 
     # Test solve_by_completing_square returns dict
@@ -279,11 +340,11 @@ def eval_type_contracts():
     return results.failed == 0
 
 
-# EVAL 9: Coefficient Formatting
+# EVAL 10: Coefficient Formatting
 # Error #13: Coefficient of 1 displayed as '1x' instead of 'x'
 def eval_coefficient_formatting():
     """Verify coefficient of 1 is omitted (x not 1x, x² not 1x²)"""
-    print("EVAL 9: Coefficient Formatting")
+    print("EVAL 10: Coefficient Formatting")
     results = EvalResults()
 
     for template_num in range(1, 25):
@@ -306,11 +367,11 @@ def eval_coefficient_formatting():
     return results.failed == 0
 
 
-# EVAL 10: Coefficient Ranges
+# EVAL 11: Coefficient Ranges
 # Error #10: Overly Broad Coefficient Ranges
 def eval_coefficient_ranges():
     """Verify coefficients are within specified ranges"""
-    print("EVAL 10: Coefficient Ranges")
+    print("EVAL 11: Coefficient Ranges")
     results = EvalResults()
 
     # Sample templates and parse equations to check coefficient ranges
@@ -373,6 +434,7 @@ def main():
     all_passed &= eval_mathematical_correctness()
     all_passed &= eval_format_no_decimals()
     all_passed &= eval_choice_uniqueness()
+    all_passed &= eval_no_equivalent_answers()
     all_passed &= eval_sign_formatting()
     all_passed &= eval_discriminant_complexity()
     all_passed &= eval_solution_ordering()
