@@ -154,7 +154,7 @@ def template_5():
         n = random.choice(non_perfect)
         correct_answer = "No"
 
-    question = f"Is {n} a perfect square?"
+    question = f"\\text{{Is }} {n} \\text{{ a perfect square?}}"
 
     # Only 2 possible answers, so we need filler choices
     if correct_answer == "Yes":
