@@ -156,18 +156,23 @@ def template_5():
 
     question = f"\\text{{Is }} {n} \\text{{ a perfect square?}}"
 
-    # Only 2 possible answers, so we need filler choices
-    if correct_answer == "Yes":
+    # Only 2 possible answers, so we need clearly wrong distractors
+    if correct_answer == "\\text{Yes}":
+        # n IS a perfect square
+        sqrt_n = int(math.sqrt(n))
+        wrong_sqrt = sqrt_n + 1 if sqrt_n < 10 else sqrt_n - 1
         wrong_answers = [
             "\\text{No}",
-            f"\\text{{Yes, }} {n} = {int(math.sqrt(n)) + 1}^2",
-            f"\\text{{No, }} \\sqrt{{{n}}} \\text{{ is not an integer}}"
+            f"\\text{{Yes, because }} {n} = {wrong_sqrt}^2",  # Wrong factorization
+            f"\\text{{No, }} \\sqrt{{{n}}} = {sqrt_n + 0.5}"  # Wrong - it's actually an integer
         ]
     else:
+        # n is NOT a perfect square
+        wrong_sqrt = random.randint(2, 8)
         wrong_answers = [
             "\\text{Yes}",
-            f"\\text{{Yes, }} {n} = {random.randint(2, 8)}^2",
-            f"\\text{{No, but close to }} {(int(math.sqrt(n)))**2}"
+            f"\\text{{Yes, because }} {n} = {wrong_sqrt}^2",  # Wrong - this is false
+            f"\\text{{Yes, }} \\sqrt{{{n}}} = {wrong_sqrt}"  # Wrong - claiming it has integer root
         ]
 
     correct_letter, choices = generate_choices_simple(correct_answer, wrong_answers)
