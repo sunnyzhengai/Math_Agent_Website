@@ -27,6 +27,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "code"))
 import quadratic_equations_by_completing_the_square as qe_completing_square
 import solving_with_square_roots as solving_radicals
 import exponents_refresher as exponents
+import understanding_radicals
+import simplifying_radicals
+import operations_with_radicals
 
 # Skill registry: maps skill_id to (module, template_count, display_name)
 SKILLS = {
@@ -46,6 +49,24 @@ SKILLS = {
         "module": exponents,
         "template_count": 5,
         "name": "Exponents Refresher",
+        "category": "Radicals"
+    },
+    "radicals.understanding": {
+        "module": understanding_radicals,
+        "template_count": 4,
+        "name": "Understanding Radicals",
+        "category": "Radicals"
+    },
+    "radicals.simplifying": {
+        "module": simplifying_radicals,
+        "template_count": 4,
+        "name": "Simplifying Radicals",
+        "category": "Radicals"
+    },
+    "radicals.operations": {
+        "module": operations_with_radicals,
+        "template_count": 4,
+        "name": "Operations with Radicals",
         "category": "Radicals"
     }
 }
