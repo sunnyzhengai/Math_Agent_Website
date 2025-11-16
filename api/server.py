@@ -147,7 +147,7 @@ class SubmitAnswerRequest(BaseModel):
     """Request model for submitting an answer"""
     session_id: str
     is_correct: bool
-    user_id: str = "julia"  # Default user ID for Julia
+    user_id: str = "default_user"  # Default user ID if not provided
 
 
 class SubmitAnswerResponse(BaseModel):
@@ -351,7 +351,7 @@ async def reset_session(session_id: str = None):
 
 
 @app.get("/api/tracking")
-async def get_tracking(user_id: str = "julia"):
+async def get_tracking(user_id: str = "default_user"):
     """Get user tracking statistics"""
     if user_id not in user_tracking:
         # Return empty stats for new users

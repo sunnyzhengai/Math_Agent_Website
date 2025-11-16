@@ -236,19 +236,19 @@ def test_tracking_multiple_users():
 # ============================================================================
 
 def test_tracking_default_user_id():
-    """Submit should default to 'julia' if user_id not provided"""
+    """Submit should default to 'default_user' if user_id not provided"""
     # Get a question
     question_response = client.get("/api/question?skill_id=radicals.exponents")
     session_id = question_response.json()["progress"]["session_id"]
 
-    # Submit without user_id (should default to 'julia')
+    # Submit without user_id (should default to 'default_user')
     client.post("/api/submit", json={
         "session_id": session_id,
         "is_correct": True
     })
 
-    # Check tracking for 'julia'
-    tracking = client.get("/api/tracking?user_id=julia").json()
+    # Check tracking for 'default_user'
+    tracking = client.get("/api/tracking?user_id=default_user").json()
 
     # Should have at least this submission
     assert tracking["total_questions"] >= 1

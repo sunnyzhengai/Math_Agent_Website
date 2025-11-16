@@ -365,6 +365,16 @@
     </div>
 
     <script>
+        // Get or create a unique user ID for this browser
+        let userId = localStorage.getItem('math_practice_user_id');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('math_practice_user_id', userId);
+            console.log('Created new user ID:', userId);
+        } else {
+            console.log('Using existing user ID:', userId);
+        }
+
         let currentQuestion = null;
         let answered = false;
         let sessionId = null;
@@ -526,7 +536,7 @@
                     body: JSON.stringify({
                         session_id: sessionId,
                         is_correct: isCorrect,
-                        user_id: 'julia'
+                        user_id: userId
                     })
                 });
                 const data = await response.json();
@@ -556,7 +566,7 @@
         // Load tracking data
         async function loadTracking() {
             try {
-                const response = await fetch('/api/tracking?user_id=julia');
+                const response = await fetch(`/api/tracking?user_id=${userId}`);
                 const data = await response.json();
                 renderTracking(data);
             } catch (error) {
