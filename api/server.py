@@ -110,6 +110,22 @@ if web_dir.exists():
 # }
 sessions = {}
 
+# User tracking storage: {
+#   user_id: {
+#     "categories": {
+#       "Radicals": {"questions": 10, "correct": 8},
+#       "Quadratics": {"questions": 20, "correct": 15}
+#     },
+#     "skills": {
+#       "radicals.exponents": {"questions": 5, "correct": 4, "name": "Exponents Refresher"},
+#       "quad.completing_square": {"questions": 10, "correct": 7, "name": "Completing the Square"}
+#     },
+#     "total_questions": 30,
+#     "total_correct": 23
+#   }
+# }
+user_tracking = {}
+
 
 class SkillInfo(BaseModel):
     """Information about a skill"""
@@ -131,6 +147,7 @@ class SubmitAnswerRequest(BaseModel):
     """Request model for submitting an answer"""
     session_id: str
     is_correct: bool
+    user_id: str = "julia"  # Default user ID for Julia
 
 
 class SubmitAnswerResponse(BaseModel):
@@ -258,6 +275,7 @@ async def get_question(skill_id: str = "quad.completing_square", session_id: str
 async def submit_answer(request: SubmitAnswerRequest):
     """Record answer result and update score"""
     session_id = request.session_id
+    user_id = request.user_id
 
     if session_id not in sessions:
         # Session doesn't exist, return zeros
@@ -267,6 +285,43 @@ async def submit_answer(request: SubmitAnswerRequest):
     session["total"] += 1
     if request.is_correct:
         session["correct"] += 1
+
+    # Update user tracking
+    skill_id = session.get("skill_id")
+    if skill_id and skill_id in SKILLS:
+        skill_data = SKILLS[skill_id]
+        category = skill_data["category"]
+        skill_name = skill_data["name"]
+
+        # Initialize user tracking if not exists
+        if user_id not in user_tracking:
+            user_tracking[user_id] = {
+                "categories": {},
+                "skills": {},
+                "total_questions": 0,
+                "total_correct": 0
+            }
+
+        user_stats = user_tracking[user_id]
+
+        # Update category stats
+        if category not in user_stats["categories"]:
+            user_stats["categories"][category] = {"questions": 0, "correct": 0}
+        user_stats["categories"][category]["questions"] += 1
+        if request.is_correct:
+            user_stats["categories"][category]["correct"] += 1
+
+        # Update skill stats
+        if skill_id not in user_stats["skills"]:
+            user_stats["skills"][skill_id] = {"questions": 0, "correct": 0, "name": skill_name}
+        user_stats["skills"][skill_id]["questions"] += 1
+        if request.is_correct:
+            user_stats["skills"][skill_id]["correct"] += 1
+
+        # Update totals
+        user_stats["total_questions"] += 1
+        if request.is_correct:
+            user_stats["total_correct"] += 1
 
     return SubmitAnswerResponse(
         correct=session["correct"],
@@ -293,6 +348,21 @@ async def reset_session(session_id: str = None):
         message="Session reset successfully",
         session_id=new_session_id
     )
+
+
+@app.get("/api/tracking")
+async def get_tracking(user_id: str = "julia"):
+    """Get user tracking statistics"""
+    if user_id not in user_tracking:
+        # Return empty stats for new users
+        return {
+            "categories": {},
+            "skills": {},
+            "total_questions": 0,
+            "total_correct": 0
+        }
+
+    return user_tracking[user_id]
 
 
 @app.get("/health")

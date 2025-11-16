@@ -32,16 +32,95 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             padding: 20px;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+
+        .tracking-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 350px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        .tracking-panel h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .stat-section {
+            margin-bottom: 25px;
+        }
+
+        .stat-section h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .accuracy {
+            color: #48bb78;
+        }
+
+        .total-stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .total-stats .big-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .total-stats .label {
+            font-size: 14px;
+            opacity: 0.9;
         }
 
         .container {
             background: white;
             border-radius: 20px;
             padding: 40px;
-            max-width: 800px;
-            width: 100%;
+            flex: 1;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
@@ -203,7 +282,15 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
+            .main-layout {
+                flex-direction: column;
+            }
+
+            .tracking-panel {
+                width: 100%;
+            }
+
             .choices {
                 grid-template-columns: 1fr;
             }
@@ -223,24 +310,56 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Math Practice Platform</h1>
-        <p class="subtitle">Select a skill to practice</p>
+    <div class="main-layout">
+        <!-- Tracking Panel -->
+        <div class="tracking-panel">
+            <h2>Your Progress</h2>
 
-        <div id="skill-selector" style="margin-bottom: 30px;">
-            <div class="loading">Loading skills...</div>
+            <div class="total-stats">
+                <div class="label">Total Questions Answered</div>
+                <div class="big-number" id="total-questions">0</div>
+                <div class="label">Accuracy: <span id="total-accuracy">0%</span></div>
+            </div>
+
+            <div class="stat-section">
+                <h3>By Category</h3>
+                <div id="category-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">No data yet</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-section">
+                <h3>Recent Skills</h3>
+                <div id="skill-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">No data yet</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="practice-area" style="display: none;">
-            <button onclick="backToSkills()" class="back-btn">
-                ← Back to Skills
-            </button>
-            <div id="skill-title" class="subtitle" style="font-size: 18px; font-weight: 600; margin-bottom: 10px;"></div>
-            <div id="progress" class="progress">Question 1 of 24</div>
-            <div id="score" class="score">Score: 0 / 0</div>
+        <!-- Main Practice Area -->
+        <div class="container">
+            <h1>Math Practice Platform</h1>
+            <p class="subtitle">Select a skill to practice</p>
 
-            <div id="question-container">
-                <div class="loading">Loading question...</div>
+            <div id="skill-selector" style="margin-bottom: 30px;">
+                <div class="loading">Loading skills...</div>
+            </div>
+
+            <div id="practice-area" style="display: none;">
+                <button onclick="backToSkills()" class="back-btn">
+                    ← Back to Skills
+                </button>
+                <div id="skill-title" class="subtitle" style="font-size: 18px; font-weight: 600; margin-bottom: 10px;"></div>
+                <div id="progress" class="progress">Question 1 of 24</div>
+                <div id="score" class="score">Score: 0 / 0</div>
+
+                <div id="question-container">
+                    <div class="loading">Loading question...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -406,7 +525,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         session_id: sessionId,
-                        is_correct: isCorrect
+                        is_correct: isCorrect,
+                        user_id: 'julia'
                     })
                 });
                 const data = await response.json();
@@ -414,6 +534,9 @@
                 // Update score display immediately
                 const scoreEl = document.getElementById('score');
                 scoreEl.textContent = `Score: ${data.correct} / ${data.total}`;
+
+                // Reload tracking data
+                loadTracking();
             } catch (error) {
                 console.error('Failed to submit answer:', error);
             }
@@ -430,8 +553,73 @@
             `;
         }
 
-        // Load skills on page load
+        // Load tracking data
+        async function loadTracking() {
+            try {
+                const response = await fetch('/api/tracking?user_id=julia');
+                const data = await response.json();
+                renderTracking(data);
+            } catch (error) {
+                console.error('Failed to load tracking:', error);
+            }
+        }
+
+        function renderTracking(data) {
+            // Update totals
+            const totalQuestions = data.total_questions || 0;
+            const totalCorrect = data.total_correct || 0;
+            const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+
+            document.getElementById('total-questions').textContent = totalQuestions;
+            document.getElementById('total-accuracy').textContent = accuracy + '%';
+
+            // Update category stats
+            const categoryStatsEl = document.getElementById('category-stats');
+            if (data.categories && Object.keys(data.categories).length > 0) {
+                let html = '';
+                for (const [category, stats] of Object.entries(data.categories)) {
+                    const catAccuracy = stats.questions > 0 ? Math.round((stats.correct / stats.questions) * 100) : 0;
+                    html += `
+                        <div class="stat-item">
+                            <span class="stat-label">${category}</span>
+                            <span class="stat-value">
+                                ${stats.correct}/${stats.questions}
+                                <span class="accuracy">(${catAccuracy}%)</span>
+                            </span>
+                        </div>
+                    `;
+                }
+                categoryStatsEl.innerHTML = html;
+            } else {
+                categoryStatsEl.innerHTML = '<div class="stat-item"><span class="stat-label">No data yet</span></div>';
+            }
+
+            // Update skill stats (show top 5 most recent)
+            const skillStatsEl = document.getElementById('skill-stats');
+            if (data.skills && Object.keys(data.skills).length > 0) {
+                let html = '';
+                const skillEntries = Object.entries(data.skills).slice(-5).reverse(); // Last 5, most recent first
+                for (const [skillId, stats] of skillEntries) {
+                    const skillAccuracy = stats.questions > 0 ? Math.round((stats.correct / stats.questions) * 100) : 0;
+                    html += `
+                        <div class="stat-item">
+                            <span class="stat-label">${stats.name}</span>
+                            <span class="stat-value">
+                                ${stats.correct}/${stats.questions}
+                                <span class="accuracy">(${skillAccuracy}%)</span>
+                            </span>
+                        </div>
+                    `;
+                }
+                skillStatsEl.innerHTML = html;
+            } else {
+                skillStatsEl.innerHTML = '<div class="stat-item"><span class="stat-label">No data yet</span></div>';
+            }
+        }
+
+        // Load skills and tracking on page load
         loadSkills();
+        loadTracking();
     </script>
 </body>
 </html>
